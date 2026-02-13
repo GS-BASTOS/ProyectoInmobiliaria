@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Clientes')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<div class="container">
+  <div class="card">
+    <h2>Clientes</h2>
+
+    <!-- Filtros -->
+    <form class="filters" th:action="@{/clientes}" method="get">
+      <div class="grid-3">
+        <div>
+          <label>Tipo</label>
+          <select name="type">
+            <option value="ALL" th:selected="${type == 'ALL'}">Todos</option>
+            <option th:each="t : ${clientTypes}"
+                    th:value="${t}"
+                    th:text="${t}"
+                    th:selected="${type == t.name()}"></option>
+          </select>
+        </div>
+
+        <div>
+          <label>Desde</label>
+          <input type="date" name="from" th:value="${from}">
+        </div>
+
+        <div>
+          <label>Hasta</label>
+          <input type="date" name="to" th:value="${to}">
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label>Buscar (nombre, Solvia, inmueble, teléfono)</label>
+          <input name="q" th:value="${q}" placeholder="Ej: 12345 / MADRID / 600123123 / COD-001">
+        </div>
+
+        <div class="actions">
+          <button type="submit">Filtrar</button>
+          <a class="btn btn-secondary" th:href="@{/clientes}">Limpiar</a>
+        </div>
+      </div>
+    </form>
+
+    <div class="actions" style="margin-top:14px">
+      <a class="btn btn-primary" th:href="@{/agregar}">+ Agregar nuevo</a>
+      <a class="btn btn-secondary" th:href="@{/interesados}">Ver histórico de interesados</a>
+    </div>
+
+    <!-- Scrollbar horizontal fija arriba -->
+    <div class="table-top-scroll" id="clientsTopScroll" aria-hidden="true">
+      <div class="table-top-scroll-inner" id="clientsTopScrollInner"></div>
+    </div>
+
+    <!-- Contenedor real de la tabla -->
+    <div class="table-wrap" id="clientsTableWrap">
+      <table class="wide" id="clientsTable">
+        <thead>
+        <tr>
+          <th></th>
+          <th>Fecha</th>
+          <th>Código Solvia</th>
+          <th>Canal</th>
+          <th>Nota</th>
+          <th>Tipo</th>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+          <th>Email</th>
+          <th>Tipo inmueble</th>
+          <th>Código inm.</th>
+          <th>Dirección</th>
+          <th>Municipio</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="r : ${rows}">
+
+          <!-- ESTADO: solo bolita -->
+          <td>
+            <span th:if="${r.status == null}">—</span>
+
+            <span th:if="${r.status != null}">
+              <span class="dot azul" th:if="${#strings.startsWith(r.status.name(),'AZUL_')}"></span>
+              <span class="dot naranja" th:if="${#strings.startsWith(r.status.name(),'NARANJA_')}"></span>
+              <span class="dot rosa" th:if="${#strings.startsWith(r.status.name(),'ROSA_')}"></span>
+              <span class="dot verde" th:if="${#strings.startsWith(r.status.name(),'VERDE_')}"></span>
+              <span class="dot amarillo" th:if="${#strings.startsWith(r.status.name(),'AMARILLO_')}"></span>
+            </span>
+          </td>
+
+          <td th:text="${r.lastContactDate != null ? #temporals.format(r.lastContactDate, 'dd/MM/yyyy') : '—'}">11/02/2026</td>
+          <td th:text="${r.solviaCode != null ? r.solviaCode : '—'}">—</td>
+          <td th:text="${r.channel != null ? r.channel : '—'}">—</td>
+          <td th:text="${r.generalNotes != null ? r.generalNotes : ''}"></td>
+
+          <td th:text="${r.clientType}">PARTICULAR</td>
+
+          <td>
+            <a class="small" th:href="@{|/clientes/${r.clientId}|}" th:text="${r.fullName}">Nombre</a>
+          </td>
+
+          <td>
+            <span th:if="${r.phones == null || r.phones.isEmpty()}">—</span>
+            <span th:each="p,st : ${r.phones}"
+                  th:text="${p} + ${!st.last ? ', ' : ''}"></span>
+          </td>
+
+          <td>
+            <span th:if="${r.emails == null || r.emails.isEmpty()}">—</span>
+            <span th:each="e,st : ${r.emails}"
+                  th:text="${e} + ${!st.last ? ', ' : ''}"></span>
+          </td>
+
+          <td th:text="${r.lastPropertyType != null ? r.lastPropertyType : '—'}">—</td>
+          <td th:text="${r.lastPropertyCode != null ? r.lastPropertyCode : '—'}">—</td>
+          <td th:text="${r.lastPropertyAddress != null ? r.lastPropertyAddress : '—'}">—</td>
+          <td th:text="${r.lastPropertyMunicipality != null ? r.lastPropertyMunicipality : '—'}">—</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  (function () {
+    const wrap = document.getElementById('clientsTableWrap');
+    const top = document.getElementById('clientsTopScroll');
+    const topInner = document.getElementById('clientsTopScrollInner');
+    const table = document.getElementById('clientsTable');
+
+    if (!wrap || !top || !topInner || !table) return;
+
+    let syncing = false;
+
+    function updateTopWidth() {
+      const w = table.scrollWidth;
+      topInner.style.width = w + 'px';
+
+      // Solo mostrar la barra superior si hay overflow horizontal real
+      const hasX = table.scrollWidth > wrap.clientWidth + 1;
+      top.style.display = hasX ? 'block' : 'none';
+    }
+
+    top.addEventListener('scroll', function () {
+      if (syncing) return;
+      syncing = true;
+      wrap.scrollLeft = top.scrollLeft;
+      syncing = false;
+    });
+
+    wrap.addEventListener('scroll', function () {
+      if (syncing) return;
+      syncing = true;
+      top.scrollLeft = wrap.scrollLeft;
+      syncing = false;
+    });
+
+    // Inicial + cuando cambie tamaño de ventana
+    updateTopWidth();
+    window.addEventListener('resize', updateTopWidth);
+
+    // Por si cambian columnas/filas después (raro, pero útil)
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(updateTopWidth);
+      ro.observe(table);
+      ro.observe(wrap);
+    }
+  })();
+</script>
+
+</body>
+</html>

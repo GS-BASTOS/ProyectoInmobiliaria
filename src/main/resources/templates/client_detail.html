@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Cliente')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<div class="container">
+
+  <!-- PERFIL (solo info) -->
+  <div class="card" style="border-left:6px solid var(--line);">
+    <h2 th:text="${client.fullName}">Cliente</h2>
+    <div class="small">Información del cliente</div>
+
+    <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
+
+    <div class="grid">
+      <div>
+        <div class="small">Tipo</div>
+        <div th:text="${client.clientType}">PARTICULAR</div>
+      </div>
+
+      <div>
+        <div class="small">Código Solvia</div>
+        <div th:text="${client.solviaCode != null and !#strings.isEmpty(client.solviaCode) ? client.solviaCode : '—'}">—</div>
+      </div>
+
+      <div>
+        <div class="small">Teléfonos</div>
+        <div>
+          <span th:if="${#lists.isEmpty(client.phones)}">—</span>
+          <span th:each="p,st : ${client.phones}"
+                th:text="${p.phoneNumber} + ${!st.last ? ', ' : ''}">600000000</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="small">Emails</div>
+        <div>
+          <span th:if="${#lists.isEmpty(client.emails)}">—</span>
+          <span th:each="e,st : ${client.emails}"
+                th:text="${e.email} + ${!st.last ? ', ' : ''}">mail@mail.com</span>
+        </div>
+      </div>
+
+      <div style="grid-column: 1 / -1;">
+        <div class="small">Notas</div>
+        <div th:text="${client.generalNotes != null and !#strings.isEmpty(client.generalNotes) ? client.generalNotes : '—'}">—</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="btn btn-secondary" th:href="@{|/clientes/${client.id}#editar|}">Editar</a>
+      <a class="btn btn-secondary" th:href="@{/clientes}">Volver a clientes</a>
+    </div>
+  </div>
+
+  <!-- INTERACCIONES (lo más destacado) -->
+  <div class="card" style="margin-top:24px; border-top:3px solid var(--text);">
+    <h2>Interacciones</h2>
+    <div class="small">Histórico de contacto del cliente</div>
+
+    <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
+
+    <table>
+      <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Inmueble</th>
+        <th>Canal</th>
+        <th>Estado</th>
+        <th>Comentarios</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr th:if="${#lists.isEmpty(interactions)}">
+        <td colspan="5" class="small">Aún no hay interacciones registradas.</td>
+      </tr>
+
+      <tr th:each="it : ${interactions}">
+        <td th:text="${#temporals.format(it.contactDate, 'dd/MM/yyyy')}">13/02/2026</td>
+
+        <td>
+          <div><strong th:text="${it.property.propertyCode}">-</strong></div>
+
+          <div class="small"
+               th:if="${it.property.propertyType != null and !#strings.isEmpty(it.property.propertyType)}"
+               th:text="${it.property.propertyType}">Tipo</div>
+
+          <div class="small"
+               th:if="${it.property.address != null and !#strings.isEmpty(it.property.address)}"
+               th:text="${it.property.address}">Dirección</div>
+
+          <div class="small"
+               th:if="${it.property.municipality != null and !#strings.isEmpty(it.property.municipality)}"
+               th:text="${it.property.municipality}">Municipio</div>
+
+          <div class="small"
+               th:if="${it.property.notes != null and !#strings.isEmpty(it.property.notes)}"
+               th:text="${it.property.notes}">Notas</div>
+        </td>
+
+        <td th:text="${it.channel}">-</td>
+
+        <td>
+          <span class="badge" title="Estado">
+            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).AZUL_VISITA_PROGRAMADA_O_REALIZADA}"
+                  class="dot azul"></span>
+            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).NARANJA_QUIERE_VISITA}"
+                  class="dot naranja"></span>
+            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).ROSA_DESCARTA}"
+                  class="dot rosa"></span>
+            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).VERDE_PENSANDO}"
+                  class="dot verde"></span>
+            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).AMARILLO_OFERTA}"
+                  class="dot amarillo"></span>
+          </span>
+        </td>
+
+        <td th:text="${it.comments}">-</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- NUEVA INTERACCIÓN -->
+  <div class="card" style="margin-top:24px;">
+    <h2>Nueva interacción</h2>
+    <div class="small">Añadir un nuevo contacto del cliente</div>
+
+    <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
+
+    <form th:action="@{|/clientes/${client.id}/interacciones|}" th:object="${newInteraction}" method="post">
+
+      <div class="grid-3">
+        <div>
+          <label>Fecha</label>
+          <input type="date" th:field="*{contactDate}" />
+        </div>
+
+        <div>
+          <label>Canal (volvió a contactarnos)</label>
+          <select th:field="*{channel}">
+            <option th:each="c : ${channels}" th:value="${c}" th:text="${c}"></option>
+          </select>
+        </div>
+
+        <div>
+          <label>Estado</label>
+          <select th:field="*{status}">
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div>
+          <label>Código Solvia</label>
+          <input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123" />
+        </div>
+
+        <div>
+          <label>Teléfono (cliente)</label>
+          <input th:field="*{phone}" readonly />
+        </div>
+
+        <div>
+          <label>Email (cliente)</label>
+          <input th:field="*{email}" readonly />
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div>
+          <label>Municipio</label>
+          <input th:field="*{municipality}" placeholder="Ej: Madrid" />
+        </div>
+
+        <div>
+          <label>Tipo inmueble</label>
+          <input th:field="*{propertyType}" placeholder="Ej: Piso / Chalet" />
+        </div>
+
+        <div>
+          <label>Código inm.</label>
+          <input th:field="*{propertyCode}" placeholder="Ej: 1234" />
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label>Dirección</label>
+          <input th:field="*{address}" placeholder="Ej: Calle ..." />
+        </div>
+      </div>
+
+      <div>
+        <label>Comentarios</label>
+        <textarea th:field="*{comments}"></textarea>
+      </div>
+
+      <button type="submit">Guardar interacción</button>
+    </form>
+  </div>
+
+  <!-- EDITAR (al final) -->
+  <div class="card" id="editar" style="margin-top:24px;">
+    <h2>Editar cliente</h2>
+    <div class="small">Modificar datos del cliente</div>
+
+    <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
+
+    <form th:action="@{|/clientes/${client.id}/editar|}" th:object="${form}" method="post">
+      <input type="hidden" th:field="*{id}" />
+
+      <div>
+        <label>Tipo</label>
+        <select th:field="*{clientType}">
+          <option th:each="t : ${clientTypes}" th:value="${t}" th:text="${t}"></option>
+        </select>
+      </div>
+
+      <div>
+        <label>Nombre</label>
+        <input th:field="*{fullName}" />
+      </div>
+
+      <div>
+        <label>Código Solvia</label>
+        <input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123" />
+      </div>
+
+      <div>
+        <label>Teléfono 1</label>
+        <input th:field="*{phone1}" />
+      </div>
+      <div>
+        <label>Teléfono 2</label>
+        <input th:field="*{phone2}" />
+      </div>
+      <div>
+        <label>Teléfono 3</label>
+        <input th:field="*{phone3}" />
+      </div>
+
+      <div>
+        <label>Email 1</label>
+        <input th:field="*{email1}" />
+      </div>
+      <div>
+        <label>Email 2</label>
+        <input th:field="*{email2}" />
+      </div>
+
+      <div>
+        <label>Notas</label>
+        <textarea th:field="*{generalNotes}"></textarea>
+      </div>
+
+      <button type="submit">Guardar</button>
+    </form>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Visitas realizadas')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<div class="container">
+  <div class="card">
+    <h2>Visitas realizadas</h2>
+
+    <table>
+      <thead>
+      <tr>
+        <th>Fecha/Hora</th>
+        <th>Cliente</th>
+        <th>Inmueble</th>
+        <th>Notas</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="v : ${visits}">
+        <td th:text="${v.visitAt}">2026-02-10T18:00</td>
+        <td th:text="${v.client.fullName}">Nombre</td>
+        <td th:text="${v.property.propertyCode}">COD</td>
+        <td th:text="${v.notes}">...</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

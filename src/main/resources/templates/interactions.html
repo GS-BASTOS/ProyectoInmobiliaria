@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Interesados')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<div class="container">
+  <div class="card">
+    <h2>Histórico de interesados</h2>
+
+    <!-- FILTROS -->
+    <form class="filters" th:action="@{/interesados}" method="get">
+      <div class="grid">
+        <div>
+          <label>Estado</label>
+          <select name="status">
+            <option value="" th:selected="${selectedStatus == null}">Todos</option>
+            <option th:each="s : ${statuses}"
+                    th:value="${s}"
+                    th:text="${s}"
+                    th:selected="${selectedStatus == s}">
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label>Canal</label>
+          <select name="channel">
+            <option value="" th:selected="${selectedChannel == null}">Todos</option>
+            <option th:each="c : ${channels}"
+                    th:value="${c}"
+                    th:text="${c}"
+                    th:selected="${selectedChannel == c}">
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label>Desde</label>
+          <input type="date" name="from" th:value="${from}">
+        </div>
+
+        <div>
+          <label>Hasta</label>
+          <input type="date" name="to" th:value="${to}">
+        </div>
+
+        <div>
+          <label>Buscar</label>
+          <input type="text"
+                 name="q"
+                 placeholder="Cliente, código, dirección, comentario..."
+                 th:value="${q}">
+        </div>
+
+        <div class="actions" style="align-items:end;">
+          <button type="submit">Filtrar</button>
+          <a class="btn btn-secondary" th:href="@{/interesados}">Limpiar</a>
+        </div>
+      </div>
+    </form>
+
+    <table>
+      <thead>
+      <tr>
+        <th>Estado</th>
+        <th>Fecha</th>
+        <th>Cliente</th>
+        <th>Teléfonos</th>
+        <th>Emails</th>
+        <th>Inmueble</th>
+        <th>Canal</th>
+        <th>Comentarios</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr th:each="it : ${items}">
+
+        <td>
+          <span class="badge" title="Estado">
+            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).AZUL_VISITA_PROGRAMADA_O_REALIZADA}"
+                  class="dot-status azul"></span>
+
+            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).NARANJA_QUIERE_VISITA}"
+                  class="dot-status naranja"></span>
+
+            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).ROSA_DESCARTA}"
+                  class="dot-status rosa"></span>
+
+            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).VERDE_PENSANDO}"
+                  class="dot-status verde"></span>
+
+            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).AMARILLO_OFERTA}"
+                  class="dot-status amarillo"></span>
+          </span>
+        </td>
+
+        <td th:text="${#temporals.format(it.contactDate, 'dd/MM/yyyy')}">13/02/2026</td>
+
+        <td>
+          <a class="small"
+             th:href="@{|/clientes/${it.client.id}|}"
+             th:text="${it.client.fullName}">Cliente</a>
+        </td>
+
+        <td>
+          <span th:if="${phonesByClientId.get(it.client.id) == null}">—</span>
+          <span th:each="p,st : ${phonesByClientId.get(it.client.id)}"
+                th:text="${p.phoneNumber} + ${!st.last ? ', ' : ''}"></span>
+        </td>
+
+        <td>
+          <span th:if="${emailsByClientId.get(it.client.id) == null}">—</span>
+          <span th:each="e,st : ${emailsByClientId.get(it.client.id)}"
+                th:text="${e.email} + ${!st.last ? ', ' : ''}"></span>
+        </td>
+
+        <!-- INMUEBLE COMPLETO -->
+        <td>
+          <div><strong th:text="${it.property.propertyCode}">ABC123</strong></div>
+          <div class="small" th:if="${it.property.propertyType != null}" th:text="${it.property.propertyType}">Tipo</div>
+          <div class="small" th:if="${it.property.address != null}" th:text="${it.property.address}">Dirección</div>
+          <div class="small" th:if="${it.property.municipality != null}" th:text="${it.property.municipality}">Municipio</div>
+        </td>
+
+        <td th:text="${it.channel}">IDEALISTA</td>
+        <td th:text="${it.comments}">...</td>
+      </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+</body>
+</html>
