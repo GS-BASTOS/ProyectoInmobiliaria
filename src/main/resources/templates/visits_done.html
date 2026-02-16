@@ -17,16 +17,18 @@
         <th>Notas</th>
       </tr>
       </thead>
+
       <tbody>
       <tr th:each="v : ${visits}">
-        <td th:text="${v.visitAt}">2026-02-10T18:00</td>
+        <td th:text="${v.visitAt}">2026-02-11T12:00</td>
         <td th:text="${v.client.fullName}">Nombre</td>
         <td th:text="${v.property.propertyCode}">COD</td>
-        <td th:text="${v.notes}">...</td>
+        <td th:text="${v.notes}">—</td>
       </tr>
       </tbody>
     </table>
   </div>
 </div>
+
 </body>
 </html>

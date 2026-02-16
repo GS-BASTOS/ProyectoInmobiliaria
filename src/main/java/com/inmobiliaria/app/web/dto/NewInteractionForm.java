@@ -38,7 +38,6 @@ public class NewInteractionForm {
     @Size(max = 80)
     private String municipality;
 
-    // NUEVO: solo para mostrar (readonly) en el form
     @Size(max = 30)
     private String phone;
 

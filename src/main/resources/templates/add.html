@@ -6,17 +6,17 @@
 
 <div class="container">
   <div class="card">
-    <h2>Agregar cliente + interés</h2>
+    <h2>Agregar cliente interesado</h2>
 
     <form th:action="@{/agregar}" th:object="${form}" method="post">
 
-      <!-- ERRORES GLOBALES: dentro del form para que #fields funcione -->
+      <!-- ERRORES GLOBALES -->
       <div class="global-errors" th:if="${#fields.hasGlobalErrors()}">
         <div th:each="e : ${#fields.globalErrors()}" th:text="${e}">Error</div>
+      </div>
 
-        <div th:if="${existingClientId != null}" style="margin-top:8px;">
-          <a th:href="@{|/clientes/${existingClientId}|}">Abrir ficha del cliente existente</a>
-        </div>
+      <div th:if="${existingClientId != null}" style="margin-top:8px;">
+        <a th:href="@{|/clientes/${existingClientId}|}">Abrir ficha del cliente existente</a>
       </div>
 
       <div class="grid-3">
@@ -30,7 +30,7 @@
 
         <div>
           <label>Fecha contacto</label>
-          <input type="date" th:field="*{contactDate}">
+          <input type="date" th:field="*{contactDate}"/>
           <div class="field-error" th:if="${#fields.hasErrors('contactDate')}" th:errors="*{contactDate}"></div>
         </div>
 
@@ -46,33 +46,33 @@
       <div class="grid">
         <div>
           <label>Nombre completo</label>
-          <input th:field="*{fullName}">
+          <input th:field="*{fullName}"/>
           <div class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
         </div>
 
         <div>
           <label>Código Solvia</label>
-          <input th:field="*{solviaCode}">
+          <input th:field="*{solviaCode}"/>
           <div class="field-error" th:if="${#fields.hasErrors('solviaCode')}" th:errors="*{solviaCode}"></div>
         </div>
       </div>
 
       <div class="grid-3">
         <div>
-          <label>Teléfono 1 (principal)</label>
-          <input th:field="*{phone1}">
+          <label>Teléfono 1 principal</label>
+          <input th:field="*{phone1}"/>
           <div class="field-error" th:if="${#fields.hasErrors('phone1')}" th:errors="*{phone1}"></div>
         </div>
 
         <div>
           <label>Teléfono 2</label>
-          <input th:field="*{phone2}">
+          <input th:field="*{phone2}"/>
           <div class="field-error" th:if="${#fields.hasErrors('phone2')}" th:errors="*{phone2}"></div>
         </div>
 
         <div>
           <label>Teléfono 3</label>
-          <input th:field="*{phone3}">
+          <input th:field="*{phone3}"/>
           <div class="field-error" th:if="${#fields.hasErrors('phone3')}" th:errors="*{phone3}"></div>
         </div>
       </div>
@@ -80,13 +80,13 @@
       <div class="grid">
         <div>
           <label>Email 1</label>
-          <input th:field="*{email1}">
+          <input th:field="*{email1}"/>
           <div class="field-error" th:if="${#fields.hasErrors('email1')}" th:errors="*{email1}"></div>
         </div>
 
         <div>
           <label>Email 2</label>
-          <input th:field="*{email2}">
+          <input th:field="*{email2}"/>
           <div class="field-error" th:if="${#fields.hasErrors('email2')}" th:errors="*{email2}"></div>
         </div>
       </div>
@@ -99,18 +99,21 @@
           </select>
           <div class="field-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
 
-          <div class="small" style="margin-top:8px">
-            <span class="badge"><span class="dot azul"></span>Azul</span>
+          <div class="small" style="margin-top:8px;">
+            <span class="badge"><span class="dot azul-claro"></span>Azul Claro (Visita Programada)</span>
+            <span class="badge"><span class="dot azul-oscuro"></span>Azul Oscuro (Visita Realizada)</span>
             <span class="badge"><span class="dot naranja"></span>Naranja</span>
             <span class="badge"><span class="dot rosa"></span>Rosa</span>
             <span class="badge"><span class="dot verde"></span>Verde</span>
             <span class="badge"><span class="dot amarillo"></span>Amarillo</span>
           </div>
         </div>
+      </div>
 
+      <div class="grid">
         <div>
           <label>Municipio/Población</label>
-          <input th:field="*{municipality}">
+          <input th:field="*{municipality}"/>
           <div class="field-error" th:if="${#fields.hasErrors('municipality')}" th:errors="*{municipality}"></div>
         </div>
       </div>
@@ -118,19 +121,19 @@
       <div class="grid-3">
         <div>
           <label>Código inmueble</label>
-          <input th:field="*{propertyCode}">
+          <input th:field="*{propertyCode}"/>
           <div class="field-error" th:if="${#fields.hasErrors('propertyCode')}" th:errors="*{propertyCode}"></div>
         </div>
 
         <div>
           <label>Tipo de inmueble</label>
-          <input th:field="*{propertyType}">
+          <input th:field="*{propertyType}"/>
           <div class="field-error" th:if="${#fields.hasErrors('propertyType')}" th:errors="*{propertyType}"></div>
         </div>
 
         <div>
           <label>Dirección inmueble</label>
-          <input th:field="*{address}">
+          <input th:field="*{address}"/>
           <div class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
         </div>
       </div>
@@ -148,5 +151,6 @@
     </form>
   </div>
 </div>
+
 </body>
 </html>

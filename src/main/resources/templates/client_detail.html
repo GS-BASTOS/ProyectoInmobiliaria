@@ -54,7 +54,7 @@
     </div>
   </div>
 
-  <!-- INTERACCIONES (lo más destacado) -->
+  <!-- INTERACCIONES -->
   <div class="card" style="margin-top:24px; border-top:3px solid var(--text);">
     <h2>Interacciones</h2>
     <div class="small">Histórico de contacto del cliente</div>
@@ -66,6 +66,7 @@
       <tr>
         <th>Fecha</th>
         <th>Inmueble</th>
+        <th>NDA</th>
         <th>Canal</th>
         <th>Estado</th>
         <th>Comentarios</th>
@@ -74,7 +75,7 @@
 
       <tbody>
       <tr th:if="${#lists.isEmpty(interactions)}">
-        <td colspan="5" class="small">Aún no hay interacciones registradas.</td>
+        <td colspan="6" class="small">Aún no hay interacciones registradas.</td>
       </tr>
 
       <tr th:each="it : ${interactions}">
@@ -100,20 +101,29 @@
                th:text="${it.property.notes}">Notas</div>
         </td>
 
+        <!-- NDA -->
+        <td style="text-align:center;">
+          <input type="checkbox"
+                 class="nda-toggle"
+                 th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
+                 th:checked="${it.ndaRequested}" />
+        </td>
+
         <td th:text="${it.channel}">-</td>
 
+        <!-- ESTADO editable + bolita dinámica -->
         <td>
-          <span class="badge" title="Estado">
-            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).AZUL_VISITA_PROGRAMADA_O_REALIZADA}"
-                  class="dot azul"></span>
-            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).NARANJA_QUIERE_VISITA}"
-                  class="dot naranja"></span>
-            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).ROSA_DESCARTA}"
-                  class="dot rosa"></span>
-            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).VERDE_PENSANDO}"
-                  class="dot verde"></span>
-            <span th:if="${it.status == T(com.inmobiliaria.app.domain.InterestStatus).AMARILLO_OFERTA}"
-                  class="dot amarillo"></span>
+          <select class="status-select"
+                  th:attr="data-client-id=${client.id},data-interaction-id=${it.id}">
+            <option th:each="s : ${statuses}"
+                    th:value="${s}"
+                    th:text="${s}"
+                    th:selected="${s == it.status}">
+            </option>
+          </select>
+
+          <span class="badge" title="Estado" style="margin-left:8px;">
+            <span class="dot status-dot" th:attr="data-status=${it.status}"></span>
           </span>
         </td>
 
@@ -262,5 +272,96 @@
   </div>
 
 </div>
+
+<script>
+  (function () {
+
+    // NDA toggle
+    const toggles = document.querySelectorAll('.nda-toggle');
+    toggles.forEach(cb => {
+      cb.addEventListener('change', async function () {
+        const clientId = cb.getAttribute('data-client-id');
+        const interactionId = cb.getAttribute('data-interaction-id');
+        const checked = cb.checked;
+
+        try {
+          const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/nda`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'ndaRequested=' + encodeURIComponent(String(checked))
+          });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+        } catch (e) {
+          cb.checked = !checked;
+          alert('No se pudo actualizar NDA.');
+        }
+      });
+    });
+
+    function statusToClass(statusValue) {
+      const map = {
+        'AZUL_VISITA_PROGRAMADA': 'azul-claro',
+        'AZUL_VISITA_REALIZADA': 'azul-oscuro',
+        'NARANJA_QUIERE_VISITA': 'naranja',
+        'ROSA_DESCARTA': 'rosa',
+        'VERDE_PENSANDO': 'verde',
+        'AMARILLO_OFERTA': 'amarillo'
+      };
+      return map[statusValue] || '';
+    }
+
+    function paintDot(dotEl, statusValue) {
+      dotEl.classList.remove('azul-claro','azul-oscuro','naranja','rosa','verde','amarillo');
+      const cls = statusToClass(statusValue);
+      if (cls) dotEl.classList.add(cls);
+      dotEl.setAttribute('data-status', statusValue);
+    }
+
+    function applyDotColor(selectEl, statusValue) {
+      const td = selectEl.closest('td');
+      const dot = td ? td.querySelector('.status-dot') : null;
+      if (!dot) return;
+      paintDot(dot, statusValue);
+    }
+
+    // pintar todas las bolitas al cargar
+    document.querySelectorAll('.status-dot').forEach(dot => {
+      const statusValue = dot.getAttribute('data-status');
+      if (statusValue) paintDot(dot, statusValue);
+    });
+
+    // Status change
+    const selects = document.querySelectorAll('.status-select');
+    selects.forEach(sel => {
+      sel.setAttribute('data-old', sel.value);
+      applyDotColor(sel, sel.value);
+
+      sel.addEventListener('change', async function () {
+        const clientId = sel.getAttribute('data-client-id');
+        const interactionId = sel.getAttribute('data-interaction-id');
+        const value = sel.value;
+        const oldValue = sel.getAttribute('data-old') || value;
+
+        applyDotColor(sel, value);
+
+        try {
+          const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'status=' + encodeURIComponent(value)
+          });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          sel.setAttribute('data-old', value);
+        } catch (e) {
+          sel.value = oldValue;
+          applyDotColor(sel, oldValue);
+          alert('No se pudo actualizar el estado.');
+        }
+      });
+    });
+
+  })();
+</script>
+
 </body>
 </html>

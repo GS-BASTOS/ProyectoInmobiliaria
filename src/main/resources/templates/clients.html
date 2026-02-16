@@ -18,36 +18,37 @@
             <option th:each="t : ${clientTypes}"
                     th:value="${t}"
                     th:text="${t}"
-                    th:selected="${type == t.name()}"></option>
+                    th:selected="${type == t.name()}">
+            </option>
           </select>
         </div>
 
         <div>
           <label>Desde</label>
-          <input type="date" name="from" th:value="${from}">
+          <input type="date" name="from" th:value="${from}"/>
         </div>
 
         <div>
           <label>Hasta</label>
-          <input type="date" name="to" th:value="${to}">
+          <input type="date" name="to" th:value="${to}"/>
         </div>
       </div>
 
       <div class="grid">
         <div>
-          <label>Buscar (nombre, Solvia, inmueble, teléfono)</label>
-          <input name="q" th:value="${q}" placeholder="Ej: 12345 / MADRID / 600123123 / COD-001">
+          <label>Buscar nombre, Solvia, inmueble, teléfono</label>
+          <input name="q" th:value="${q}" placeholder="Ej: 12345 MADRID 600123123 COD-001"/>
         </div>
 
-        <div class="actions">
+        <div class="actions" style="align-items:end;">
           <button type="submit">Filtrar</button>
           <a class="btn btn-secondary" th:href="@{/clientes}">Limpiar</a>
         </div>
       </div>
     </form>
 
-    <div class="actions" style="margin-top:14px">
-      <a class="btn btn-primary" th:href="@{/agregar}">+ Agregar nuevo</a>
+    <div class="actions" style="margin-top:14px;">
+      <a class="btn btn-primary" th:href="@{/agregar}">Agregar nuevo</a>
       <a class="btn btn-secondary" th:href="@{/interesados}">Ver histórico de interesados</a>
     </div>
 
@@ -79,25 +80,18 @@
 
         <tbody>
         <tr th:each="r : ${rows}">
-
-          <!-- ESTADO: solo bolita -->
+          <!-- ESTADO: dot por JS -->
           <td>
             <span th:if="${r.status == null}">—</span>
-
             <span th:if="${r.status != null}">
-              <span class="dot azul" th:if="${#strings.startsWith(r.status.name(),'AZUL_')}"></span>
-              <span class="dot naranja" th:if="${#strings.startsWith(r.status.name(),'NARANJA_')}"></span>
-              <span class="dot rosa" th:if="${#strings.startsWith(r.status.name(),'ROSA_')}"></span>
-              <span class="dot verde" th:if="${#strings.startsWith(r.status.name(),'VERDE_')}"></span>
-              <span class="dot amarillo" th:if="${#strings.startsWith(r.status.name(),'AMARILLO_')}"></span>
+              <span class="dot status-dot" th:attr="data-status=${r.status}"></span>
             </span>
           </td>
 
-          <td th:text="${r.lastContactDate != null ? #temporals.format(r.lastContactDate, 'dd/MM/yyyy') : '—'}">11/02/2026</td>
+          <td th:text="${r.lastContactDate != null ? #temporals.format(r.lastContactDate, 'dd/MM/yyyy') : '—'}">—</td>
           <td th:text="${r.solviaCode != null ? r.solviaCode : '—'}">—</td>
           <td th:text="${r.channel != null ? r.channel : '—'}">—</td>
-          <td th:text="${r.generalNotes != null ? r.generalNotes : ''}"></td>
-
+          <td th:text="${r.generalNotes != null ? r.generalNotes : '—'}">—</td>
           <td th:text="${r.clientType}">PARTICULAR</td>
 
           <td>
@@ -105,15 +99,13 @@
           </td>
 
           <td>
-            <span th:if="${r.phones == null || r.phones.isEmpty()}">—</span>
-            <span th:each="p,st : ${r.phones}"
-                  th:text="${p} + ${!st.last ? ', ' : ''}"></span>
+            <span th:if="${r.phones == null or r.phones.isEmpty()}">—</span>
+            <span th:each="p,st : ${r.phones}" th:text="${p} + ${!st.last ? ', ' : ''}">600000000</span>
           </td>
 
           <td>
-            <span th:if="${r.emails == null || r.emails.isEmpty()}">—</span>
-            <span th:each="e,st : ${r.emails}"
-                  th:text="${e} + ${!st.last ? ', ' : ''}"></span>
+            <span th:if="${r.emails == null or r.emails.isEmpty()}">—</span>
+            <span th:each="e,st : ${r.emails}" th:text="${e} + ${!st.last ? ', ' : ''}">mail@mail.com</span>
           </td>
 
           <td th:text="${r.lastPropertyType != null ? r.lastPropertyType : '—'}">—</td>
@@ -124,17 +116,16 @@
         </tbody>
       </table>
     </div>
-
   </div>
 </div>
 
 <script>
   (function () {
+    // Scroll sync (tu lógica)
     const wrap = document.getElementById('clientsTableWrap');
     const top = document.getElementById('clientsTopScroll');
     const topInner = document.getElementById('clientsTopScrollInner');
     const table = document.getElementById('clientsTable');
-
     if (!wrap || !top || !topInner || !table) return;
 
     let syncing = false;
@@ -142,8 +133,6 @@
     function updateTopWidth() {
       const w = table.scrollWidth;
       topInner.style.width = w + 'px';
-
-      // Solo mostrar la barra superior si hay overflow horizontal real
       const hasX = table.scrollWidth > wrap.clientWidth + 1;
       top.style.display = hasX ? 'block' : 'none';
     }
@@ -162,16 +151,40 @@
       syncing = false;
     });
 
-    // Inicial + cuando cambie tamaño de ventana
     updateTopWidth();
     window.addEventListener('resize', updateTopWidth);
 
-    // Por si cambian columnas/filas después (raro, pero útil)
     if (window.ResizeObserver) {
       const ro = new ResizeObserver(updateTopWidth);
       ro.observe(table);
       ro.observe(wrap);
     }
+
+    // Dots estado (mismo mapeo)
+    function statusToClass(statusValue) {
+      const map = {
+        'AZUL_VISITA_PROGRAMADA': 'azul-claro',
+        'AZUL_VISITA_REALIZADA': 'azul-oscuro',
+        'NARANJA_QUIERE_VISITA': 'naranja',
+        'ROSA_DESCARTA': 'rosa',
+        'VERDE_PENSANDO': 'verde',
+        'AMARILLO_OFERTA': 'amarillo'
+      };
+      return map[statusValue] || '';
+    }
+
+    function paintDot(dotEl, statusValue) {
+      dotEl.classList.remove('azul-claro','azul-oscuro','naranja','rosa','verde','amarillo');
+      const cls = statusToClass(statusValue);
+      if (cls) dotEl.classList.add(cls);
+      dotEl.setAttribute('data-status', statusValue);
+    }
+
+    document.querySelectorAll('.status-dot').forEach(dot => {
+      const statusValue = dot.getAttribute('data-status');
+      if (statusValue) paintDot(dot, statusValue);
+    });
+
   })();
 </script>
 

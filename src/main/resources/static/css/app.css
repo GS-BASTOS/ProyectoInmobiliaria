@@ -7,7 +7,11 @@
   --line:#d9d2c6;      /* borde beige/gris */
 
   /* Acentos */
-  --azul:#1f5eff;
+  --azul:#1f5eff;           /* compat / azul “de siempre” */
+  --azul-claro:#5aa7ff;     /* Visita Programada */
+  --azul-oscuro:#0b1f5c;    /* Visita Realizada (más oscuro) */
+  
+
   --naranja:#e07a18;
   --rosa:#b02cff;
   --verde:#168a53;
@@ -105,7 +109,7 @@ table.wide thead th{
   white-space:nowrap;
 }
 
-/* Dot grande */
+/* Dot grande (redondo) */
 .dot{
   display:inline-block;
   width:25px;
@@ -114,11 +118,18 @@ table.wide thead th{
   vertical-align:middle;
 }
 
-.dot.azul{background:var(--azul)}
+/* Nuevos azules */
+.dot.azul-claro{background:var(--azul-claro)}
+.dot.azul-oscuro{background:var(--azul-oscuro)}
+
+/* Colores existentes */
 .dot.naranja{background:var(--naranja)}
 .dot.rosa{background:var(--rosa)}
 .dot.verde{background:var(--verde)}
 .dot.amarillo{background:var(--amarillo)}
+
+/* Compatibilidad (si en algún sitio sigues usando .dot.azul) */
+.dot.azul{background:var(--azul)}
 
 /* Forms */
 input, select, textarea{
@@ -227,16 +238,31 @@ input.input-error, select.input-error, textarea.input-error{
 /* ===== Dots de estado (Interesados) ===== */
 .dot-status{
   display:inline-block;
-  width:45px;      /* más ancho horizontalmente */
-  height:18px;     /* más bajito que ancho */
+  width:45px;          /* más ancho horizontalmente */
+  height:18px;         /* más bajito que ancho */
   border-radius:999px; /* forma píldora */
   vertical-align:middle;
 }
 
+/* Nuevos azules (píldora) */
+.dot-status.azul-claro{background:var(--azul-claro)}
+.dot-status.azul-oscuro{background:var(--azul-oscuro)}
+
 /* Colores reutilizando tus variables */
-.dot-status.azul{background:var(--azul)}
 .dot-status.naranja{background:var(--naranja)}
 .dot-status.rosa{background:var(--rosa)}
 .dot-status.verde{background:var(--verde)}
 .dot-status.amarillo{background:var(--amarillo)}
 
+/* Compatibilidad */
+.dot-status.azul{background:var(--azul)}
+
+table input[type="checkbox"]{ transform: translateY(1px); }
+
+#emailsBox{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.kv{ display:flex; gap:6px; flex-wrap:wrap; }
+.kv .k{ color: var(--azul); font-size:12px; font-weight:700; }
+.kv .v{ color: var(--text); }

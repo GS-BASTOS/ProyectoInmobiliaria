@@ -38,9 +38,6 @@ public interface ClientPropertyInteractionRepository extends JpaRepository<Clien
     """)
     List<ClientPropertyInteraction> findByStatusWithClientAndPropertyOrderByContactDateDesc(@Param("status") InterestStatus status);
 
-    // Trae las interacciones (ids) "últimas" por cliente:
-    // 1) máxima contactDate
-    // 2) si empatan en fecha, máxima id
     @Query("""
         select max(i2.id)
         from ClientPropertyInteraction i2
@@ -53,7 +50,6 @@ public interface ClientPropertyInteractionRepository extends JpaRepository<Clien
     """)
     List<Long> findLastInteractionIdsPerClientByDateExact();
 
-    // IMPORTANTÍSIMO: fetch de client y property para poder mapear a DTO sin Lazy
     @Query("""
         select i
         from ClientPropertyInteraction i
@@ -62,61 +58,58 @@ public interface ClientPropertyInteractionRepository extends JpaRepository<Clien
         where i.id in :ids
     """)
     List<ClientPropertyInteraction> findByIdInWithClientAndProperty(@Param("ids") List<Long> ids);
-    
-    
-    @Query("""
-    	    select i
-    	    from ClientPropertyInteraction i
-    	    join fetch i.client c
-    	    join fetch i.property p
-    	    where (:status is null or i.status = :status)
-    	      and (:channel is null or i.channel = :channel)
-    	      and (
-    	           :q is null or :q = '' or
-    	           lower(c.fullName) like lower(concat('%', :q, '%')) or
-    	           lower(p.propertyCode) like lower(concat('%', :q, '%')) or
-    	           lower(p.propertyType) like lower(concat('%', :q, '%')) or
-    	           lower(p.address) like lower(concat('%', :q, '%')) or
-    	           lower(p.municipality) like lower(concat('%', :q, '%')) or
-    	           lower(i.comments) like lower(concat('%', :q, '%')) or
-    	           lower(i.solviaCode) like lower(concat('%', :q, '%'))
-    	      )
-    	    order by i.contactDate desc, i.id desc
-    	""")
-    	List<ClientPropertyInteraction> searchWithFilters(
-    	        @Param("status") InterestStatus status,
-    	        @Param("channel") com.inmobiliaria.app.domain.ContactChannel channel,
-    	        @Param("q") String q
-    	);
 
-    
     @Query("""
-    	    select i
-    	    from ClientPropertyInteraction i
-    	    join fetch i.client c
-    	    join fetch i.property p
-    	    where (:status is null or i.status = :status)
-    	      and (:channel is null or i.channel = :channel)
-    	      and (:from is null or i.contactDate >= :from)
-    	      and (:to is null or i.contactDate <= :to)
-    	      and (
-    	           :q is null or :q = '' or
-    	           lower(c.fullName) like lower(concat('%', :q, '%')) or
-    	           lower(p.propertyCode) like lower(concat('%', :q, '%')) or
-    	           lower(p.propertyType) like lower(concat('%', :q, '%')) or
-    	           lower(p.address) like lower(concat('%', :q, '%')) or
-    	           lower(p.municipality) like lower(concat('%', :q, '%')) or
-    	           lower(i.comments) like lower(concat('%', :q, '%')) or
-    	           lower(i.solviaCode) like lower(concat('%', :q, '%'))
-    	      )
-    	    order by i.contactDate desc, i.id desc
-    	""")
-    	List<ClientPropertyInteraction> searchWithFilters(
-    	        @Param("status") InterestStatus status,
-    	        @Param("channel") com.inmobiliaria.app.domain.ContactChannel channel,
-    	        @Param("q") String q,
-    	        @Param("from") java.time.LocalDate from,
-    	        @Param("to") java.time.LocalDate to
-    	);
+        select i
+        from ClientPropertyInteraction i
+        join fetch i.client c
+        join fetch i.property p
+        where (:status is null or i.status = :status)
+          and (:channel is null or i.channel = :channel)
+          and (
+               :q is null or :q = '' or
+               lower(c.fullName) like lower(concat('%', :q, '%')) or
+               lower(p.propertyCode) like lower(concat('%', :q, '%')) or
+               lower(p.propertyType) like lower(concat('%', :q, '%')) or
+               lower(p.address) like lower(concat('%', :q, '%')) or
+               lower(p.municipality) like lower(concat('%', :q, '%')) or
+               lower(i.comments) like lower(concat('%', :q, '%')) or
+               lower(i.solviaCode) like lower(concat('%', :q, '%'))
+          )
+        order by i.contactDate desc, i.id desc
+    """)
+    List<ClientPropertyInteraction> searchWithFilters(
+            @Param("status") InterestStatus status,
+            @Param("channel") com.inmobiliaria.app.domain.ContactChannel channel,
+            @Param("q") String q
+    );
 
+    @Query("""
+        select i
+        from ClientPropertyInteraction i
+        join fetch i.client c
+        join fetch i.property p
+        where (:status is null or i.status = :status)
+          and (:channel is null or i.channel = :channel)
+          and (:from is null or i.contactDate >= :from)
+          and (:to is null or i.contactDate <= :to)
+          and (
+               :q is null or :q = '' or
+               lower(c.fullName) like lower(concat('%', :q, '%')) or
+               lower(p.propertyCode) like lower(concat('%', :q, '%')) or
+               lower(p.propertyType) like lower(concat('%', :q, '%')) or
+               lower(p.address) like lower(concat('%', :q, '%')) or
+               lower(p.municipality) like lower(concat('%', :q, '%')) or
+               lower(i.comments) like lower(concat('%', :q, '%')) or
+               lower(i.solviaCode) like lower(concat('%', :q, '%'))
+          )
+        order by i.contactDate desc, i.id desc
+    """)
+    List<ClientPropertyInteraction> searchWithFilters(
+            @Param("status") InterestStatus status,
+            @Param("channel") com.inmobiliaria.app.domain.ContactChannel channel,
+            @Param("q") String q,
+            @Param("from") java.time.LocalDate from,
+            @Param("to") java.time.LocalDate to
+    );
 }

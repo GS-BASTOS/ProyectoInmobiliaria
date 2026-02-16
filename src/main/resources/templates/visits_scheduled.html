@@ -17,12 +17,13 @@
         <th>Notas</th>
       </tr>
       </thead>
+
       <tbody>
       <tr th:each="v : ${visits}">
         <td th:text="${v.visitAt}">2026-02-11T12:00</td>
         <td th:text="${v.client.fullName}">Nombre</td>
         <td th:text="${v.property.propertyCode}">COD</td>
-        <td th:text="${v.notes}">...</td>
+        <td th:text="${v.notes}">—</td>
       </tr>
       </tbody>
     </table>
@@ -30,5 +31,6 @@
     <p class="small">Luego añadimos el formulario para crear visitas y marcarlas como realizadas.</p>
   </div>
 </div>
+
 </body>
 </html>

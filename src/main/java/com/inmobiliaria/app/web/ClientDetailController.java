@@ -70,6 +70,42 @@ public class ClientDetailController {
         return "client_detail";
     }
 
+    // Toggle NDA por interacción
+    @PostMapping("/clientes/{clientId}/interacciones/{interactionId}/nda")
+    @ResponseBody
+    public void toggleNda(@PathVariable Long clientId,
+                          @PathVariable Long interactionId,
+                          @RequestParam("ndaRequested") boolean ndaRequested) {
+
+        ClientPropertyInteraction it = interactionRepository.findById(interactionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (it.getClient() == null || it.getClient().getId() == null || !it.getClient().getId().equals(clientId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        it.setNdaRequested(ndaRequested);
+        interactionRepository.save(it);
+    }
+
+    // Cambiar estado por interacción
+    @PostMapping("/clientes/{clientId}/interacciones/{interactionId}/status")
+    @ResponseBody
+    public void updateInteractionStatus(@PathVariable Long clientId,
+                                        @PathVariable Long interactionId,
+                                        @RequestParam("status") InterestStatus status) {
+
+        ClientPropertyInteraction it = interactionRepository.findById(interactionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (it.getClient() == null || it.getClient().getId() == null || !it.getClient().getId().equals(clientId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        it.setStatus(status);
+        interactionRepository.save(it);
+    }
+
     @PostMapping("/clientes/{id}/editar")
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute("form") ClientEditForm form,
@@ -174,8 +210,10 @@ public class ClientDetailController {
         interaction.setContactDate(form.getContactDate());
         interaction.setChannel(form.getChannel());
         interaction.setStatus(form.getStatus());
-        interaction.setSolviaCode(t(form.getSolviaCode())); // <-- IMPORTANTE
+        interaction.setSolviaCode(t(form.getSolviaCode()));
         interaction.setComments(t(form.getComments()));
+        interaction.setNdaRequested(false);
+
         interactionRepository.save(interaction);
 
         return "redirect:/clientes/" + id;
@@ -197,7 +235,6 @@ public class ClientDetailController {
         ni.setPhone(phone1);
         ni.setEmail(email1);
 
-        // Por defecto, usa el código Solvia del cliente (editable en el form si hace falta)
         ni.setSolviaCode(t(client.getSolviaCode()));
 
         if (interactions != null && !interactions.isEmpty()) {
