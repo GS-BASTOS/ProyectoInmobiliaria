@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Ficha inmueble')}"></head>
+<style>
+  /* ── Media grid ───────────────────────────────────────── */
+  .media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+  }
+  .media-item {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f5f3ef;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: box-shadow 0.18s;
+  }
+  .media-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  .media-item img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .media-item img:hover { opacity: 0.88; }
+  .media-item video {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+  }
+  .media-label {
+    padding: 5px 10px;
+    font-size: 11px;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: #fff;
+  }
+  .media-delete {
+    position: absolute;
+    top: 7px; right: 7px;
+    background: rgba(0,0,0,0.50);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+    padding: 0;
+  }
+  .media-delete:hover { background: #b42318; }
+
+  /* ── Upload drop zone ─────────────────────────────────── */
+  .upload-zone {
+    border: 2px dashed var(--line);
+    border-radius: 10px;
+    padding: 24px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    background: #faf8f4;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: #4caf50;
+    background: #f1f8f0;
+  }
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .upload-zone-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  /* ── Lightbox ─────────────────────────────────────────── */
+  #lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.90);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  #lightbox.open { display: flex; }
+  #lightboxImg {
+    max-width: 92vw;
+    max-height: 88vh;
+    border-radius: 10px;
+    box-shadow: 0 12px 60px rgba(0,0,0,0.7);
+    animation: lbIn 0.18s ease;
+  }
+  @keyframes lbIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  #lightboxClose {
+    position: absolute;
+    top: 16px; right: 20px;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.15s;
+  }
+  #lightboxClose:hover { opacity: 1; }
+</style>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <div id="lightboxClose" title="Cerrar (Esc)">
+    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
+         fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </div>
+  <img id="lightboxImg" src="" alt="Foto inmueble"/>
+</div>
+
+<div class="container">
+
+  <!-- ── CABECERA ─────────────────────────────────────────── -->
+  <div class="card"
+       th:style="${property.occupied
+                   ? 'border-left:6px solid #b42318;'
+                   : 'border-left:6px solid var(--line);'}">
+
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <h2 style="margin:0;" th:text="${property.propertyCode}">Código</h2>
+
+      <!-- Badge vendido -->
+      <span th:if="${property.sold}"
+            style="display:inline-flex; align-items:center; gap:5px;
+                   background:#e8f5e9; border:1px solid #4caf50;
+                   border-radius:999px; padding:3px 10px;
+                   font-size:12px; color:#2e7d32; font-weight:600;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="#2e7d32" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+          <polyline points="9 21 9 12 15 12 15 21"/>
+        </svg>
+        Vendido
+      </span>
+
+      <!-- Badge disponible -->
+      <span th:if="${!property.sold}"
+            style="display:inline-flex; align-items:center; gap:5px;
+                   background:#f1f8e9; border:1px solid #8bc34a;
+                   border-radius:999px; padding:3px 10px;
+                   font-size:12px; color:#558b2f; font-weight:600;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+             fill="#558b2f" stroke="none">
+          <circle cx="12" cy="12" r="6"/>
+        </svg>
+        Disponible
+      </span>
+
+      <!-- Badge ocupado -->
+      <span th:if="${property.occupied}"
+            style="display:inline-flex; align-items:center; gap:5px;
+                   background:#ffebee; border:1px solid #b42318;
+                   border-radius:999px; padding:3px 10px;
+                   font-size:12px; color:#b42318; font-weight:700;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="#b42318" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        Ocupado / Okupa
+      </span>
+
+      <!-- Badge alarma -->
+      <span th:if="${property.hasAlarm}"
+            style="display:inline-flex; align-items:center; gap:5px;
+                   background:#fff8e1; border:1px solid #ffa000;
+                   border-radius:999px; padding:3px 10px;
+                   font-size:12px; color:#e65100; font-weight:600;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="#e65100" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        Alarma activa
+      </span>
+    </div>
+
+    <!-- Contador interesados -->
+    <div style="margin-top:8px; display:inline-flex; align-items:center; gap:6px;
+                background:#f0ede8; border-radius:999px; padding:4px 12px; font-size:13px; color:#555;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+           fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <strong th:text="${interestedCount}">0</strong>
+      <span>persona(s) interesada(s)</span>
+    </div>
+
+    <hr style="border:none;border-top:1px solid var(--line); margin:16px 0;"/>
+
+    <!-- INFO RESUMEN -->
+    <div class="grid">
+      <div>
+        <div class="small">Tipo</div>
+        <div th:text="${property.propertyType != null and !#strings.isEmpty(property.propertyType)
+                         ? property.propertyType : '—'}">—</div>
+      </div>
+      <div>
+        <div class="small">Dirección</div>
+        <div th:text="${property.address != null and !#strings.isEmpty(property.address)
+                         ? property.address : '—'}">—</div>
+      </div>
+      <div>
+        <div class="small">Municipio</div>
+        <div th:text="${property.municipality != null and !#strings.isEmpty(property.municipality)
+                         ? property.municipality : '—'}">—</div>
+      </div>
+      <div>
+        <div class="small">Provincia</div>
+        <div th:text="${property.province != null and !#strings.isEmpty(property.province)
+                         ? property.province : '—'}">—</div>
+      </div>
+      <div>
+        <div class="small">Notas internas</div>
+        <div th:text="${property.notes != null and !#strings.isEmpty(property.notes)
+                         ? property.notes : '—'}">—</div>
+      </div>
+    </div>
+
+    <!-- Descripción -->
+    <div th:if="${property.description != null and !#strings.isEmpty(property.description)}"
+         style="margin-top:14px; padding:12px 16px; background:#faf8f4;
+                border-left:3px solid var(--line); border-radius:8px; font-size:13px;">
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px; font-weight:600; font-size:12px; color:#555; text-transform:uppercase; letter-spacing:0.5px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        Descripción / comentarios
+      </div>
+      <div th:text="${property.description}"></div>
+    </div>
+
+    <!-- Clave alarma -->
+    <div th:if="${property.hasAlarm}"
+         style="margin-top:14px; padding:12px 16px; background:#fff8e1;
+                border-left:3px solid #ffa000; border-radius:8px;">
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;
+                  font-weight:600; font-size:12px; color:#e65100;
+                  text-transform:uppercase; letter-spacing:0.5px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="#e65100" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Clave de alarma
+      </div>
+      <div style="font-size:22px; font-weight:800; letter-spacing:6px; color:#e65100;
+                  font-family: monospace;"
+           th:text="${property.alarmCode != null and !#strings.isEmpty(property.alarmCode)
+                      ? property.alarmCode : '——'}">——</div>
+    </div>
+
+    <div class="actions" style="margin-top:16px;">
+      <a class="btn btn-secondary" th:href="@{|/inmuebles/${property.id}#editar|}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Editar datos
+      </a>
+      <a class="btn btn-secondary" th:href="@{/inmuebles}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Volver al catálogo
+      </a>
+    </div>
+  </div>
+
+  <!-- ── FOTOS Y VÍDEOS ────────────────────────────────────── -->
+  <div class="card" style="margin-top:24px;">
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <h2 style="margin:0;">Fotos y vídeos</h2>
+    </div>
+    <div class="small" style="margin-top:4px;">Archivos multimedia del inmueble</div>
+    <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
+
+    <!-- Zona de subida -->
+    <form th:action="@{|/inmuebles/${property.id}/media|}" method="post"
+          enctype="multipart/form-data" id="uploadForm">
+      <div class="upload-zone" id="uploadZone" style="position:relative; margin-bottom:16px;">
+        <input type="file" name="files" multiple accept="image/*,video/*" id="fileInput"/>
+        <div class="upload-zone-inner">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
+               fill="none" stroke="#aaa" stroke-width="1.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 16 12 12 8 16"/>
+            <line x1="12" y1="12" x2="12" y2="21"/>
+            <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+          </svg>
+          <span style="font-size:14px; color:#888;">Arrastra fotos/vídeos aquí o <strong style="color:var(--text);">haz clic</strong></span>
+          <span class="small" style="color:#bbb;">JPG, PNG, GIF, MP4, MOV... — múltiples archivos permitidos</span>
+          <div id="fileNames" class="small" style="color:#4caf50; margin-top:4px;"></div>
+        </div>
+      </div>
+      <button type="submit" id="uploadBtn" disabled
+              style="display:flex; align-items:center; gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 16 12 12 8 16"/>
+          <line x1="12" y1="12" x2="12" y2="21"/>
+          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+        </svg>
+        Subir archivos
+      </button>
+    </form>
+
+    <!-- Grid vacío -->
+    <div th:if="${#lists.isEmpty(mediaList)}"
+         style="margin-top:12px; padding:24px; text-align:center;
+                border:1px dashed var(--line); border-radius:10px; color:#bbb;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+           fill="none" stroke="#ddd" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" style="display:block; margin:0 auto 8px;">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <span class="small">Sin archivos multimedia todavía</span>
+    </div>
+
+    <!-- Grid con archivos -->
+    <div class="media-grid" th:if="${!#lists.isEmpty(mediaList)}">
+      <div class="media-item" th:each="m : ${mediaList}">
+
+        <img th:if="${m.mediaType == 'IMAGE'}"
+             th:src="@{|/inmuebles/${property.id}/media/${m.id}/raw|}"
+             th:alt="${m.originalName}"
+             class="lightbox-trigger"
+             th:attr="data-src=@{|/inmuebles/${property.id}/media/${m.id}/raw|}"/>
+
+        <video th:if="${m.mediaType == 'VIDEO'}"
+               controls preload="metadata">
+          <source th:src="@{|/inmuebles/${property.id}/media/${m.id}/raw|}"
+                  th:type="${m.contentType}"/>
+        </video>
+
+        <div class="media-label" th:text="${m.originalName}">archivo.jpg</div>
+
+        <form th:action="@{|/inmuebles/${property.id}/media/${m.id}/eliminar|}" method="post"
+              onsubmit="return confirm('¿Eliminar este archivo?')">
+          <button type="submit" class="media-delete" title="Eliminar archivo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                 fill="none" stroke="#fff" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EDITAR DATOS ──────────────────────────────────────── -->
+  <div class="card" id="editar" style="margin-top:24px;">
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      <h2 style="margin:0;">Editar datos del inmueble</h2>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
+
+    <form th:action="@{|/inmuebles/${property.id}/actualizar|}" method="post">
+
+      <div class="grid-3">
+        <div>
+          <label>Código inmueble</label>
+          <input name="propertyCode" th:value="${property.propertyCode}" readonly
+                 style="background:#f0f0f0; cursor:not-allowed; color:#aaa;"/>
+          <div class="small" style="color:#bbb; margin-top:3px;">No modificable desde aquí</div>
+        </div>
+        <div>
+          <label>Tipo</label>
+          <input name="propertyType" th:value="${property.propertyType}"
+                 placeholder="Piso, Chalet, Local..."/>
+        </div>
+        <div>
+          <label>Municipio</label>
+          <input name="municipality" th:value="${property.municipality}"
+                 placeholder="Madrid"/>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label>Dirección</label>
+          <input name="address" th:value="${property.address}"
+                 placeholder="Calle Gran Vía 1"/>
+        </div>
+        <div>
+          <label>Provincia</label>
+          <input name="province" th:value="${property.province}"
+                 placeholder="Madrid"/>
+        </div>
+      </div>
+
+      <div>
+        <label>Descripción / comentarios</label>
+        <textarea name="description" rows="4"
+                  th:text="${property.description}"
+                  placeholder="Describe el estado, características destacadas, accesos..."></textarea>
+      </div>
+
+      <div>
+        <label>Notas internas</label>
+        <input name="notes" th:value="${property.notes}"
+               placeholder="Notas visibles solo para el equipo..."/>
+      </div>
+
+      <!-- FLAGS -->
+      <div style="margin-top:16px; padding:16px; border:1px solid var(--line);
+                  border-radius:12px; background:#faf8f4;">
+
+        <div style="font-size:12px; font-weight:700; color:#888;
+                    text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">
+          Estado especial
+        </div>
+
+        <div style="display:flex; gap:28px; flex-wrap:wrap;">
+
+          <!-- Ocupado -->
+          <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+            <input type="checkbox" name="occupied" value="true"
+                   th:checked="${property.occupied}"/>
+            <span style="display:inline-flex; align-items:center; gap:6px; color:#b42318; font-weight:600;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                   fill="none" stroke="#b42318" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              Ocupado / Posible Okupa
+            </span>
+          </label>
+
+          <!-- Alarma -->
+          <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+            <input type="checkbox" name="hasAlarm" value="true"
+                   id="chkHasAlarm" th:checked="${property.hasAlarm}"/>
+            <span style="display:inline-flex; align-items:center; gap:6px; color:#e65100; font-weight:600;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                   fill="none" stroke="#e65100" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              Tiene alarma
+            </span>
+          </label>
+        </div>
+
+        <!-- Panel clave alarma -->
+        <div id="panelAlarmCode"
+             th:style="${property.hasAlarm} ? 'display:block;' : 'display:none;'"
+             style="margin-top:16px; padding:12px 14px; background:#fff8e1;
+                    border:1px solid #ffa000; border-radius:8px;">
+          <label style="display:flex; align-items:center; gap:6px; font-weight:600; color:#e65100; margin-bottom:8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                 fill="none" stroke="#e65100" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Clave de alarma
+          </label>
+          <input name="alarmCode" id="alarmCodeInput"
+                 th:value="${property.alarmCode}"
+                 placeholder="Ej: 1234"
+                 style="max-width:200px; letter-spacing:4px; font-weight:800;
+                        font-size:18px; font-family:monospace; text-align:center;"/>
+        </div>
+      </div>
+
+      <button type="submit" style="margin-top:16px; display:inline-flex; align-items:center; gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Guardar cambios
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+  (function () {
+
+    // ── Alarma toggle ──────────────────────────────────────
+    const chkAlarm   = document.getElementById('chkHasAlarm');
+    const panelAlarm = document.getElementById('panelAlarmCode');
+    if (chkAlarm && panelAlarm) {
+      chkAlarm.addEventListener('change', function () {
+        panelAlarm.style.display = chkAlarm.checked ? 'block' : 'none';
+      });
+    }
+
+    // ── Upload zone ────────────────────────────────────────
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput  = document.getElementById('fileInput');
+    const uploadBtn  = document.getElementById('uploadBtn');
+    const fileNames  = document.getElementById('fileNames');
+
+    if (fileInput) {
+      fileInput.addEventListener('change', function () {
+        const n = fileInput.files.length;
+        if (n === 0) {
+          fileNames.textContent = '';
+          uploadBtn.disabled = true;
+        } else {
+          fileNames.textContent = n === 1
+            ? fileInput.files[0].name
+            : n + ' archivos seleccionados';
+          uploadBtn.disabled = false;
+        }
+      });
+    }
+
+    if (uploadZone) {
+      uploadZone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+      });
+      uploadZone.addEventListener('dragleave', function () {
+        uploadZone.classList.remove('dragover');
+      });
+      uploadZone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          fileInput.dispatchEvent(new Event('change'));
+        }
+      });
+    }
+
+    // ── Lightbox ───────────────────────────────────────────
+    const lightbox      = document.getElementById('lightbox');
+    const lightboxImg   = document.getElementById('lightboxImg');
+    const lightboxClose = document.getElementById('lightboxClose');
+
+    document.querySelectorAll('.lightbox-trigger').forEach(img => {
+      img.addEventListener('click', function () {
+        lightboxImg.src = img.getAttribute('data-src');
+        lightbox.classList.add('open');
+      });
+    });
+
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+      lightboxImg.src = '';
+    }
+
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeLightbox();
+    });
+
+  })();
+</script>
+</body>
+</html>

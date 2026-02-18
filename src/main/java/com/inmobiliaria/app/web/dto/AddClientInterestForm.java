@@ -25,6 +25,9 @@ public class AddClientInterestForm {
     @Size(max = 140)
     private String fullName;
 
+    @Size(max = 120)
+    private String companyName;
+
     @Size(max = 60)
     private String solviaCode;
 
@@ -78,6 +81,9 @@ public class AddClientInterestForm {
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getCompanyName() { return companyName; }
+    public void setCompanyName(String companyName) { this.companyName = companyName; }
 
     public String getSolviaCode() { return solviaCode; }
     public void setSolviaCode(String solviaCode) { this.solviaCode = solviaCode; }

@@ -34,7 +34,64 @@
         </div>
       </div>
 
-      <div class="grid">
+      <!-- ESTADOS MULTI-COLOR -->
+      <div style="margin-top:10px;">
+        <label>Estado (puedes marcar varios)</label>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:4px;">
+
+          <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="GRIS_SIN_CONTACTO"
+                   th:checked="${selectedStatuses != null and #lists.contains(selectedStatuses, 'GRIS_SIN_CONTACTO')}"/>
+            <span class="dot gris" style="width:18px;height:18px;flex-shrink:0;"></span>
+            <span class="small">Sin contacto</span>
+          </label>
+
+          <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="AZUL_VISITA_PROGRAMADA"
+                   th:checked="${selectedStatuses != null and #lists.contains(selectedStatuses, 'AZUL_VISITA_PROGRAMADA')}"/>
+            <span class="dot azul-claro" style="width:18px;height:18px;flex-shrink:0;"></span>
+            <span class="small">Visita programada</span>
+          </label>
+
+          <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="AZUL_VISITA_REALIZADA"
+                   th:checked="${selectedStatuses != null and #lists.contains(selectedStatuses, 'AZUL_VISITA_REALIZADA')}"/>
+            <span class="dot azul-oscuro" style="width:18px;height:18px;flex-shrink:0;"></span>
+            <span class="small">Visita realizada</span>
+          </label>
+
+          <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="NARANJA_QUIERE_VISITA"
+                   th:checked="${selectedStatuses != null and #lists.contains(selectedStatuses, 'NARANJA_QUIERE_VISITA')}"/>
+            <span class="dot naranja" style="width:18px;height:18px;flex-shrink:0;"></span>
+            <span class="small">Quiere visita</span>
+          </label>
+
+          <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="ROSA_DESCARTA"
+                   th:checked="${selectedStatuses != null and #lists.contains(selectedStatuses, 'ROSA_DESCARTA')}"/>
+            <span class="dot rosa" style="width:18px;height:18px;flex-shrink:0;"></span>
+            <span class="small">Descarta</span>
+          </label>
+
+          <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="VERDE_PENSANDO"
+                   th:checked="${selectedStatuses != null and #lists.contains(selectedStatuses, 'VERDE_PENSANDO')}"/>
+            <span class="dot verde" style="width:18px;height:18px;flex-shrink:0;"></span>
+            <span class="small">Pensando</span>
+          </label>
+
+          <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="AMARILLO_OFERTA"
+                   th:checked="${selectedStatuses != null and #lists.contains(selectedStatuses, 'AMARILLO_OFERTA')}"/>
+            <span class="dot amarillo" style="width:18px;height:18px;flex-shrink:0;"></span>
+            <span class="small">Oferta</span>
+          </label>
+
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:10px;">
         <div>
           <label>Buscar nombre, Solvia, inmueble, teléfono</label>
           <input name="q" th:value="${q}" placeholder="Ej: 12345 MADRID 600123123 COD-001"/>
@@ -80,7 +137,6 @@
 
         <tbody>
         <tr th:each="r : ${rows}">
-          <!-- ESTADO: dot por JS -->
           <td>
             <span th:if="${r.status == null}">—</span>
             <span th:if="${r.status != null}">
@@ -121,7 +177,7 @@
 
 <script>
   (function () {
-    // Scroll sync (tu lógica)
+    // Scroll sync
     const wrap = document.getElementById('clientsTableWrap');
     const top = document.getElementById('clientsTopScroll');
     const topInner = document.getElementById('clientsTopScrollInner');
@@ -160,21 +216,22 @@
       ro.observe(wrap);
     }
 
-    // Dots estado (mismo mapeo)
+    // Dots estado
     function statusToClass(statusValue) {
       const map = {
+        'GRIS_SIN_CONTACTO':      'gris',
         'AZUL_VISITA_PROGRAMADA': 'azul-claro',
-        'AZUL_VISITA_REALIZADA': 'azul-oscuro',
-        'NARANJA_QUIERE_VISITA': 'naranja',
-        'ROSA_DESCARTA': 'rosa',
-        'VERDE_PENSANDO': 'verde',
-        'AMARILLO_OFERTA': 'amarillo'
+        'AZUL_VISITA_REALIZADA':  'azul-oscuro',
+        'NARANJA_QUIERE_VISITA':  'naranja',
+        'ROSA_DESCARTA':          'rosa',
+        'VERDE_PENSANDO':         'verde',
+        'AMARILLO_OFERTA':        'amarillo'
       };
       return map[statusValue] || '';
     }
 
     function paintDot(dotEl, statusValue) {
-      dotEl.classList.remove('azul-claro','azul-oscuro','naranja','rosa','verde','amarillo');
+      dotEl.classList.remove('gris','azul-claro','azul-oscuro','naranja','rosa','verde','amarillo');
       const cls = statusToClass(statusValue);
       if (cls) dotEl.classList.add(cls);
       dotEl.setAttribute('data-status', statusValue);

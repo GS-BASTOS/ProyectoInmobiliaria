@@ -15,9 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -37,15 +35,37 @@ public class InteractionController {
 
     @GetMapping("/interesados")
     public String interactions(
-            @RequestParam(required = false) InterestStatus status,
+            @RequestParam(required = false) List<String> statuses,
             @RequestParam(required = false) ContactChannel channel,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             Model model
     ) {
-        List<ClientPropertyInteraction> items =
-                interactionRepository.searchWithFilters(status, channel, q, from, to);
+        // Convertir strings a enums ignorando valores inválidos
+        List<InterestStatus> statusEnums = new ArrayList<>();
+        if (statuses != null) {
+            for (String s : statuses) {
+                try { statusEnums.add(InterestStatus.valueOf(s)); }
+                catch (IllegalArgumentException ignore) {}
+            }
+        }
+
+        List<ClientPropertyInteraction> items;
+
+        if (statusEnums.isEmpty()) {
+            // Sin filtro de estado: todos los resultados
+            items = interactionRepository.searchWithFilters(null, channel, q, from, to);
+        } else if (statusEnums.size() == 1) {
+            // Un solo estado: usa el método existente directamente
+            items = interactionRepository.searchWithFilters(statusEnums.get(0), channel, q, from, to);
+        } else {
+            // Varios estados: filtramos en memoria
+            items = interactionRepository.searchWithFilters(null, channel, q, from, to)
+                    .stream()
+                    .filter(i -> statusEnums.contains(i.getStatus()))
+                    .collect(Collectors.toList());
+        }
 
         List<Long> clientIds = items.stream()
                 .map(i -> i.getClient().getId())
@@ -77,7 +97,7 @@ public class InteractionController {
         model.addAttribute("statuses", InterestStatus.values());
         model.addAttribute("channels", ContactChannel.values());
 
-        model.addAttribute("selectedStatus", status);
+        model.addAttribute("selectedStatuses", statuses != null ? statuses : Collections.emptyList());
         model.addAttribute("selectedChannel", channel);
         model.addAttribute("q", q);
         model.addAttribute("from", from);

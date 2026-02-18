@@ -18,6 +18,9 @@ public class ClientEditForm {
     @Size(max = 140)
     private String fullName;
 
+    @Size(max = 120)
+    private String companyName;
+
     @Size(max = 60)
     private String solviaCode;
 
@@ -42,6 +45,12 @@ public class ClientEditForm {
     @Size(max = 500)
     private String generalNotes;
 
+    private boolean posibleOcupa;
+    private boolean compradorFinal;
+
+    // ── NUEVO: ID del inmueble que compró ──
+    private Long purchasedPropertyId;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -50,6 +59,9 @@ public class ClientEditForm {
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getCompanyName() { return companyName; }
+    public void setCompanyName(String companyName) { this.companyName = companyName; }
 
     public String getSolviaCode() { return solviaCode; }
     public void setSolviaCode(String solviaCode) { this.solviaCode = solviaCode; }
@@ -71,4 +83,13 @@ public class ClientEditForm {
 
     public String getGeneralNotes() { return generalNotes; }
     public void setGeneralNotes(String generalNotes) { this.generalNotes = generalNotes; }
+
+    public boolean isPosibleOcupa() { return posibleOcupa; }
+    public void setPosibleOcupa(boolean posibleOcupa) { this.posibleOcupa = posibleOcupa; }
+
+    public boolean isCompradorFinal() { return compradorFinal; }
+    public void setCompradorFinal(boolean compradorFinal) { this.compradorFinal = compradorFinal; }
+
+    public Long getPurchasedPropertyId() { return purchasedPropertyId; }
+    public void setPurchasedPropertyId(Long purchasedPropertyId) { this.purchasedPropertyId = purchasedPropertyId; }
 }

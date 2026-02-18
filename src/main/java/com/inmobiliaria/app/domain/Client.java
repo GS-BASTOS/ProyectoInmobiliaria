@@ -24,14 +24,23 @@ public class Client {
     @Column(nullable = false, length = 140)
     private String fullName;
 
+    @Size(max = 120)
+    @Column(length = 120)
+    private String companyName;
+
     @Size(max = 500)
     @Column(length = 500)
     private String generalNotes;
 
-    // NUEVO: Código Solvia (pertenece al cliente)
     @Size(max = 60)
     @Column(length = 60)
     private String solviaCode;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean posibleOcupa = false;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean compradorFinal = false;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC, id ASC")
@@ -49,11 +58,20 @@ public class Client {
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
 
+    public String getCompanyName() { return companyName; }
+    public void setCompanyName(String companyName) { this.companyName = companyName; }
+
     public String getGeneralNotes() { return generalNotes; }
     public void setGeneralNotes(String generalNotes) { this.generalNotes = generalNotes; }
 
     public String getSolviaCode() { return solviaCode; }
     public void setSolviaCode(String solviaCode) { this.solviaCode = solviaCode; }
+
+    public boolean isPosibleOcupa() { return posibleOcupa; }
+    public void setPosibleOcupa(boolean posibleOcupa) { this.posibleOcupa = posibleOcupa; }
+
+    public boolean isCompradorFinal() { return compradorFinal; }
+    public void setCompradorFinal(boolean compradorFinal) { this.compradorFinal = compradorFinal; }
 
     public List<ClientPhone> getPhones() { return phones; }
     public void setPhones(List<ClientPhone> phones) { this.phones = phones; }

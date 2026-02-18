@@ -1,42 +1,52 @@
 package com.inmobiliaria.app.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name = "properties", indexes = {
-        @Index(name = "idx_properties_code", columnList = "propertyCode"),
-        @Index(name = "idx_properties_municipality", columnList = "municipality")
-})
+@Table(name = "properties")
 public class Property {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Size(max = 60)
-    @Column(nullable = false, length = 60, unique = true)
+    @Column(name = "property_code", nullable = false, unique = true, length = 60)
     private String propertyCode;
 
-    @Size(max = 80)
-    @Column(length = 80)
+    @Column(name = "property_type", length = 80)
     private String propertyType;
 
-    @Size(max = 160)
-    @Column(length = 160)
+    @Column(name = "address", length = 160)
     private String address;
 
-    @Size(max = 80)
-    @Column(length = 80)
+    @Column(name = "municipality", length = 80)
     private String municipality;
 
-    @Size(max = 300)
-    @Column(length = 300)
+    @Column(name = "notes", length = 300)
     private String notes;
 
+    @Column(name = "sold")
+    private boolean sold = false;
+
+    // ── Campos nuevos ──────────────────────────────────────
+    @Column(name = "province", length = 80)
+    private String province;
+
+    @Column(name = "occupied")
+    private boolean occupied = false;
+
+    @Column(name = "has_alarm")
+    private boolean hasAlarm = false;
+
+    @Column(name = "alarm_code", length = 60)
+    private String alarmCode;
+
+    @Column(name = "description", length = 1000)
+    private String description;
+
+    // ── Getters y setters ──────────────────────────────────
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getPropertyCode() { return propertyCode; }
     public void setPropertyCode(String propertyCode) { this.propertyCode = propertyCode; }
@@ -52,4 +62,22 @@ public class Property {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public boolean isSold() { return sold; }
+    public void setSold(boolean sold) { this.sold = sold; }
+
+    public String getProvince() { return province; }
+    public void setProvince(String province) { this.province = province; }
+
+    public boolean isOccupied() { return occupied; }
+    public void setOccupied(boolean occupied) { this.occupied = occupied; }
+
+    public boolean isHasAlarm() { return hasAlarm; }
+    public void setHasAlarm(boolean hasAlarm) { this.hasAlarm = hasAlarm; }
+
+    public String getAlarmCode() { return alarmCode; }
+    public void setAlarmCode(String alarmCode) { this.alarmCode = alarmCode; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 }

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.stream.Collectors;
+
 @Controller
 public class AddController {
 
@@ -52,7 +54,6 @@ public class AddController {
         String p2 = t(form.getPhone2());
         String p3 = t(form.getPhone3());
 
-        // Duplicados dentro del mismo formulario
         if (!p1.isBlank() && !p2.isBlank() && p1.equals(p2)) br.rejectValue("phone2", "dup", "Teléfono repetido.");
         if (!p1.isBlank() && !p3.isBlank() && p1.equals(p3)) br.rejectValue("phone3", "dup", "Teléfono repetido.");
         if (!p2.isBlank() && !p3.isBlank() && p2.equals(p3)) br.rejectValue("phone3", "dup", "Teléfono repetido.");
@@ -63,7 +64,6 @@ public class AddController {
             return "add";
         }
 
-        // Unicidad global en BD (phoneNumber UNIQUE)
         Long existingClientId = null;
 
         Long owner1 = checkPhoneUniqueForCreate(br, "phone1", p1);
@@ -88,6 +88,7 @@ public class AddController {
         Client client = new Client();
         client.setClientType(form.getClientType());
         client.setFullName(t(form.getFullName()));
+        client.setCompanyName(t(form.getCompanyName()));
         client.setGeneralNotes("");
         client.setSolviaCode(t(form.getSolviaCode()));
 
@@ -138,11 +139,15 @@ public class AddController {
         model.addAttribute("clientTypes", ClientType.values());
         model.addAttribute("channels", ContactChannel.values());
         model.addAttribute("statuses", InterestStatus.values());
+        model.addAttribute("catalogProperties",
+                propertyRepository.findAllByOrderByPropertyCodeAsc()
+                        .stream()
+                        .filter(p -> !p.isSold())
+                        .collect(Collectors.toList()));
     }
 
     private Long checkPhoneUniqueForCreate(BindingResult br, String fieldName, String phone) {
         if (phone == null || phone.isBlank()) return null;
-
         return clientPhoneRepository.findFirstByPhoneNumber(phone)
                 .map(found -> {
                     Long ownerId = found.getClient().getId();
@@ -153,9 +158,7 @@ public class AddController {
                 .orElse(null);
     }
 
-    private static String t(String s) {
-        return s == null ? "" : s.trim();
-    }
+    private static String t(String s) { return s == null ? "" : s.trim(); }
 
     private void addPhone(Client client, String number, int position) {
         ClientPhone p = new ClientPhone();

@@ -1,6 +1,50 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Agregar')}"></head>
+<style>
+  /* ── Combobox inmueble ─────────────────────────────────── */
+  .combo-wrapper {
+    position: relative;
+    width: 100%;
+  }
+  .combo-input {
+    width: 100%;
+    cursor: pointer;
+  }
+  .combo-dropdown {
+    display: none;
+    position: absolute;
+    z-index: 999;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .combo-dropdown.open { display: block; }
+  .combo-option {
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.12s;
+  }
+  .combo-option:last-child { border-bottom: none; }
+  .combo-option:hover,
+  .combo-option.highlighted { background: #f0ede8; }
+  .combo-option .opt-code { font-weight: 700; color: var(--text); }
+  .combo-option .opt-sub  { color: #888; font-size: 11px; margin-top:1px; }
+  .combo-empty {
+    padding: 12px 14px;
+    color: #aaa;
+    font-size: 13px;
+    text-align: center;
+  }
+</style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 
@@ -10,7 +54,6 @@
 
     <form th:action="@{/agregar}" th:object="${form}" method="post">
 
-      <!-- ERRORES GLOBALES -->
       <div class="global-errors" th:if="${#fields.hasGlobalErrors()}">
         <div th:each="e : ${#fields.globalErrors()}" th:text="${e}">Error</div>
       </div>
@@ -27,13 +70,11 @@
           </select>
           <div class="field-error" th:if="${#fields.hasErrors('clientType')}" th:errors="*{clientType}"></div>
         </div>
-
         <div>
           <label>Fecha contacto</label>
           <input type="date" th:field="*{contactDate}"/>
           <div class="field-error" th:if="${#fields.hasErrors('contactDate')}" th:errors="*{contactDate}"></div>
         </div>
-
         <div>
           <label>Canal</label>
           <select th:field="*{channel}">
@@ -49,11 +90,16 @@
           <input th:field="*{fullName}"/>
           <div class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
         </div>
+        <div>
+          <label>Empresa (opcional)</label>
+          <input th:field="*{companyName}" placeholder="Nombre de la empresa..."/>
+        </div>
+      </div>
 
+      <div class="grid">
         <div>
           <label>Código Solvia</label>
           <input th:field="*{solviaCode}"/>
-          <div class="field-error" th:if="${#fields.hasErrors('solviaCode')}" th:errors="*{solviaCode}"></div>
         </div>
       </div>
 
@@ -63,13 +109,11 @@
           <input th:field="*{phone1}"/>
           <div class="field-error" th:if="${#fields.hasErrors('phone1')}" th:errors="*{phone1}"></div>
         </div>
-
         <div>
           <label>Teléfono 2</label>
           <input th:field="*{phone2}"/>
           <div class="field-error" th:if="${#fields.hasErrors('phone2')}" th:errors="*{phone2}"></div>
         </div>
-
         <div>
           <label>Teléfono 3</label>
           <input th:field="*{phone3}"/>
@@ -81,13 +125,10 @@
         <div>
           <label>Email 1</label>
           <input th:field="*{email1}"/>
-          <div class="field-error" th:if="${#fields.hasErrors('email1')}" th:errors="*{email1}"></div>
         </div>
-
         <div>
           <label>Email 2</label>
           <input th:field="*{email2}"/>
-          <div class="field-error" th:if="${#fields.hasErrors('email2')}" th:errors="*{email2}"></div>
         </div>
       </div>
 
@@ -97,60 +138,261 @@
           <select th:field="*{status}">
             <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option>
           </select>
-          <div class="field-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
-
-          <div class="small" style="margin-top:8px;">
-            <span class="badge"><span class="dot azul-claro"></span>Azul Claro (Visita Programada)</span>
-            <span class="badge"><span class="dot azul-oscuro"></span>Azul Oscuro (Visita Realizada)</span>
-            <span class="badge"><span class="dot naranja"></span>Naranja</span>
-            <span class="badge"><span class="dot rosa"></span>Rosa</span>
-            <span class="badge"><span class="dot verde"></span>Verde</span>
-            <span class="badge"><span class="dot amarillo"></span>Amarillo</span>
+          <div class="small" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px;">
+            <span class="badge"><span class="dot gris"></span>Sin contacto</span>
+            <span class="badge"><span class="dot azul-claro"></span>Visita programada</span>
+            <span class="badge"><span class="dot azul-oscuro"></span>Visita realizada</span>
+            <span class="badge"><span class="dot naranja"></span>Quiere visita</span>
+            <span class="badge"><span class="dot rosa"></span>Descarta</span>
+            <span class="badge"><span class="dot verde"></span>Pensando</span>
+            <span class="badge"><span class="dot amarillo"></span>Oferta</span>
           </div>
+        </div>
+      </div>
+
+      <!-- ── COMBOBOX INMUEBLE ─────────────────────────────── -->
+      <div style="margin-top:16px;">
+        <label style="font-weight:600;">Seleccionar inmueble del catálogo</label>
+        <div class="small" style="margin-bottom:6px; color:#888;">
+          Solo disponibles. Escribe o haz clic para buscar.
+        </div>
+
+        <div class="combo-wrapper" id="comboWrapper">
+          <input type="text"
+                 id="comboInput"
+                 class="combo-input"
+                 placeholder="🔍  Buscar por código, municipio, tipo..."
+                 autocomplete="off"
+                 readonly/>
+          <div class="combo-dropdown" id="comboDropdown">
+            <!-- opciones inyectadas por JS -->
+          </div>
+        </div>
+
+        <!-- Chip del seleccionado -->
+        <div id="comboChip"
+             style="display:none; margin-top:8px; padding:6px 12px;
+                    background:#e8f5e9; border:1px solid #4caf50;
+                    border-radius:999px; font-size:13px; color:#2e7d32;
+                    display:none; align-items:center; gap:8px; width:fit-content;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="#2e7d32" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span id="comboChipLabel"></span>
+          <span id="comboClearBtn"
+                style="cursor:pointer; font-size:15px; color:#888; margin-left:4px;"
+                title="Limpiar selección">×</span>
+        </div>
+      </div>
+
+      <!-- Datos del inmueble (se rellenan al seleccionar) -->
+      <div class="grid-3" style="margin-top:12px;">
+        <div>
+          <label>Código inmueble</label>
+          <input th:field="*{propertyCode}" id="propertyCode"/>
+          <div class="field-error" th:if="${#fields.hasErrors('propertyCode')}" th:errors="*{propertyCode}"></div>
+        </div>
+        <div>
+          <label>Tipo de inmueble</label>
+          <input th:field="*{propertyType}" id="propertyType"/>
+        </div>
+        <div>
+          <label>Dirección inmueble</label>
+          <input th:field="*{address}" id="address"/>
         </div>
       </div>
 
       <div class="grid">
         <div>
           <label>Municipio/Población</label>
-          <input th:field="*{municipality}"/>
-          <div class="field-error" th:if="${#fields.hasErrors('municipality')}" th:errors="*{municipality}"></div>
+          <input th:field="*{municipality}" id="municipality"/>
         </div>
       </div>
 
-      <div class="grid-3">
-        <div>
-          <label>Código inmueble</label>
-          <input th:field="*{propertyCode}"/>
-          <div class="field-error" th:if="${#fields.hasErrors('propertyCode')}" th:errors="*{propertyCode}"></div>
-        </div>
-
-        <div>
-          <label>Tipo de inmueble</label>
-          <input th:field="*{propertyType}"/>
-          <div class="field-error" th:if="${#fields.hasErrors('propertyType')}" th:errors="*{propertyType}"></div>
-        </div>
-
-        <div>
-          <label>Dirección inmueble</label>
-          <input th:field="*{address}"/>
-          <div class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
-        </div>
-      </div>
-
-      <div>
+      <div style="margin-top:12px;">
         <label>Comentarios</label>
         <textarea th:field="*{comments}"></textarea>
-        <div class="field-error" th:if="${#fields.hasErrors('comments')}" th:errors="*{comments}"></div>
       </div>
 
       <div class="actions">
         <button type="submit">Guardar</button>
-        <a class="small" th:href="@{/interesados}">Cancelar</a>
+        <a class="btn btn-secondary" th:href="@{/interesados}">Cancelar</a>
       </div>
     </form>
   </div>
 </div>
 
+<!-- Datos del catálogo inyectados desde Thymeleaf como JSON -->
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  const CATALOG = /*[[${catalogProperties}]]*/ [];
+  /*]]>*/
+</script>
+
+<script>
+  (function () {
+
+    const comboInput    = document.getElementById('comboInput');
+    const dropdown      = document.getElementById('comboDropdown');
+    const chip          = document.getElementById('comboChip');
+    const chipLabel     = document.getElementById('comboChipLabel');
+    const comboClearBtn = document.getElementById('comboClearBtn');
+    const wrapper       = document.getElementById('comboWrapper');
+
+    let currentHighlight = -1;
+    let visibleOptions   = [];
+
+    // ── Construir lista de opciones desde el JSON ───────────
+    const allItems = (CATALOG || []).map(p => ({
+      code         : p.propertyCode   || '',
+      type         : p.propertyType   || '',
+      address      : p.address        || '',
+      municipality : p.municipality   || '',
+      label        : [p.propertyCode, p.propertyType, p.municipality]
+                       .filter(Boolean).join(' · ')
+    }));
+
+    // ── Render dropdown ─────────────────────────────────────
+    function renderDropdown(q) {
+      dropdown.innerHTML = '';
+      currentHighlight = -1;
+
+      const lq = (q || '').trim().toLowerCase();
+      visibleOptions = lq === ''
+        ? allItems
+        : allItems.filter(item =>
+            item.code.toLowerCase().includes(lq) ||
+            item.type.toLowerCase().includes(lq) ||
+            item.municipality.toLowerCase().includes(lq) ||
+            item.address.toLowerCase().includes(lq)
+          );
+
+      if (visibleOptions.length === 0) {
+        dropdown.innerHTML = '<div class="combo-empty">Sin resultados</div>';
+        return;
+      }
+
+      visibleOptions.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'combo-option';
+        div.dataset.idx = idx;
+        div.innerHTML = `
+          <div class="opt-code">${escHtml(item.code)}</div>
+          <div class="opt-sub">${escHtml([item.type, item.municipality, item.address].filter(Boolean).join(' · '))}</div>
+        `;
+        div.addEventListener('mousedown', function (e) {
+          e.preventDefault(); // evita que el input pierda foco antes del click
+          selectItem(item);
+        });
+        dropdown.appendChild(div);
+      });
+    }
+
+    // ── Seleccionar un item ──────────────────────────────────
+    function selectItem(item) {
+      // Rellena los campos del formulario
+      document.getElementById('propertyCode').value  = item.code;
+      document.getElementById('propertyType').value  = item.type;
+      document.getElementById('address').value        = item.address;
+      document.getElementById('municipality').value   = item.municipality;
+
+      // Muestra el chip y actualiza el input visible
+      comboInput.value        = item.label;
+      comboInput.readOnly     = true;
+      chipLabel.textContent   = item.label;
+      chip.style.display      = 'inline-flex';
+
+      closeDropdown();
+    }
+
+    // ── Limpiar selección ────────────────────────────────────
+    function clearSelection() {
+      comboInput.value   = '';
+      comboInput.readOnly = false;
+      chip.style.display = 'none';
+      document.getElementById('propertyCode').value  = '';
+      document.getElementById('propertyType').value  = '';
+      document.getElementById('address').value        = '';
+      document.getElementById('municipality').value   = '';
+    }
+
+    // ── Abrir / cerrar ───────────────────────────────────────
+    function openDropdown(q) {
+      renderDropdown(q);
+      dropdown.classList.add('open');
+    }
+
+    function closeDropdown() {
+      dropdown.classList.remove('open');
+      currentHighlight = -1;
+    }
+
+    // ── Highlight con teclado ────────────────────────────────
+    function setHighlight(idx) {
+      const opts = dropdown.querySelectorAll('.combo-option');
+      opts.forEach(o => o.classList.remove('highlighted'));
+      if (idx >= 0 && idx < opts.length) {
+        opts[idx].classList.add('highlighted');
+        opts[idx].scrollIntoView({ block: 'nearest' });
+        currentHighlight = idx;
+      }
+    }
+
+    // ── Eventos ──────────────────────────────────────────────
+    comboInput.addEventListener('click', function () {
+      comboInput.readOnly = false;
+      comboInput.value    = '';
+      openDropdown('');
+    });
+
+    comboInput.addEventListener('input', function () {
+      openDropdown(comboInput.value);
+    });
+
+    comboInput.addEventListener('keydown', function (e) {
+      const opts = dropdown.querySelectorAll('.combo-option');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setHighlight(Math.min(currentHighlight + 1, opts.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setHighlight(Math.max(currentHighlight - 1, 0));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (currentHighlight >= 0 && visibleOptions[currentHighlight]) {
+          selectItem(visibleOptions[currentHighlight]);
+        }
+      } else if (e.key === 'Escape') {
+        closeDropdown();
+      }
+    });
+
+    comboInput.addEventListener('blur', function () {
+      // Pequeño delay para permitir el mousedown de las opciones
+      setTimeout(closeDropdown, 150);
+    });
+
+    comboClearBtn.addEventListener('click', function () {
+      clearSelection();
+    });
+
+    // Cerrar si se hace click fuera
+    document.addEventListener('click', function (e) {
+      if (!wrapper.contains(e.target)) closeDropdown();
+    });
+
+    // ── Helper ───────────────────────────────────────────────
+    function escHtml(str) {
+      return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+  })();
+</script>
 </body>
 </html>

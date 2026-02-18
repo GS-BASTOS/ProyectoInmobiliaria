@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Inmuebles')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<div class="container">
+  <div class="card">
+    <h2 th:text="${editing != null and editing ? 'Editar inmueble' : 'Catálogo de inmuebles'}">Inmuebles</h2>
+
+    <form th:action="${editing != null and editing ? '/inmuebles/' + form.id + '/editar' : '/inmuebles'}"
+          th:object="${form}" method="post" style="margin-bottom:24px;">
+      <div class="grid-3">
+        <div>
+          <label>Código inmueble *</label>
+          <input th:field="*{propertyCode}" placeholder="Ej: SOLVIA-001"/>
+          <div class="field-error" th:if="${#fields.hasErrors('propertyCode')}" th:errors="*{propertyCode}"></div>
+        </div>
+        <div>
+          <label>Tipo</label>
+          <input th:field="*{propertyType}" placeholder="Ej: Piso, Chalet..."/>
+        </div>
+        <div>
+          <label>Municipio</label>
+          <input th:field="*{municipality}" placeholder="Ej: Madrid"/>
+        </div>
+      </div>
+      <div class="grid">
+        <div>
+          <label>Dirección</label>
+          <input th:field="*{address}" placeholder="Ej: Calle Gran Vía 1"/>
+        </div>
+        <div>
+          <label>Notas</label>
+          <input th:field="*{notes}" placeholder="Notas internas..."/>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="submit"
+                th:text="${editing != null and editing ? 'Actualizar' : 'Añadir inmueble'}">Guardar</button>
+        <a class="btn btn-secondary" th:href="@{/inmuebles}"
+           th:if="${editing != null and editing}">Cancelar</a>
+      </div>
+    </form>
+
+    <hr style="border:none;border-top:1px solid var(--line); margin:16px 0;"/>
+
+    <!-- FILTROS -->
+    <form th:action="@{/inmuebles}" method="get"
+          style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px;">
+      <div>
+        <label>Buscar</label>
+        <input type="text" name="q" th:value="${q}"
+               placeholder="Código, dirección, municipio, tipo..."/>
+      </div>
+      <div>
+        <label>Estado</label>
+        <select name="soldFilter">
+          <option value="ALL"    th:selected="${soldFilter == 'ALL'}">Todos</option>
+          <option value="ACTIVE" th:selected="${soldFilter == 'ACTIVE'}">Disponibles</option>
+          <option value="SOLD"   th:selected="${soldFilter == 'SOLD'}">Vendidos</option>
+        </select>
+      </div>
+      <div class="actions" style="margin-top:0;">
+        <button type="submit">Filtrar</button>
+        <a class="btn btn-secondary" th:href="@{/inmuebles}">Limpiar</a>
+      </div>
+    </form>
+
+    <!-- TABLA -->
+    <table>
+      <thead>
+      <tr>
+        <th style="width:48px; text-align:center;">Estado</th>
+        <th>Código</th>
+        <th>Tipo</th>
+        <th>Municipio</th>
+        <th>Dirección</th>
+        <th>Notas</th>
+        <th style="text-align:center;" title="Número de personas interesadas">👥 Interesados</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:if="${#lists.isEmpty(properties)}">
+        <td colspan="8" class="small">No hay inmuebles con esos filtros.</td>
+      </tr>
+      <tr th:each="p : ${properties}" th:style="${p.sold ? 'opacity:0.55;' : ''}">
+
+        <!-- ESTADO -->
+        <td style="text-align:center;">
+          <span th:if="${p.sold}" title="Vendido">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+                 fill="none" stroke="#2e7d32" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+              <polyline points="9 21 9 12 15 12 15 21"/>
+            </svg>
+          </span>
+          <span th:if="${!p.sold}" title="Disponible"
+                style="display:inline-block; width:12px; height:12px;
+                       border-radius:50%; background:#4caf50; margin:auto;"></span>
+        </td>
+
+        <!-- CÓDIGO — enlace a ficha -->
+        <td>
+          <a th:href="@{|/inmuebles/${p.id}|}"
+             th:text="${p.propertyCode}"
+             style="font-weight:700; text-decoration:none; color:var(--text);">COD</a>
+        </td>
+
+        <td th:text="${p.propertyType != null ? p.propertyType : '—'}">—</td>
+        <td th:text="${p.municipality != null ? p.municipality : '—'}">—</td>
+        <td th:text="${p.address != null ? p.address : '—'}">—</td>
+        <td th:text="${p.notes != null ? p.notes : '—'}">—</td>
+
+        <!-- INTERESADOS -->
+        <td style="text-align:center;">
+          <span th:with="cnt=${interestCountById.get(p.id) != null ? interestCountById.get(p.id) : 0}"
+                th:style="${cnt > 0 ? 'font-weight:700; color:var(--text);' : 'color:#aaa;'}"
+                th:text="${cnt}">0</span>
+        </td>
+
+        <!-- ACCIONES -->
+        <td>
+          <div class="actions" style="margin-top:0; flex-wrap:wrap;">
+            <a class="btn btn-secondary" th:href="@{|/inmuebles/${p.id}|}">Ver ficha</a>
+            <a class="btn btn-secondary" th:href="@{|/inmuebles/${p.id}/editar|}">Editar</a>
+
+            <button type="button" class="btn-vendido"
+                    th:attr="data-id=${p.id}, data-sold=${p.sold}"
+                    th:text="${p.sold ? 'Marcar disponible' : 'Marcar vendido'}"
+                    th:style="${p.sold ? 'background:#4caf50;' : 'background:#b42318;'}">
+            </button>
+
+            <form th:action="@{|/inmuebles/${p.id}/eliminar|}" method="post"
+                  onsubmit="return confirm('¿Eliminar este inmueble?')">
+              <button type="submit" style="background:#555;">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.btn-vendido').forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const id     = btn.getAttribute('data-id');
+      const sold   = btn.getAttribute('data-sold') === 'true';
+      const newVal = !sold;
+      try {
+        const res = await fetch(`/inmuebles/${id}/vendido`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'sold=' + encodeURIComponent(String(newVal))
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        window.location.reload();
+      } catch (e) {
+        alert('No se pudo actualizar el estado.');
+      }
+    });
+  });
+</script>
+</body>
+</html>

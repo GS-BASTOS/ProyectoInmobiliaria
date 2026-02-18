@@ -101,7 +101,8 @@ public interface ClientPropertyInteractionRepository extends JpaRepository<Clien
                lower(p.address) like lower(concat('%', :q, '%')) or
                lower(p.municipality) like lower(concat('%', :q, '%')) or
                lower(i.comments) like lower(concat('%', :q, '%')) or
-               lower(i.solviaCode) like lower(concat('%', :q, '%'))
+               lower(i.solviaCode) like lower(concat('%', :q, '%')) or
+               lower(coalesce(c.companyName, '')) like lower(concat('%', :q, '%'))
           )
         order by i.contactDate desc, i.id desc
     """)
@@ -112,4 +113,7 @@ public interface ClientPropertyInteractionRepository extends JpaRepository<Clien
             @Param("from") java.time.LocalDate from,
             @Param("to") java.time.LocalDate to
     );
+
+    // ── NUEVO ──────────────────────────────────────────────
+    long countByPropertyId(Long propertyId);
 }

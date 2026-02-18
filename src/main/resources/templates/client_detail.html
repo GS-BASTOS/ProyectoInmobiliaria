@@ -6,11 +6,54 @@
 
 <div class="container">
 
-  <!-- PERFIL (solo info) -->
-  <div class="card" style="border-left:6px solid var(--line);">
-    <h2 th:text="${client.fullName}">Cliente</h2>
-    <div class="small">Información del cliente</div>
+  <!-- PERFIL -->
+  <div class="card"
+       th:style="${client.posibleOcupa ? 'border-left:6px solid #b42318;' : 'border-left:6px solid var(--line);'}">
 
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <h2 style="margin:0;" th:text="${client.fullName}">Cliente</h2>
+
+      <span th:if="${client.compradorFinal}"
+            title="Comprador final — inmueble adquirido"
+            style="display:inline-flex; align-items:center; gap:5px;
+                   background:#e8f5e9; border:1px solid #4caf50;
+                   border-radius:999px; padding:3px 10px;
+                   font-size:12px; color:#2e7d32; font-weight:600;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="#2e7d32" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Comprador
+      </span>
+
+      <span th:if="${client.posibleOcupa}"
+            title="Posible okupa"
+            style="display:inline-flex; align-items:center; gap:5px;
+                   background:#ffebee; border:1px solid #b42318;
+                   border-radius:999px; padding:3px 10px;
+                   font-size:12px; color:#b42318; font-weight:700;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="#b42318" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        Posible OKUPA
+      </span>
+    </div>
+
+    <div th:if="${client.posibleOcupa
+                  and client.generalNotes != null
+                  and !#strings.isEmpty(client.generalNotes)}"
+         style="margin-top:8px; padding:8px 12px; background:#ffebee;
+                border-left:4px solid #b42318; border-radius:6px;
+                color:#b42318; font-size:13px;">
+      <strong>Nota:</strong> <span th:text="${client.generalNotes}"></span>
+    </div>
+
+    <div class="small" style="margin-top:6px;">Información del cliente</div>
     <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
 
     <div class="grid">
@@ -18,12 +61,14 @@
         <div class="small">Tipo</div>
         <div th:text="${client.clientType}">PARTICULAR</div>
       </div>
-
+      <div th:if="${client.companyName != null and !#strings.isEmpty(client.companyName)}">
+        <div class="small">Empresa</div>
+        <div th:text="${client.companyName}">—</div>
+      </div>
       <div>
         <div class="small">Código Solvia</div>
         <div th:text="${client.solviaCode != null and !#strings.isEmpty(client.solviaCode) ? client.solviaCode : '—'}">—</div>
       </div>
-
       <div>
         <div class="small">Teléfonos</div>
         <div>
@@ -32,7 +77,6 @@
                 th:text="${p.phoneNumber} + ${!st.last ? ', ' : ''}">600000000</span>
         </div>
       </div>
-
       <div>
         <div class="small">Emails</div>
         <div>
@@ -41,8 +85,7 @@
                 th:text="${e.email} + ${!st.last ? ', ' : ''}">mail@mail.com</span>
         </div>
       </div>
-
-      <div style="grid-column: 1 / -1;">
+      <div th:if="${!client.posibleOcupa}" style="grid-column: 1 / -1;">
         <div class="small">Notas</div>
         <div th:text="${client.generalNotes != null and !#strings.isEmpty(client.generalNotes) ? client.generalNotes : '—'}">—</div>
       </div>
@@ -58,7 +101,6 @@
   <div class="card" style="margin-top:24px; border-top:3px solid var(--text);">
     <h2>Interacciones</h2>
     <div class="small">Histórico de contacto del cliente</div>
-
     <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
 
     <table>
@@ -72,89 +114,104 @@
         <th>Comentarios</th>
       </tr>
       </thead>
-
       <tbody>
       <tr th:if="${#lists.isEmpty(interactions)}">
         <td colspan="6" class="small">Aún no hay interacciones registradas.</td>
       </tr>
-
-      <tr th:each="it : ${interactions}">
+      <tr th:each="it : ${interactions}"
+          th:style="${client.compradorFinal
+                      ? 'opacity:0.4; pointer-events:none;'
+                      : client.posibleOcupa ? 'background:#fff8f8;' : ''}">
         <td th:text="${#temporals.format(it.contactDate, 'dd/MM/yyyy')}">13/02/2026</td>
-
         <td>
           <div><strong th:text="${it.property.propertyCode}">-</strong></div>
-
           <div class="small"
                th:if="${it.property.propertyType != null and !#strings.isEmpty(it.property.propertyType)}"
                th:text="${it.property.propertyType}">Tipo</div>
-
           <div class="small"
                th:if="${it.property.address != null and !#strings.isEmpty(it.property.address)}"
                th:text="${it.property.address}">Dirección</div>
-
           <div class="small"
                th:if="${it.property.municipality != null and !#strings.isEmpty(it.property.municipality)}"
                th:text="${it.property.municipality}">Municipio</div>
-
-          <div class="small"
-               th:if="${it.property.notes != null and !#strings.isEmpty(it.property.notes)}"
-               th:text="${it.property.notes}">Notas</div>
+          <!-- Chip vendido inline -->
+          <div th:if="${it.property.sold}"
+               style="margin-top:4px; display:inline-flex; align-items:center; gap:4px;
+                      background:#e8f5e9; border:1px solid #4caf50; border-radius:999px;
+                      padding:2px 8px; font-size:11px; color:#2e7d32; font-weight:600;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
+                 fill="none" stroke="#2e7d32" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Vendido
+          </div>
         </td>
-
-        <!-- NDA -->
         <td style="text-align:center;">
-          <input type="checkbox"
-                 class="nda-toggle"
+          <input type="checkbox" class="nda-toggle"
                  th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
                  th:checked="${it.ndaRequested}" />
         </td>
-
         <td th:text="${it.channel}">-</td>
-
-        <!-- ESTADO editable + bolita dinámica -->
         <td>
           <select class="status-select"
                   th:attr="data-client-id=${client.id},data-interaction-id=${it.id}">
             <option th:each="s : ${statuses}"
-                    th:value="${s}"
-                    th:text="${s}"
-                    th:selected="${s == it.status}">
-            </option>
+                    th:value="${s}" th:text="${s}"
+                    th:selected="${s == it.status}"></option>
           </select>
-
-          <span class="badge" title="Estado" style="margin-left:8px;">
+          <span class="badge" style="margin-left:8px;">
             <span class="dot status-dot" th:attr="data-status=${it.status}"></span>
           </span>
         </td>
-
-        <td th:text="${it.comments}">-</td>
+        <td style="min-width:220px;">
+          <textarea class="comments-input"
+                    th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
+                    th:text="${it.comments}" rows="3"
+                    style="width:100%; resize:vertical; font-size:13px;"></textarea>
+          <div style="display:flex; gap:6px; margin-top:4px; align-items:center;">
+            <button type="button" class="comments-save"
+                    th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
+                    style="padding:4px 10px; font-size:12px;">Guardar</button>
+            <span class="comments-feedback small"
+                  style="display:none; color:#4caf50;">✓ Guardado</span>
+          </div>
+        </td>
       </tr>
       </tbody>
     </table>
+
+    <div th:if="${client.compradorFinal}"
+         style="margin-top:12px; padding:10px 14px; background:#e8f5e9;
+                border-left:4px solid #4caf50; border-radius:6px;
+                font-size:13px; color:#2e7d32;">
+      <strong>✓ Cliente comprador:</strong> Las interacciones anteriores están desactivadas.
+    </div>
   </div>
 
   <!-- NUEVA INTERACCIÓN -->
-  <div class="card" style="margin-top:24px;">
+  <div class="card" style="margin-top:24px;"
+       th:style="${client.compradorFinal ? 'opacity:0.4; pointer-events:none;' : ''}">
     <h2>Nueva interacción</h2>
-    <div class="small">Añadir un nuevo contacto del cliente</div>
-
+    <div class="small" th:if="${client.compradorFinal}" style="color:#b42318; margin-bottom:8px;">
+      Este cliente ya ha comprado un inmueble.
+    </div>
+    <div class="small" th:if="${!client.compradorFinal}">Añadir un nuevo contacto del cliente</div>
     <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
 
-    <form th:action="@{|/clientes/${client.id}/interacciones|}" th:object="${newInteraction}" method="post">
-
+    <form th:action="@{|/clientes/${client.id}/interacciones|}"
+          th:object="${newInteraction}" method="post">
       <div class="grid-3">
         <div>
           <label>Fecha</label>
           <input type="date" th:field="*{contactDate}" />
         </div>
-
         <div>
-          <label>Canal (volvió a contactarnos)</label>
+          <label>Canal</label>
           <select th:field="*{channel}">
             <option th:each="c : ${channels}" th:value="${c}" th:text="${c}"></option>
           </select>
         </div>
-
         <div>
           <label>Estado</label>
           <select th:field="*{status}">
@@ -162,112 +219,163 @@
           </select>
         </div>
       </div>
-
       <div class="grid-3">
         <div>
           <label>Código Solvia</label>
           <input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123" />
         </div>
-
         <div>
-          <label>Teléfono (cliente)</label>
+          <label>Teléfono</label>
           <input th:field="*{phone}" readonly />
         </div>
-
         <div>
-          <label>Email (cliente)</label>
+          <label>Email</label>
           <input th:field="*{email}" readonly />
         </div>
       </div>
-
       <div class="grid-3">
         <div>
           <label>Municipio</label>
           <input th:field="*{municipality}" placeholder="Ej: Madrid" />
         </div>
-
         <div>
           <label>Tipo inmueble</label>
           <input th:field="*{propertyType}" placeholder="Ej: Piso / Chalet" />
         </div>
-
         <div>
           <label>Código inm.</label>
           <input th:field="*{propertyCode}" placeholder="Ej: 1234" />
         </div>
       </div>
-
       <div class="grid">
         <div>
           <label>Dirección</label>
           <input th:field="*{address}" placeholder="Ej: Calle ..." />
         </div>
       </div>
-
       <div>
         <label>Comentarios</label>
         <textarea th:field="*{comments}"></textarea>
       </div>
-
       <button type="submit">Guardar interacción</button>
     </form>
   </div>
 
-  <!-- EDITAR (al final) -->
+  <!-- EDITAR CLIENTE -->
   <div class="card" id="editar" style="margin-top:24px;">
     <h2>Editar cliente</h2>
     <div class="small">Modificar datos del cliente</div>
-
     <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
 
     <form th:action="@{|/clientes/${client.id}/editar|}" th:object="${form}" method="post">
       <input type="hidden" th:field="*{id}" />
 
-      <div>
-        <label>Tipo</label>
-        <select th:field="*{clientType}">
-          <option th:each="t : ${clientTypes}" th:value="${t}" th:text="${t}"></option>
-        </select>
+      <div class="grid">
+        <div>
+          <label>Tipo</label>
+          <select th:field="*{clientType}">
+            <option th:each="t : ${clientTypes}" th:value="${t}" th:text="${t}"></option>
+          </select>
+        </div>
+        <div>
+          <label>Nombre</label>
+          <input th:field="*{fullName}" />
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label>Empresa (opcional)</label>
+          <input th:field="*{companyName}" placeholder="Nombre de la empresa..." />
+        </div>
+        <div>
+          <label>Código Solvia</label>
+          <input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123" />
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div>
+          <label>Teléfono 1</label>
+          <input th:field="*{phone1}" />
+          <div class="field-error" th:if="${#fields.hasErrors('phone1')}" th:errors="*{phone1}"></div>
+        </div>
+        <div>
+          <label>Teléfono 2</label>
+          <input th:field="*{phone2}" />
+          <div class="field-error" th:if="${#fields.hasErrors('phone2')}" th:errors="*{phone2}"></div>
+        </div>
+        <div>
+          <label>Teléfono 3</label>
+          <input th:field="*{phone3}" />
+          <div class="field-error" th:if="${#fields.hasErrors('phone3')}" th:errors="*{phone3}"></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label>Email 1</label>
+          <input th:field="*{email1}" />
+        </div>
+        <div>
+          <label>Email 2</label>
+          <input th:field="*{email2}" />
+        </div>
       </div>
 
       <div>
-        <label>Nombre</label>
-        <input th:field="*{fullName}" />
-      </div>
-
-      <div>
-        <label>Código Solvia</label>
-        <input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123" />
-      </div>
-
-      <div>
-        <label>Teléfono 1</label>
-        <input th:field="*{phone1}" />
-      </div>
-      <div>
-        <label>Teléfono 2</label>
-        <input th:field="*{phone2}" />
-      </div>
-      <div>
-        <label>Teléfono 3</label>
-        <input th:field="*{phone3}" />
-      </div>
-
-      <div>
-        <label>Email 1</label>
-        <input th:field="*{email1}" />
-      </div>
-      <div>
-        <label>Email 2</label>
-        <input th:field="*{email2}" />
-      </div>
-
-      <div>
-        <label>Notas</label>
+        <label>Notas generales</label>
         <textarea th:field="*{generalNotes}"></textarea>
       </div>
 
-      <button type="submit">Guardar</button>
+      <!-- ── FLAGS ESPECIALES ─────────────────────────────────── -->
+      <div style="margin-top:14px; padding:14px; border:1px solid var(--line);
+                  border-radius:10px; background:#faf8f4;">
+
+        <div style="display:flex; gap:24px; flex-wrap:wrap;">
+          <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+            <input type="checkbox" th:field="*{posibleOcupa}"/>
+            <span style="color:#b42318; font-weight:600;">⚠ Posible Okupa</span>
+          </label>
+          <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+            <input type="checkbox" th:field="*{compradorFinal}" id="chkCompradorFinal"/>
+            <span style="color:#2e7d32; font-weight:600;">✓ Comprador final (ya compró)</span>
+          </label>
+        </div>
+
+        <!-- Panel inmueble comprado — visible si compradorFinal está marcado -->
+        <div id="panelInmuebleComprado"
+             th:style="${form.compradorFinal} ? 'display:block;' : 'display:none;'"
+             style="margin-top:14px; padding:12px; border:1px solid #a5d6a7;
+                    border-radius:8px; background:#f1f8f1;">
+
+          <label style="font-weight:600; color:#2e7d32; margin-bottom:6px; display:block;">
+            🏠 ¿Qué inmueble compró?
+          </label>
+          <div class="small" style="margin-bottom:8px; color:#555;">
+            Selecciona el inmueble de sus interacciones. Se marcará automáticamente como <strong>vendido</strong>.
+          </div>
+
+          <select name="purchasedPropertyId" id="purchasedPropertyId" style="width:100%;">
+            <option value="">— Selecciona el inmueble comprado —</option>
+            <option th:each="it : ${interactions}"
+                    th:value="${it.property.id}"
+                    th:text="${it.property.propertyCode
+                               + ' · ' + (it.property.propertyType != null ? it.property.propertyType : '')
+                               + ' · ' + (it.property.municipality != null ? it.property.municipality : '')
+                               + (it.property.sold ? ' ✓ ya vendido' : '')}"
+                    th:selected="${form.purchasedPropertyId != null
+                                   and form.purchasedPropertyId == it.property.id}">
+            </option>
+          </select>
+
+          <div class="small" style="margin-top:6px; color:#888;">
+            Si el inmueble ya está marcado como vendido no cambiará nada.
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" style="margin-top:16px;">Guardar</button>
     </form>
   </div>
 
@@ -276,14 +384,24 @@
 <script>
   (function () {
 
-    // NDA toggle
-    const toggles = document.querySelectorAll('.nda-toggle');
-    toggles.forEach(cb => {
-      cb.addEventListener('change', async function () {
-        const clientId = cb.getAttribute('data-client-id');
-        const interactionId = cb.getAttribute('data-interaction-id');
-        const checked = cb.checked;
+    // ── Mostrar/ocultar panel inmueble comprado ──────────────
+    const chk   = document.getElementById('chkCompradorFinal');
+    const panel = document.getElementById('panelInmuebleComprado');
+    const sel   = document.getElementById('purchasedPropertyId');
 
+    if (chk && panel) {
+      chk.addEventListener('change', function () {
+        panel.style.display = chk.checked ? 'block' : 'none';
+        if (!chk.checked && sel) sel.value = '';
+      });
+    }
+
+    // ── NDA toggle ───────────────────────────────────────────
+    document.querySelectorAll('.nda-toggle').forEach(cb => {
+      cb.addEventListener('change', async function () {
+        const clientId      = cb.getAttribute('data-client-id');
+        const interactionId = cb.getAttribute('data-interaction-id');
+        const checked       = cb.checked;
         try {
           const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/nda`, {
             method: 'POST',
@@ -298,52 +416,43 @@
       });
     });
 
-    function statusToClass(statusValue) {
+    // ── Dots estado ──────────────────────────────────────────
+    function statusToClass(v) {
       const map = {
+        'GRIS_SIN_CONTACTO':      'gris',
         'AZUL_VISITA_PROGRAMADA': 'azul-claro',
-        'AZUL_VISITA_REALIZADA': 'azul-oscuro',
-        'NARANJA_QUIERE_VISITA': 'naranja',
-        'ROSA_DESCARTA': 'rosa',
-        'VERDE_PENSANDO': 'verde',
-        'AMARILLO_OFERTA': 'amarillo'
+        'AZUL_VISITA_REALIZADA':  'azul-oscuro',
+        'NARANJA_QUIERE_VISITA':  'naranja',
+        'ROSA_DESCARTA':          'rosa',
+        'VERDE_PENSANDO':         'verde',
+        'AMARILLO_OFERTA':        'amarillo'
       };
-      return map[statusValue] || '';
+      return map[v] || '';
     }
 
-    function paintDot(dotEl, statusValue) {
-      dotEl.classList.remove('azul-claro','azul-oscuro','naranja','rosa','verde','amarillo');
-      const cls = statusToClass(statusValue);
-      if (cls) dotEl.classList.add(cls);
-      dotEl.setAttribute('data-status', statusValue);
+    function paintDot(el, v) {
+      el.classList.remove('gris','azul-claro','azul-oscuro','naranja','rosa','verde','amarillo');
+      const c = statusToClass(v);
+      if (c) el.classList.add(c);
     }
 
-    function applyDotColor(selectEl, statusValue) {
-      const td = selectEl.closest('td');
-      const dot = td ? td.querySelector('.status-dot') : null;
-      if (!dot) return;
-      paintDot(dot, statusValue);
-    }
-
-    // pintar todas las bolitas al cargar
     document.querySelectorAll('.status-dot').forEach(dot => {
-      const statusValue = dot.getAttribute('data-status');
-      if (statusValue) paintDot(dot, statusValue);
+      paintDot(dot, dot.getAttribute('data-status'));
     });
 
-    // Status change
-    const selects = document.querySelectorAll('.status-select');
-    selects.forEach(sel => {
+    // ── Status change ────────────────────────────────────────
+    document.querySelectorAll('.status-select').forEach(sel => {
       sel.setAttribute('data-old', sel.value);
-      applyDotColor(sel, sel.value);
+      const td  = sel.closest('td');
+      const dot = td ? td.querySelector('.status-dot') : null;
+      if (dot) paintDot(dot, sel.value);
 
       sel.addEventListener('change', async function () {
-        const clientId = sel.getAttribute('data-client-id');
+        const clientId      = sel.getAttribute('data-client-id');
         const interactionId = sel.getAttribute('data-interaction-id');
-        const value = sel.value;
-        const oldValue = sel.getAttribute('data-old') || value;
-
-        applyDotColor(sel, value);
-
+        const value         = sel.value;
+        const oldValue      = sel.getAttribute('data-old') || value;
+        if (dot) paintDot(dot, value);
         try {
           const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/status`, {
             method: 'POST',
@@ -354,8 +463,34 @@
           sel.setAttribute('data-old', value);
         } catch (e) {
           sel.value = oldValue;
-          applyDotColor(sel, oldValue);
+          if (dot) paintDot(dot, oldValue);
           alert('No se pudo actualizar el estado.');
+        }
+      });
+    });
+
+    // ── Comentarios inline ───────────────────────────────────
+    document.querySelectorAll('.comments-save').forEach(btn => {
+      btn.addEventListener('click', async function () {
+        const clientId      = btn.getAttribute('data-client-id');
+        const interactionId = btn.getAttribute('data-interaction-id');
+        const td            = btn.closest('td');
+        const textarea      = td ? td.querySelector('.comments-input') : null;
+        const feedback      = td ? td.querySelector('.comments-feedback') : null;
+        if (!textarea) return;
+        try {
+          const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'comments=' + encodeURIComponent(textarea.value)
+          });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          if (feedback) {
+            feedback.style.display = 'inline';
+            setTimeout(() => { feedback.style.display = 'none'; }, 2000);
+          }
+        } catch (e) {
+          alert('No se pudo guardar el comentario.');
         }
       });
     });

@@ -16,6 +16,7 @@
   --rosa:#b02cff;
   --verde:#168a53;
   --amarillo:#c99a00;
+  --gris:#9e9e9e;   /* Sin contacto */
 }
 
 *{box-sizing:border-box}
@@ -130,6 +131,8 @@ table.wide thead th{
 
 /* Compatibilidad (si en algún sitio sigues usando .dot.azul) */
 .dot.azul{background:var(--azul)}
+.dot.gris { background: var(--gris); }
+.dot-status.gris { background: var(--gris); }
 
 /* Forms */
 input, select, textarea{
