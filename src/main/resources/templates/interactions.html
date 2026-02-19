@@ -24,7 +24,6 @@
           style="padding:18px 20px; border-radius:14px;
                  border:1px solid var(--line); background:#faf8f4;">
 
-      <!-- Cabecera del panel de filtros -->
       <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
              fill="none" stroke="var(--muted)" stroke-width="2.5"
@@ -211,6 +210,7 @@
       </tr>
 
       <tr th:each="it : ${items}"
+          th:attr="data-excluido=${it.client.posibleOcupa or it.client.compradorFinal} ? 'true' : null"
           th:style="${it.client.posibleOcupa
                       ? 'background:#fff5f5; border-left:3px solid #b42318;'
                       : it.client.compradorFinal and it.property.sold
@@ -343,11 +343,9 @@
       inputTo.value = new Date().toISOString().split('T')[0];
     }
 
-    /* ── Pastillas de estado: el <label> gestiona el toggle,
-          JS solo sincroniza el estilo visual en el evento change ── */
+    /* ── Pastillas de estado ── */
     document.querySelectorAll('.filter-pill').forEach(pill => {
-      const cb = pill.previousElementSibling; // el <input> oculto
-
+      const cb = pill.previousElementSibling;
       function sync() {
         if (cb.checked) {
           pill.style.outline       = '2.5px solid #111';
@@ -358,9 +356,8 @@
           pill.style.fontWeight = '600';
         }
       }
-
-      sync(); // estado inicial (viene del servidor via th:checked)
-      cb.addEventListener('change', sync); // solo actualiza el visual
+      sync();
+      cb.addEventListener('change', sync);
     });
 
     /* ── Email copy ── */
@@ -371,6 +368,7 @@
     const selectAllTxt = document.getElementById('selectAllText');
 
     function normalize(email) { return (email || '').trim().toLowerCase(); }
+
     function getSelectedEmails() {
       const set = new Set();
       document.querySelectorAll('.email-item:checked').forEach(cb => {
@@ -379,20 +377,35 @@
       });
       return Array.from(set).sort();
     }
-    function getAllEmailItems() { return Array.from(document.querySelectorAll('.email-item')); }
+
+    /* Todos los checkboxes — usado solo para limpiar selección */
+    function getAllEmailItems() {
+      return Array.from(document.querySelectorAll('.email-item'));
+    }
+
+    /* Solo checkboxes de filas sin data-excluido (no okupa, no comprador) */
+    function getSelectableEmailItems() {
+      return Array.from(document.querySelectorAll('.email-item')).filter(cb => {
+        return cb.closest('tr[data-excluido]') === null;
+      });
+    }
 
     function syncSelectAll() {
-      const all     = getAllEmailItems();
-      const checked = all.filter(cb => cb.checked);
-      if (all.length === 0 || checked.length === 0) {
-        selectAllCb.checked = false; selectAllCb.indeterminate = false;
-        selectAllTxt.textContent = 'Seleccionar todos';
-      } else if (checked.length === all.length) {
-        selectAllCb.checked = true; selectAllCb.indeterminate = false;
-        selectAllTxt.textContent = 'Deseleccionar todos';
+      const seleccionables = getSelectableEmailItems();
+      const marcados       = seleccionables.filter(cb => cb.checked);
+
+      if (seleccionables.length === 0 || marcados.length === 0) {
+        selectAllCb.checked       = false;
+        selectAllCb.indeterminate = false;
+        selectAllTxt.textContent  = 'Seleccionar todos';
+      } else if (marcados.length === seleccionables.length) {
+        selectAllCb.checked       = true;
+        selectAllCb.indeterminate = false;
+        selectAllTxt.textContent  = 'Deseleccionar todos';
       } else {
-        selectAllCb.checked = false; selectAllCb.indeterminate = true;
-        selectAllTxt.textContent = `Seleccionar todos (${checked.length}/${all.length})`;
+        selectAllCb.checked       = false;
+        selectAllCb.indeterminate = true;
+        selectAllTxt.textContent  = `Seleccionar todos (${marcados.length}/${seleccionables.length})`;
       }
     }
 
@@ -410,13 +423,16 @@
       renderState();
     }
 
+    /* "Seleccionar todos" solo actúa sobre filas seleccionables */
     selectAllCb.addEventListener('change', function () {
-      getAllEmailItems().forEach(cb => cb.checked = selectAllCb.checked);
+      getSelectableEmailItems().forEach(cb => cb.checked = selectAllCb.checked);
       renderState();
     });
+
     document.addEventListener('change', function (ev) {
       if (ev.target && ev.target.classList.contains('email-item')) renderState();
     });
+
     copyBtn.addEventListener('click', async function () {
       const list = renderState();
       if (list.length === 0) return;
@@ -431,6 +447,7 @@
       }
       clearSelection();
     });
+
     clearBtn.addEventListener('click', function () { clearSelection(); });
     renderState();
 
