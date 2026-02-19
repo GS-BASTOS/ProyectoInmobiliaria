@@ -11,7 +11,6 @@
         <h2 style="margin-bottom:6px;">Histórico de interesados</h2>
         <div class="small">Selecciona emails y pulsa copiar para pegarlos directamente en tu correo.</div>
       </div>
-
       <div class="actions" style="margin-top:0;">
         <button type="button" id="copyEmailsBtn" disabled>Copiar (<span id="emailsCountInline">0</span>)</button>
         <a href="javascript:void(0)" class="btn btn-secondary" id="clearEmailsBtn" style="display:none;">Limpiar</a>
@@ -21,99 +20,161 @@
     <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
 
     <!-- FILTROS -->
-    <form class="filters" th:action="@{/interesados}" method="get">
-      <div class="grid">
+    <form class="filters" th:action="@{/interesados}" method="get"
+          style="padding:18px 20px; border-radius:14px;
+                 border:1px solid var(--line); background:#faf8f4;">
 
-        <!-- ESTADOS MULTI-COLOR -->
-        <div style="grid-column: 1 / -1;">
-          <label>Estado (puedes marcar varios)</label>
-          <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:4px;">
+      <!-- Cabecera del panel de filtros -->
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="var(--muted)" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </svg>
+        <span style="font-size:11px; font-weight:700; letter-spacing:1.2px;
+                     text-transform:uppercase; color:var(--muted);">Filtros</span>
+      </div>
 
-            <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-              <input type="checkbox" name="statuses" value="GRIS_SIN_CONTACTO"
-                     th:checked="${#lists.contains(selectedStatuses, 'GRIS_SIN_CONTACTO')}"/>
-              <span class="dot gris" style="width:18px;height:18px;flex-shrink:0;"></span>
-              <span class="small">Sin contacto</span>
-            </label>
-
-            <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-              <input type="checkbox" name="statuses" value="AZUL_VISITA_PROGRAMADA"
-                     th:checked="${#lists.contains(selectedStatuses, 'AZUL_VISITA_PROGRAMADA')}"/>
-              <span class="dot azul-claro" style="width:18px;height:18px;flex-shrink:0;"></span>
-              <span class="small">Visita programada</span>
-            </label>
-
-            <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-              <input type="checkbox" name="statuses" value="AZUL_VISITA_REALIZADA"
-                     th:checked="${#lists.contains(selectedStatuses, 'AZUL_VISITA_REALIZADA')}"/>
-              <span class="dot azul-oscuro" style="width:18px;height:18px;flex-shrink:0;"></span>
-              <span class="small">Visita realizada</span>
-            </label>
-
-            <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-              <input type="checkbox" name="statuses" value="NARANJA_QUIERE_VISITA"
-                     th:checked="${#lists.contains(selectedStatuses, 'NARANJA_QUIERE_VISITA')}"/>
-              <span class="dot naranja" style="width:18px;height:18px;flex-shrink:0;"></span>
-              <span class="small">Quiere visita</span>
-            </label>
-
-            <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-              <input type="checkbox" name="statuses" value="ROSA_DESCARTA"
-                     th:checked="${#lists.contains(selectedStatuses, 'ROSA_DESCARTA')}"/>
-              <span class="dot rosa" style="width:18px;height:18px;flex-shrink:0;"></span>
-              <span class="small">Descarta</span>
-            </label>
-
-            <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-              <input type="checkbox" name="statuses" value="VERDE_PENSANDO"
-                     th:checked="${#lists.contains(selectedStatuses, 'VERDE_PENSANDO')}"/>
-              <span class="dot verde" style="width:18px;height:18px;flex-shrink:0;"></span>
-              <span class="small">Pensando</span>
-            </label>
-
-            <label style="margin:0; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-              <input type="checkbox" name="statuses" value="AMARILLO_OFERTA"
-                     th:checked="${#lists.contains(selectedStatuses, 'AMARILLO_OFERTA')}"/>
-              <span class="dot amarillo" style="width:18px;height:18px;flex-shrink:0;"></span>
-              <span class="small">Oferta</span>
-            </label>
-
-          </div>
+      <!-- ESTADOS -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:0.8px;
+                    text-transform:uppercase; color:var(--muted); margin-bottom:8px;">
+          Estado <span style="font-weight:400; text-transform:none; letter-spacing:0;">(puedes marcar varios)</span>
         </div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <label style="margin:0; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="GRIS_SIN_CONTACTO" style="display:none;"
+                   th:checked="${#lists.contains(selectedStatuses, 'GRIS_SIN_CONTACTO')}"/>
+            <span class="filter-pill"
+                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
+                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
+                         border:1.5px solid #d0d0d0; background:#f5f5f5; color:#555;
+                         user-select:none; transition:all .15s;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#9e9e9e;flex-shrink:0;"></span>
+              Sin contacto
+            </span>
+          </label>
+          <label style="margin:0; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="AZUL_VISITA_PROGRAMADA" style="display:none;"
+                   th:checked="${#lists.contains(selectedStatuses, 'AZUL_VISITA_PROGRAMADA')}"/>
+            <span class="filter-pill"
+                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
+                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
+                         border:1.5px solid #b3c4ff; background:#eef1ff; color:#0b1f5c;
+                         user-select:none; transition:all .15s;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#0b1f5c;flex-shrink:0;"></span>
+              Visita programada
+            </span>
+          </label>
+          <label style="margin:0; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="AZUL_VISITA_REALIZADA" style="display:none;"
+                   th:checked="${#lists.contains(selectedStatuses, 'AZUL_VISITA_REALIZADA')}"/>
+            <span class="filter-pill"
+                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
+                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
+                         border:1.5px solid #b3d9ff; background:#e8f4ff; color:#1565c0;
+                         user-select:none; transition:all .15s;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#5aa7ff;flex-shrink:0;"></span>
+              Visita realizada
+            </span>
+          </label>
+          <label style="margin:0; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="NARANJA_QUIERE_VISITA" style="display:none;"
+                   th:checked="${#lists.contains(selectedStatuses, 'NARANJA_QUIERE_VISITA')}"/>
+            <span class="filter-pill"
+                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
+                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
+                         border:1.5px solid #f5c18a; background:#fff4e6; color:#a05800;
+                         user-select:none; transition:all .15s;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#e07a18;flex-shrink:0;"></span>
+              Quiere visita
+            </span>
+          </label>
+          <label style="margin:0; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="ROSA_DESCARTA" style="display:none;"
+                   th:checked="${#lists.contains(selectedStatuses, 'ROSA_DESCARTA')}"/>
+            <span class="filter-pill"
+                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
+                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
+                         border:1.5px solid #d9a8ff; background:#f7eeff; color:#6a0fa0;
+                         user-select:none; transition:all .15s;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#b02cff;flex-shrink:0;"></span>
+              Descarta
+            </span>
+          </label>
+          <label style="margin:0; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="VERDE_PENSANDO" style="display:none;"
+                   th:checked="${#lists.contains(selectedStatuses, 'VERDE_PENSANDO')}"/>
+            <span class="filter-pill"
+                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
+                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
+                         border:1.5px solid #a5d6a7; background:#e8f5e9; color:#1b5e20;
+                         user-select:none; transition:all .15s;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#168a53;flex-shrink:0;"></span>
+              Pensando
+            </span>
+          </label>
+          <label style="margin:0; cursor:pointer;">
+            <input type="checkbox" name="statuses" value="AMARILLO_OFERTA" style="display:none;"
+                   th:checked="${#lists.contains(selectedStatuses, 'AMARILLO_OFERTA')}"/>
+            <span class="filter-pill"
+                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
+                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
+                         border:1.5px solid #ffe082; background:#fffde7; color:#795500;
+                         user-select:none; transition:all .15s;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#f5c800;flex-shrink:0;"></span>
+              Oferta
+            </span>
+          </label>
+        </div>
+      </div>
 
+      <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
+
+      <!-- CANAL + FECHAS + BÚSQUEDA -->
+      <div class="grid" style="gap:10px; margin-bottom:12px;">
         <div>
-          <label>Canal</label>
+          <label style="font-size:11px; font-weight:700; letter-spacing:0.8px;
+                        text-transform:uppercase; color:var(--muted); margin:0 0 6px;">Canal</label>
           <select name="channel">
             <option value="" th:selected="${selectedChannel == null}">Todos</option>
-            <option th:each="c : ${channels}"
-                    th:value="${c}"
-                    th:text="${c}"
-                    th:selected="${selectedChannel == c}">
-            </option>
+            <option th:each="c : ${channels}" th:value="${c}" th:text="${c}"
+                    th:selected="${selectedChannel == c}"></option>
           </select>
         </div>
-
         <div>
-          <label>Desde</label>
-          <input type="date" name="from" th:value="${from}"/>
-        </div>
-
-        <div>
-          <label>Hasta</label>
-          <input type="date" name="to" th:value="${to}"/>
-        </div>
-
-        <div style="grid-column: 1 / -1;">
-          <label>Buscar</label>
+          <label style="font-size:11px; font-weight:700; letter-spacing:0.8px;
+                        text-transform:uppercase; color:var(--muted); margin:0 0 6px;">Buscar</label>
           <input type="text" name="q"
                  placeholder="Cliente, empresa, código, dirección, comentario..."
                  th:value="${q}"/>
         </div>
-
-        <div class="actions" style="align-items:end;">
-          <button type="submit">Filtrar</button>
-          <a class="btn btn-secondary" th:href="@{/interesados}">Limpiar</a>
+        <div>
+          <label style="font-size:11px; font-weight:700; letter-spacing:0.8px;
+                        text-transform:uppercase; color:var(--muted); margin:0 0 6px;">Desde</label>
+          <input type="date" name="from" id="inputFrom" th:value="${from}"/>
         </div>
+        <div>
+          <label style="font-size:11px; font-weight:700; letter-spacing:0.8px;
+                        text-transform:uppercase; color:var(--muted); margin:0 0 6px;">Hasta</label>
+          <input type="date" name="to" id="inputTo" th:value="${to}"/>
+        </div>
+      </div>
+
+      <!-- ACCIONES -->
+      <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
+        <a class="btn btn-secondary" th:href="@{/interesados}"
+           style="font-size:13px; padding:9px 16px;">Limpiar</a>
+        <button type="submit"
+                style="display:inline-flex; align-items:center; gap:7px;
+                       font-size:13px; padding:9px 20px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filtrar
+        </button>
       </div>
     </form>
 
@@ -124,8 +185,6 @@
         <th>Fecha</th>
         <th>Cliente</th>
         <th>Teléfonos</th>
-
-        <!-- CABECERA EMAILS con checkbox "Seleccionar todos" -->
         <th>
           <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;">
             <span>Emails seleccionables</span>
@@ -140,7 +199,6 @@
             </label>
           </div>
         </th>
-
         <th>Inmueble</th>
         <th>Canal</th>
         <th>Comentarios</th>
@@ -155,13 +213,16 @@
       <tr th:each="it : ${items}"
           th:style="${it.client.posibleOcupa
                       ? 'background:#fff5f5; border-left:3px solid #b42318;'
-                      : it.client.compradorFinal ? 'opacity:0.5;' : ''}">
+                      : it.client.compradorFinal and it.property.sold
+                        ? 'background:#e8f5e9; border-left:3px solid #168a53;'
+                        : it.client.compradorFinal
+                          ? 'opacity:0.4;'
+                          : ''}">
 
         <!-- ESTADO DOT -->
         <td>
           <span class="badge" title="Estado">
-            <span class="dot-status status-dot"
-                  th:attr="data-status=${it.status}"></span>
+            <span class="dot-status status-dot" th:attr="data-status=${it.status}"></span>
           </span>
         </td>
 
@@ -174,20 +235,40 @@
              th:text="${it.client.fullName}"
              th:style="${it.client.posibleOcupa
                          ? 'color:#b42318; font-weight:700;'
-                         : it.client.compradorFinal ? 'color:#2e7d32; font-weight:600;' : ''}">
+                         : it.client.compradorFinal
+                           ? 'color:#168a53; font-weight:700;'
+                           : ''}">
             Cliente
           </a>
           <div th:if="${it.client.companyName != null and !#strings.isEmpty(it.client.companyName)}"
                class="small" style="color:#666;">
             (<span th:text="${it.client.companyName}"></span>)
           </div>
+          <!-- Badge OKUPA -->
           <div th:if="${it.client.posibleOcupa}"
-               class="small" style="color:#b42318; font-weight:700; margin-top:2px;">
-            (⚠ OKUPA)
+               style="margin-top:4px; display:inline-flex; align-items:center; gap:5px;
+                      background:#ffebee; border:1px solid #b42318;
+                      border-radius:999px; padding:2px 8px;
+                      font-size:11px; color:#b42318; font-weight:800;
+                      text-transform:uppercase; letter-spacing:0.3px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                 fill="none" stroke="#b42318" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            OKUPA
           </div>
+          <!-- Badge COMPRADOR -->
           <div th:if="${it.client.compradorFinal}"
-               class="small" style="color:#2e7d32; font-weight:600; margin-top:2px;">
-            (✓ Comprador)
+               style="margin-top:4px; display:inline-flex; align-items:center; gap:5px;
+                      background:#e8f5e9; border:1px solid #168a53;
+                      border-radius:999px; padding:2px 8px;
+                      font-size:11px; color:#168a53; font-weight:800;
+                      text-transform:uppercase; letter-spacing:0.3px;
+                      box-shadow:0 0 0 2px rgba(22,138,83,.10);">
+            💰 COMPRADOR
           </div>
         </td>
 
@@ -205,14 +286,15 @@
                 style="display:inline-flex; align-items:center; gap:8px;
                        margin-right:12px; margin-bottom:6px; padding:6px 10px;
                        border:1px solid var(--line); border-radius:999px; background:#ffffff;">
-            <input type="checkbox" class="email-item"
-                   th:attr="data-email=${e.email}"/>
+            <input type="checkbox" class="email-item" th:attr="data-email=${e.email}"/>
             <span th:text="${e.email}">email@demo.com</span>
           </span>
         </td>
 
         <!-- INMUEBLE -->
-        <td>
+        <td th:style="${it.client.compradorFinal and it.property.sold
+                        ? 'background:#d6f5e3; border-radius:8px; padding:10px;'
+                        : ''}">
           <div style="display:flex; gap:6px; flex-wrap:wrap;">
             <span style="font-size:12px; font-weight:800;">Código</span>
             <span th:text="${it.property.propertyCode}">ABC123</span>
@@ -232,16 +314,12 @@
             <span style="font-size:12px; font-weight:800;">Municipio</span>
             <span th:text="${it.property.municipality}">Madrid</span>
           </div>
+          <!-- Chip comprado -->
           <div th:if="${it.property.sold}"
                style="margin-top:4px; display:inline-flex; align-items:center; gap:4px;
-                      background:#e8f5e9; border:1px solid #4caf50; border-radius:999px;
-                      padding:2px 8px; font-size:11px; color:#2e7d32; font-weight:600;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
-                 fill="none" stroke="#2e7d32" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            Vendido
+                      background:#e8f5e9; border:1px solid #168a53; border-radius:999px;
+                      padding:2px 8px; font-size:11px; color:#168a53; font-weight:700;">
+            💰 Comprado
           </div>
         </td>
 
@@ -259,7 +337,33 @@
 <script>
   (function () {
 
-    // ====== Emails copiar/limpiar ======
+    /* ── Fecha "Hasta" = hoy si el servidor no envía valor ── */
+    const inputTo = document.getElementById('inputTo');
+    if (inputTo && !inputTo.value) {
+      inputTo.value = new Date().toISOString().split('T')[0];
+    }
+
+    /* ── Pastillas de estado: el <label> gestiona el toggle,
+          JS solo sincroniza el estilo visual en el evento change ── */
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      const cb = pill.previousElementSibling; // el <input> oculto
+
+      function sync() {
+        if (cb.checked) {
+          pill.style.outline       = '2.5px solid #111';
+          pill.style.outlineOffset = '2px';
+          pill.style.fontWeight    = '800';
+        } else {
+          pill.style.outline    = 'none';
+          pill.style.fontWeight = '600';
+        }
+      }
+
+      sync(); // estado inicial (viene del servidor via th:checked)
+      cb.addEventListener('change', sync); // solo actualiza el visual
+    });
+
+    /* ── Email copy ── */
     const copyBtn      = document.getElementById('copyEmailsBtn');
     const clearBtn     = document.getElementById('clearEmailsBtn');
     const counter      = document.getElementById('emailsCountInline');
@@ -267,7 +371,6 @@
     const selectAllTxt = document.getElementById('selectAllText');
 
     function normalize(email) { return (email || '').trim().toLowerCase(); }
-
     function getSelectedEmails() {
       const set = new Set();
       document.querySelectorAll('.email-item:checked').forEach(cb => {
@@ -276,38 +379,27 @@
       });
       return Array.from(set).sort();
     }
+    function getAllEmailItems() { return Array.from(document.querySelectorAll('.email-item')); }
 
-    function getAllEmailItems() {
-      return Array.from(document.querySelectorAll('.email-item'));
-    }
-
-    // Actualiza el estado visual del checkbox "Seleccionar todos"
     function syncSelectAll() {
-      const all      = getAllEmailItems();
-      const checked  = all.filter(cb => cb.checked);
-      if (all.length === 0) {
-        selectAllCb.checked       = false;
-        selectAllCb.indeterminate = false;
-        selectAllTxt.textContent  = 'Seleccionar todos';
-      } else if (checked.length === 0) {
-        selectAllCb.checked       = false;
-        selectAllCb.indeterminate = false;
-        selectAllTxt.textContent  = 'Seleccionar todos';
+      const all     = getAllEmailItems();
+      const checked = all.filter(cb => cb.checked);
+      if (all.length === 0 || checked.length === 0) {
+        selectAllCb.checked = false; selectAllCb.indeterminate = false;
+        selectAllTxt.textContent = 'Seleccionar todos';
       } else if (checked.length === all.length) {
-        selectAllCb.checked       = true;
-        selectAllCb.indeterminate = false;
-        selectAllTxt.textContent  = 'Deseleccionar todos';
+        selectAllCb.checked = true; selectAllCb.indeterminate = false;
+        selectAllTxt.textContent = 'Deseleccionar todos';
       } else {
-        selectAllCb.checked       = false;
-        selectAllCb.indeterminate = true;           // estado intermedio (–)
-        selectAllTxt.textContent  = `Seleccionar todos (${checked.length}/${all.length})`;
+        selectAllCb.checked = false; selectAllCb.indeterminate = true;
+        selectAllTxt.textContent = `Seleccionar todos (${checked.length}/${all.length})`;
       }
     }
 
     function renderState() {
       const list = getSelectedEmails();
-      counter.textContent  = String(list.length);
-      copyBtn.disabled     = list.length === 0;
+      counter.textContent    = String(list.length);
+      copyBtn.disabled       = list.length === 0;
       clearBtn.style.display = list.length === 0 ? 'none' : 'inline-flex';
       syncSelectAll();
       return list;
@@ -318,43 +410,31 @@
       renderState();
     }
 
-    // ── Seleccionar / deseleccionar todos ──
     selectAllCb.addEventListener('change', function () {
-      const toCheck = selectAllCb.checked;
-      getAllEmailItems().forEach(cb => cb.checked = toCheck);
+      getAllEmailItems().forEach(cb => cb.checked = selectAllCb.checked);
       renderState();
     });
-
-    // ── Cambio en cualquier email individual ──
     document.addEventListener('change', function (ev) {
       if (ev.target && ev.target.classList.contains('email-item')) renderState();
     });
-
-    // ── Copiar ──
     copyBtn.addEventListener('click', async function () {
       const list = renderState();
       if (list.length === 0) return;
       const text = list.join('; ');
-      try {
-        await navigator.clipboard.writeText(text);
-      } catch (e) {
+      try { await navigator.clipboard.writeText(text); }
+      catch (e) {
         const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.setAttribute('readonly', 'readonly');
-        ta.style.position = 'fixed';
-        ta.style.left = '-9999px';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
+        ta.value = text; ta.setAttribute('readonly', 'readonly');
+        ta.style.position = 'fixed'; ta.style.left = '-9999px';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
       }
       clearSelection();
     });
-
     clearBtn.addEventListener('click', function () { clearSelection(); });
     renderState();
 
-    // ====== Dots estado ======
+    /* ── Dots de estado en tabla ── */
     function statusToClass(v) {
       const map = {
         'GRIS_SIN_CONTACTO':      'gris',
@@ -367,14 +447,12 @@
       };
       return map[v] || '';
     }
-
     function paintDot(dotEl, v) {
       dotEl.classList.remove('gris','azul-claro','azul-oscuro','naranja','rosa','verde','amarillo');
       const cls = statusToClass(v);
       if (cls) dotEl.classList.add(cls);
       dotEl.setAttribute('data-status', v);
     }
-
     document.querySelectorAll('.status-dot').forEach(dot => {
       const v = dot.getAttribute('data-status');
       if (v) paintDot(dot, v);
@@ -382,6 +460,5 @@
 
   })();
 </script>
-
 </body>
 </html>

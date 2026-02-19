@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ClientEditForm {
 
     @NotNull
@@ -48,8 +51,10 @@ public class ClientEditForm {
     private boolean posibleOcupa;
     private boolean compradorFinal;
 
-    // ── NUEVO: ID del inmueble que compró ──
-    private Long purchasedPropertyId;
+    // ── Lista de inmuebles comprados (puede comprar más de uno) ──
+    private List<Long> purchasedPropertyIds = new ArrayList<>();
+
+    // ── Getters / Setters ────────────────────────────────────────
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -90,6 +95,8 @@ public class ClientEditForm {
     public boolean isCompradorFinal() { return compradorFinal; }
     public void setCompradorFinal(boolean compradorFinal) { this.compradorFinal = compradorFinal; }
 
-    public Long getPurchasedPropertyId() { return purchasedPropertyId; }
-    public void setPurchasedPropertyId(Long purchasedPropertyId) { this.purchasedPropertyId = purchasedPropertyId; }
+    public List<Long> getPurchasedPropertyIds() { return purchasedPropertyIds; }
+    public void setPurchasedPropertyIds(List<Long> purchasedPropertyIds) {
+        this.purchasedPropertyIds = purchasedPropertyIds != null ? purchasedPropertyIds : new ArrayList<>();
+    }
 }

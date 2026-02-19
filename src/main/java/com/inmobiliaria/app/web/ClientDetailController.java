@@ -33,11 +33,11 @@ public class ClientDetailController {
                                   ClientPropertyInteractionRepository interactionRepository,
                                   VisitRepository visitRepository,
                                   PropertyRepository propertyRepository) {
-        this.clientRepository = clientRepository;
+        this.clientRepository      = clientRepository;
         this.clientPhoneRepository = clientPhoneRepository;
         this.interactionRepository = interactionRepository;
-        this.visitRepository = visitRepository;
-        this.propertyRepository = propertyRepository;
+        this.visitRepository       = visitRepository;
+        this.propertyRepository    = propertyRepository;
     }
 
     // ── GET /clientes/{id} ───────────────────────────────────────────────────
@@ -50,15 +50,15 @@ public class ClientDetailController {
         List<ClientPropertyInteraction> interactions =
                 interactionRepository.findByClientIdWithPropertyOrderByContactDateDesc(client.getId());
 
-        ClientEditForm form = buildEditForm(client);
+        ClientEditForm form = buildEditForm(client, interactions);
         NewInteractionForm ni = buildPrefilledInteractionForm(client, interactions);
 
-        model.addAttribute("client", client);
-        model.addAttribute("form", form);
-        model.addAttribute("clientTypes", ClientType.values());
+        model.addAttribute("client",       client);
+        model.addAttribute("form",         form);
+        model.addAttribute("clientTypes",  ClientType.values());
         model.addAttribute("newInteraction", ni);
-        model.addAttribute("channels", ContactChannel.values());
-        model.addAttribute("statuses", InterestStatus.values());
+        model.addAttribute("channels",     ContactChannel.values());
+        model.addAttribute("statuses",     InterestStatus.values());
         model.addAttribute("interactions", interactions);
         model.addAttribute("visits",
                 visitRepository.findByClient_IdOrderByVisitAtDescIdDesc(client.getId()));
@@ -135,6 +135,9 @@ public class ClientDetailController {
             return "client_detail";
         }
 
+        boolean eraCompradorAntes = client.isCompradorFinal();
+        boolean eraOcupaAntes     = client.isPosibleOcupa();
+
         client.setClientType(form.getClientType());
         client.setFullName(form.getFullName());
         client.setCompanyName(t(form.getCompanyName()));
@@ -143,11 +146,54 @@ public class ClientDetailController {
         client.setPosibleOcupa(form.isPosibleOcupa());
         client.setCompradorFinal(form.isCompradorFinal());
 
-        // ── Marcar inmueble como vendido si seleccionó uno ──
-        if (form.isCompradorFinal() && form.getPurchasedPropertyId() != null) {
-            propertyRepository.findById(form.getPurchasedPropertyId()).ifPresent(p -> {
-                p.setSold(true);
-                propertyRepository.save(p);
+        List<ClientPropertyInteraction> interactions =
+                interactionRepository.findByClientIdWithPropertyOrderByContactDateDesc(client.getId());
+
+        // ── CASO 1: Se DESMARCA comprador → liberar inmuebles comprados ──────
+        if (eraCompradorAntes && !form.isCompradorFinal()) {
+            // Ponemos a disponible todos los inmuebles de sus interacciones
+            // que estuvieran vendidos (solo los suyos, usando purchasedPropertyIds previo)
+            // Como no guardamos qué compró antes, liberamos los marcados en form anterior.
+            // La forma segura: liberar solo los que están en sus interacciones y sold=true
+            interactions.stream()
+                    .map(ClientPropertyInteraction::getProperty)
+                    .distinct()
+                    .filter(Property::isSold)
+                    .forEach(p -> {
+                        p.setSold(false);
+                        propertyRepository.save(p);
+                    });
+        }
+
+        // ── CASO 2: Se MARCA comprador ────────────────────────────────────────
+        if (form.isCompradorFinal()) {
+            List<Long> boughtIds = form.getPurchasedPropertyIds();
+
+            if (boughtIds != null && !boughtIds.isEmpty()) {
+                // Marcar como vendidos los inmuebles seleccionados
+                boughtIds.forEach(propId ->
+                        propertyRepository.findById(propId).ifPresent(p -> {
+                            p.setSold(true);
+                            propertyRepository.save(p);
+                        })
+                );
+
+                // Poner DESCARTA en todas las interacciones que NO sean
+                // de los inmuebles comprados
+                interactions.forEach(it -> {
+                    if (!boughtIds.contains(it.getProperty().getId())) {
+                        it.setStatus(InterestStatus.ROSA_DESCARTA);
+                        interactionRepository.save(it);
+                    }
+                });
+            }
+        }
+
+        // ── CASO 3: Se MARCA okupa → todas las interacciones a DESCARTA ──────
+        if (!eraOcupaAntes && form.isPosibleOcupa()) {
+            interactions.forEach(it -> {
+                it.setStatus(InterestStatus.ROSA_DESCARTA);
+                interactionRepository.save(it);
             });
         }
 
@@ -161,8 +207,6 @@ public class ClientDetailController {
             clientRepository.save(client);
         } catch (DataIntegrityViolationException ex) {
             br.reject("dbUnique", "No se pudo guardar: hay un teléfono repetido.");
-            List<ClientPropertyInteraction> interactions =
-                    interactionRepository.findByClientIdWithPropertyOrderByContactDateDesc(client.getId());
             repopulateDetailModel(model, client, form,
                     buildPrefilledInteractionForm(client, interactions));
             return "client_detail";
@@ -185,7 +229,7 @@ public class ClientDetailController {
                 interactionRepository.findByClientIdWithPropertyOrderByContactDateDesc(client.getId());
 
         if (br.hasErrors()) {
-            repopulateDetailModel(model, client, buildEditForm(client), form);
+            repopulateDetailModel(model, client, buildEditForm(client, interactions), form);
             model.addAttribute("interactions", interactions);
             return "client_detail";
         }
@@ -193,12 +237,12 @@ public class ClientDetailController {
         String code = t(form.getPropertyCode());
         Property property = propertyRepository.findByPropertyCode(code)
                 .map(existing -> {
-                    String pt = t(form.getPropertyType());
+                    String pt  = t(form.getPropertyType());
                     String addr = t(form.getAddress());
-                    String mun = t(form.getMunicipality());
-                    if (!pt.isBlank()) existing.setPropertyType(pt);
+                    String mun  = t(form.getMunicipality());
+                    if (!pt.isBlank())   existing.setPropertyType(pt);
                     if (!addr.isBlank()) existing.setAddress(addr);
-                    if (!mun.isBlank()) existing.setMunicipality(mun);
+                    if (!mun.isBlank())  existing.setMunicipality(mun);
                     return propertyRepository.save(existing);
                 })
                 .orElseGet(() -> {
@@ -226,7 +270,8 @@ public class ClientDetailController {
 
     // ── HELPERS ──────────────────────────────────────────────────────────────
 
-    private ClientEditForm buildEditForm(Client client) {
+    private ClientEditForm buildEditForm(Client client,
+                                         List<ClientPropertyInteraction> interactions) {
         ClientEditForm form = new ClientEditForm();
         form.setId(client.getId());
         form.setClientType(client.getClientType());
@@ -236,12 +281,34 @@ public class ClientDetailController {
         form.setSolviaCode(client.getSolviaCode());
         form.setPosibleOcupa(client.isPosibleOcupa());
         form.setCompradorFinal(client.isCompradorFinal());
-        form.setPhone1(client.getPhones().stream().filter(p -> p.getPosition() == 1).map(ClientPhone::getPhoneNumber).findFirst().orElse(""));
-        form.setPhone2(client.getPhones().stream().filter(p -> p.getPosition() == 2).map(ClientPhone::getPhoneNumber).findFirst().orElse(""));
-        form.setPhone3(client.getPhones().stream().filter(p -> p.getPosition() == 3).map(ClientPhone::getPhoneNumber).findFirst().orElse(""));
-        form.setEmail1(client.getEmails().stream().filter(e -> e.getPosition() == 1).map(ClientEmail::getEmail).findFirst().orElse(""));
-        form.setEmail2(client.getEmails().stream().filter(e -> e.getPosition() == 2).map(ClientEmail::getEmail).findFirst().orElse(""));
-        // purchasedPropertyId no se repopula a propósito: es una acción única
+        form.setPhone1(client.getPhones().stream()
+                .filter(p -> p.getPosition() == 1)
+                .map(ClientPhone::getPhoneNumber).findFirst().orElse(""));
+        form.setPhone2(client.getPhones().stream()
+                .filter(p -> p.getPosition() == 2)
+                .map(ClientPhone::getPhoneNumber).findFirst().orElse(""));
+        form.setPhone3(client.getPhones().stream()
+                .filter(p -> p.getPosition() == 3)
+                .map(ClientPhone::getPhoneNumber).findFirst().orElse(""));
+        form.setEmail1(client.getEmails().stream()
+                .filter(e -> e.getPosition() == 1)
+                .map(ClientEmail::getEmail).findFirst().orElse(""));
+        form.setEmail2(client.getEmails().stream()
+                .filter(e -> e.getPosition() == 2)
+                .map(ClientEmail::getEmail).findFirst().orElse(""));
+
+        // Preseleccionar los inmuebles ya vendidos de sus interacciones
+        // para que el panel los muestre marcados al recargar
+        if (client.isCompradorFinal() && interactions != null) {
+            List<Long> vendidos = interactions.stream()
+                    .map(ClientPropertyInteraction::getProperty)
+                    .filter(Property::isSold)
+                    .map(Property::getId)
+                    .distinct()
+                    .toList();
+            form.setPurchasedPropertyIds(vendidos);
+        }
+
         return form;
     }
 
@@ -259,7 +326,7 @@ public class ClientDetailController {
         if (interactions != null && !interactions.isEmpty()) {
             ClientPropertyInteraction last = interactions.get(0);
             if (last.getChannel() != null) ni.setChannel(last.getChannel());
-            if (last.getStatus() != null)  ni.setStatus(last.getStatus());
+            if (last.getStatus()  != null) ni.setStatus(last.getStatus());
             if (last.getProperty() != null) {
                 Property p = last.getProperty();
                 if (!t(p.getPropertyCode()).isBlank())  ni.setPropertyCode(p.getPropertyCode());
@@ -274,12 +341,12 @@ public class ClientDetailController {
     private void repopulateDetailModel(Model model, Client client,
                                         ClientEditForm editForm,
                                         NewInteractionForm newInteractionForm) {
-        model.addAttribute("client", client);
-        model.addAttribute("form", editForm);
-        model.addAttribute("clientTypes", ClientType.values());
+        model.addAttribute("client",       client);
+        model.addAttribute("form",         editForm);
+        model.addAttribute("clientTypes",  ClientType.values());
         model.addAttribute("newInteraction", newInteractionForm);
-        model.addAttribute("channels", ContactChannel.values());
-        model.addAttribute("statuses", InterestStatus.values());
+        model.addAttribute("channels",     ContactChannel.values());
+        model.addAttribute("statuses",     InterestStatus.values());
         model.addAttribute("interactions",
                 interactionRepository.findByClientIdWithPropertyOrderByContactDateDesc(client.getId()));
         model.addAttribute("visits",
@@ -312,12 +379,14 @@ public class ClientDetailController {
         } else { existing.setEmail(e); }
     }
 
-    private void checkPhoneUnique(BindingResult br, String fieldName, String phone, Long editingClientId) {
+    private void checkPhoneUnique(BindingResult br, String fieldName,
+                                   String phone, Long editingClientId) {
         if (phone == null || phone.isBlank()) return;
         clientPhoneRepository.findFirstByPhoneNumber(phone).ifPresent(found -> {
             if (!found.getClient().getId().equals(editingClientId))
                 br.rejectValue(fieldName, "phoneExists",
-                        "Ese teléfono ya está asignado a otro cliente (ID " + found.getClient().getId() + ").");
+                        "Ese teléfono ya está asignado a otro cliente (ID "
+                        + found.getClient().getId() + ").");
         });
     }
 

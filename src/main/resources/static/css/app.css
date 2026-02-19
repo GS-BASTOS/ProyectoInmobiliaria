@@ -1,22 +1,19 @@
 :root{
-  /* Base */
-  --bg:#f4f1ea;        /* beige suave */
-  --card:#ffffff;      /* blanco */
-  --text:#111111;      /* negro */
-  --muted:#5b5b5b;     /* gris medio */
-  --line:#d9d2c6;      /* borde beige/gris */
+  --bg:#f4f1ea;
+  --card:#ffffff;
+  --text:#111111;
+  --muted:#5b5b5b;
+  --line:#d9d2c6;
 
-  /* Acentos */
-  --azul:#1f5eff;           /* compat / azul “de siempre” */
-  --azul-claro:#5aa7ff;     /* Visita Programada */
-  --azul-oscuro:#0b1f5c;    /* Visita Realizada (más oscuro) */
-  
+  --azul:#1f5eff;
+  --azul-claro:#0b1f5c;     /* Visita PROGRAMADA → azul oscuro */
+  --azul-oscuro:#5aa7ff;    /* Visita REALIZADA  → azul claro  */
 
   --naranja:#e07a18;
   --rosa:#b02cff;
   --verde:#168a53;
-  --amarillo:#c99a00;
-  --gris:#9e9e9e;   /* Sin contacto */
+  --amarillo:#f5c800;       /* amarillo vivo */
+  --gris:#9e9e9e;
 }
 
 *{box-sizing:border-box}
@@ -27,7 +24,6 @@ body{
   color:var(--text);
 }
 
-/* NAV */
 .nav{
   display:flex;
   gap:14px;
@@ -44,7 +40,6 @@ body{
 .nav a:hover{background:#f2efe8; color:var(--text)}
 .brand{color:var(--text) !important; font-weight:700}
 
-/* Un pelín más ancho para que quepan más columnas */
 .container{max-width:1500px; margin:20px auto; padding:0 16px}
 
 .card{
@@ -55,41 +50,34 @@ body{
   box-shadow: 0 8px 24px rgba(17,17,17,.06);
 }
 
-/* TABLE BASE */
 table{border-collapse:collapse}
 th, td{padding:10px; border-bottom:1px solid var(--line); vertical-align:top}
 th{color:var(--muted); text-align:left; font-weight:600}
 
-/* Scrollbar superior fija (duplicada) */
 .table-top-scroll{
   margin-top:14px;
   overflow-x:auto;
   overflow-y:hidden;
-  height:14px;              /* deja solo la scrollbar */
+  height:14px;
   border:1px solid var(--line);
   border-radius:10px;
   background:#faf8f4;
 }
-.table-top-scroll-inner{
-  height:1px;               /* necesario para que exista el scroll */
-}
+.table-top-scroll-inner{ height:1px; }
 
-/* Contenedor real de la tabla */
 .table-wrap{
-  margin-top:8px;           /* separa un poco de la barra superior */
+  margin-top:8px;
   overflow:auto;
   max-height: calc(100vh - 180px);
   border:1px solid var(--line);
   border-radius:12px;
 }
 
-/* Tabla ancha */
 table.wide{
   width:max-content;
   min-width:100%;
 }
 
-/* Sticky header dentro del scroll */
 table.wide thead th{
   position: sticky;
   top: 0;
@@ -98,7 +86,6 @@ table.wide thead th{
   box-shadow: 0 1px 0 var(--line);
 }
 
-/* Badges / dots */
 .badge{
   display:inline-flex;
   align-items:center;
@@ -110,7 +97,6 @@ table.wide thead th{
   white-space:nowrap;
 }
 
-/* Dot grande (redondo) */
 .dot{
   display:inline-block;
   width:25px;
@@ -119,22 +105,15 @@ table.wide thead th{
   vertical-align:middle;
 }
 
-/* Nuevos azules */
-.dot.azul-claro{background:var(--azul-claro)}
-.dot.azul-oscuro{background:var(--azul-oscuro)}
+.dot.azul-claro  { background:var(--azul-claro);  }
+.dot.azul-oscuro { background:var(--azul-oscuro); }
+.dot.naranja     { background:var(--naranja);     }
+.dot.rosa        { background:var(--rosa);        }
+.dot.verde       { background:var(--verde);       }
+.dot.amarillo    { background:var(--amarillo);    }
+.dot.azul        { background:var(--azul);        }
+.dot.gris        { background:var(--gris);        }
 
-/* Colores existentes */
-.dot.naranja{background:var(--naranja)}
-.dot.rosa{background:var(--rosa)}
-.dot.verde{background:var(--verde)}
-.dot.amarillo{background:var(--amarillo)}
-
-/* Compatibilidad (si en algún sitio sigues usando .dot.azul) */
-.dot.azul{background:var(--azul)}
-.dot.gris { background: var(--gris); }
-.dot-status.gris { background: var(--gris); }
-
-/* Forms */
 input, select, textarea{
   width:100%;
   padding:10px 12px;
@@ -145,10 +124,16 @@ input, select, textarea{
 }
 textarea{min-height:110px}
 
-.grid{display:grid; grid-template-columns: 1fr 1fr; gap:12px}
-.grid-3{display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px}
+.grid  { display:grid; grid-template-columns:1fr 1fr;     gap:12px }
+.grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px }
 
-.actions{display:flex; gap:10px; margin-top:12px; align-items:center}
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:12px;
+  align-items:center;
+  flex-wrap:wrap;
+}
 
 button{
   padding:10px 14px;
@@ -166,52 +151,33 @@ label{display:block; margin:10px 0 6px 0; color:var(--muted)}
 a.small{color:var(--muted)}
 a.small:hover{color:var(--text)}
 
-.actions{
-  display:flex;
-  gap:10px;
-  margin-top:12px;
-  align-items:center;
-  flex-wrap: wrap;
-}
-
 a.btn{
   display:inline-flex;
   align-items:center;
   justify-content:center;
   gap:8px;
-
   padding:10px 14px;
   border-radius:10px;
   border:1px solid var(--line);
-
   text-decoration:none;
   font-size:14px;
   font-weight:600;
   cursor:pointer;
   user-select:none;
 }
-
-a.btn-primary{
-  background:#111111;
-  color:#ffffff;
-}
-a.btn-primary:hover{ background:#2a2a2a; }
-
-a.btn-secondary{
-  background:#ffffff;
-  color:#111111;
-}
+a.btn-primary  { background:#111111; color:#ffffff; }
+a.btn-primary:hover  { background:#2a2a2a; }
+a.btn-secondary{ background:#ffffff; color:#111111; }
 a.btn-secondary:hover{ background:#f2efe8; }
 
 .filters{
-  margin-top: 10px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #faf8f4;
+  margin-top:10px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#faf8f4;
 }
 
-/* ===== Errores de validación ===== */
 .field-error{
   color:#b42318;
   font-size:12px;
@@ -226,46 +192,38 @@ a.btn-secondary:hover{ background:#f2efe8; }
   background:#fff5f5;
   color:#b42318;
 }
-
-.global-errors a{
-  color:#b42318;
-  text-decoration: underline;
-}
+.global-errors a{ color:#b42318; text-decoration:underline; }
 
 input.input-error, select.input-error, textarea.input-error{
   border-color:#b42318;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(180,35,24,.12);
+  outline:none;
+  box-shadow:0 0 0 3px rgba(180,35,24,.12);
 }
 
-/* ===== Dots de estado (Interesados) ===== */
 .dot-status{
   display:inline-block;
-  width:45px;          /* más ancho horizontalmente */
-  height:18px;         /* más bajito que ancho */
-  border-radius:999px; /* forma píldora */
+  width:45px;
+  height:18px;
+  border-radius:999px;
   vertical-align:middle;
 }
 
-/* Nuevos azules (píldora) */
-.dot-status.azul-claro{background:var(--azul-claro)}
-.dot-status.azul-oscuro{background:var(--azul-oscuro)}
+.dot-status.azul-claro  { background:var(--azul-claro);  }
+.dot-status.azul-oscuro { background:var(--azul-oscuro); }
+.dot-status.naranja     { background:var(--naranja);     }
+.dot-status.rosa        { background:var(--rosa);        }
+.dot-status.verde       { background:var(--verde);       }
+.dot-status.amarillo    { background:var(--amarillo);    }
+.dot-status.azul        { background:var(--azul);        }
+.dot-status.gris        { background:var(--gris);        }
 
-/* Colores reutilizando tus variables */
-.dot-status.naranja{background:var(--naranja)}
-.dot-status.rosa{background:var(--rosa)}
-.dot-status.verde{background:var(--verde)}
-.dot-status.amarillo{background:var(--amarillo)}
-
-/* Compatibilidad */
-.dot-status.azul{background:var(--azul)}
-
-table input[type="checkbox"]{ transform: translateY(1px); }
+table input[type="checkbox"]{ transform:translateY(1px); }
 
 #emailsBox{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+               "Liberation Mono","Courier New",monospace;
 }
 
 .kv{ display:flex; gap:6px; flex-wrap:wrap; }
-.kv .k{ color: var(--azul); font-size:12px; font-weight:700; }
-.kv .v{ color: var(--text); }
+.kv .k{ color:var(--azul); font-size:12px; font-weight:700; }
+.kv .v{ color:var(--text); }
