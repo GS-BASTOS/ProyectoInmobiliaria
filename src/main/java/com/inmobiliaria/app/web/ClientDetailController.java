@@ -8,6 +8,7 @@ import com.inmobiliaria.app.repo.PropertyRepository;
 import com.inmobiliaria.app.repo.VisitRepository;
 import com.inmobiliaria.app.web.dto.ClientEditForm;
 import com.inmobiliaria.app.web.dto.NewInteractionForm;
+import com.inmobiliaria.app.web.dto.PropertyCatalogDto;
 import jakarta.validation.Valid;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class ClientDetailController {
@@ -33,39 +35,37 @@ public class ClientDetailController {
                                   ClientPropertyInteractionRepository interactionRepository,
                                   VisitRepository visitRepository,
                                   PropertyRepository propertyRepository) {
-        this.clientRepository      = clientRepository;
+        this.clientRepository = clientRepository;
         this.clientPhoneRepository = clientPhoneRepository;
         this.interactionRepository = interactionRepository;
-        this.visitRepository       = visitRepository;
-        this.propertyRepository    = propertyRepository;
+        this.visitRepository = visitRepository;
+        this.propertyRepository = propertyRepository;
     }
 
-    // ── GET /clientes/{id} ───────────────────────────────────────────────────
+    // ── GET /clientes/{id} ───────────────────────────────────
     @GetMapping("/clientes/{id}")
     public String detail(@PathVariable Long id, Model model) {
         Client client = clientRepository.findWithPhonesById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         clientRepository.findWithEmailsById(id).ifPresent(c2 -> client.setEmails(c2.getEmails()));
-
         List<ClientPropertyInteraction> interactions =
                 interactionRepository.findByClientIdWithPropertyOrderByContactDateDesc(client.getId());
-
         ClientEditForm form = buildEditForm(client, interactions);
         NewInteractionForm ni = buildPrefilledInteractionForm(client, interactions);
-
-        model.addAttribute("client",       client);
-        model.addAttribute("form",         form);
-        model.addAttribute("clientTypes",  ClientType.values());
+        model.addAttribute("client", client);
+        model.addAttribute("form", form);
+        model.addAttribute("clientTypes", ClientType.values());
         model.addAttribute("newInteraction", ni);
-        model.addAttribute("channels",     ContactChannel.values());
-        model.addAttribute("statuses",     InterestStatus.values());
+        model.addAttribute("channels", ContactChannel.values());
+        model.addAttribute("statuses", InterestStatus.values());
         model.addAttribute("interactions", interactions);
         model.addAttribute("visits",
                 visitRepository.findByClient_IdOrderByVisitAtDescIdDesc(client.getId()));
+        model.addAttribute("catalogProperties", buildCatalog());
         return "client_detail";
     }
 
-    // ── POST NDA ─────────────────────────────────────────────────────────────
+    // ── POST NDA ─────────────────────────────────────────────
     @PostMapping("/clientes/{clientId}/interacciones/{interactionId}/nda")
     @ResponseBody
     public void toggleNda(@PathVariable Long clientId,
@@ -79,7 +79,7 @@ public class ClientDetailController {
         interactionRepository.save(it);
     }
 
-    // ── POST STATUS ──────────────────────────────────────────────────────────
+    // ── POST STATUS ──────────────────────────────────────────
     @PostMapping("/clientes/{clientId}/interacciones/{interactionId}/status")
     @ResponseBody
     public void updateInteractionStatus(@PathVariable Long clientId,
@@ -93,7 +93,7 @@ public class ClientDetailController {
         interactionRepository.save(it);
     }
 
-    // ── POST COMMENTS ────────────────────────────────────────────────────────
+    // ── POST COMMENTS ────────────────────────────────────────
     @PostMapping("/clientes/{clientId}/interacciones/{interactionId}/comments")
     @ResponseBody
     public void updateInteractionComments(@PathVariable Long clientId,
@@ -107,7 +107,22 @@ public class ClientDetailController {
         interactionRepository.save(it);
     }
 
-    // ── POST EDITAR ──────────────────────────────────────────────────────────
+    // ── POST TICKET ──────────────────────────────────────────
+    @PostMapping("/clientes/{clientId}/interacciones/{interactionId}/ticket")
+    @ResponseBody
+    public void updateTicket(@PathVariable Long clientId,
+                             @PathVariable Long interactionId,
+                             @RequestParam("ticketCode") String ticketCode) {
+        ClientPropertyInteraction it = interactionRepository.findById(interactionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (it.getClient() == null || !it.getClient().getId().equals(clientId))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        String code = ticketCode == null ? "" : ticketCode.trim();
+        it.setTicketCode(code.isBlank() ? null : code);
+        interactionRepository.save(it);
+    }
+
+    // ── POST EDITAR ──────────────────────────────────────────
     @PostMapping("/clientes/{id}/editar")
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute("form") ClientEditForm form,
@@ -149,37 +164,48 @@ public class ClientDetailController {
         List<ClientPropertyInteraction> interactions =
                 interactionRepository.findByClientIdWithPropertyOrderByContactDateDesc(client.getId());
 
-        // ── CASO 1: Se DESMARCA comprador → liberar inmuebles comprados ──────
+        // CASO 1: se desmarca comprador → liberar inmuebles
         if (eraCompradorAntes && !form.isCompradorFinal()) {
-            // Ponemos a disponible todos los inmuebles de sus interacciones
-            // que estuvieran vendidos (solo los suyos, usando purchasedPropertyIds previo)
-            // Como no guardamos qué compró antes, liberamos los marcados en form anterior.
-            // La forma segura: liberar solo los que están en sus interacciones y sold=true
             interactions.stream()
                     .map(ClientPropertyInteraction::getProperty)
                     .distinct()
                     .filter(Property::isSold)
                     .forEach(p -> {
                         p.setSold(false);
+                        p.setSoldClient(null);
                         propertyRepository.save(p);
                     });
         }
 
-        // ── CASO 2: Se MARCA comprador ────────────────────────────────────────
+        // CASO 2: se marca pre venda
+        if (form.isPreVenda()) {
+            List<Long> preVendaIds = form.getPreVendaPropertyIds();
+            if (preVendaIds != null && !preVendaIds.isEmpty()) {
+                preVendaIds.forEach(propId ->
+                        propertyRepository.findById(propId).ifPresent(p -> {
+                            if (!p.isSold()) {
+                                p.setPreVendido(true);
+                                p.setPreVendidoClient(client);
+                                propertyRepository.save(p);
+                            }
+                        })
+                );
+            }
+        }
+
+        // CASO 3: se marca comprador
         if (form.isCompradorFinal()) {
             List<Long> boughtIds = form.getPurchasedPropertyIds();
-
             if (boughtIds != null && !boughtIds.isEmpty()) {
-                // Marcar como vendidos los inmuebles seleccionados
                 boughtIds.forEach(propId ->
                         propertyRepository.findById(propId).ifPresent(p -> {
                             p.setSold(true);
+                            p.setSoldClient(client);
+                            p.setPreVendido(false);
+                            p.setPreVendidoClient(null);
                             propertyRepository.save(p);
                         })
                 );
-
-                // Poner DESCARTA en todas las interacciones que NO sean
-                // de los inmuebles comprados
                 interactions.forEach(it -> {
                     if (!boughtIds.contains(it.getProperty().getId())) {
                         it.setStatus(InterestStatus.ROSA_DESCARTA);
@@ -189,7 +215,7 @@ public class ClientDetailController {
             }
         }
 
-        // ── CASO 3: Se MARCA okupa → todas las interacciones a DESCARTA ──────
+        // CASO 4: se marca okupa → todas a DESCARTA
         if (!eraOcupaAntes && form.isPosibleOcupa()) {
             interactions.forEach(it -> {
                 it.setStatus(InterestStatus.ROSA_DESCARTA);
@@ -215,7 +241,7 @@ public class ClientDetailController {
         return "redirect:/clientes/" + id;
     }
 
-    // ── POST NUEVA INTERACCIÓN ───────────────────────────────────────────────
+    // ── POST NUEVA INTERACCIÓN ───────────────────────────────
     @PostMapping("/clientes/{id}/interacciones")
     public String addInteraction(@PathVariable Long id,
                                  @Valid @ModelAttribute("newInteraction") NewInteractionForm form,
@@ -224,7 +250,6 @@ public class ClientDetailController {
         Client client = clientRepository.findWithPhonesById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         clientRepository.findWithEmailsById(id).ifPresent(c2 -> client.setEmails(c2.getEmails()));
-
         List<ClientPropertyInteraction> interactions =
                 interactionRepository.findByClientIdWithPropertyOrderByContactDateDesc(client.getId());
 
@@ -237,7 +262,7 @@ public class ClientDetailController {
         String code = t(form.getPropertyCode());
         Property property = propertyRepository.findByPropertyCode(code)
                 .map(existing -> {
-                    String pt  = t(form.getPropertyType());
+                    String pt   = t(form.getPropertyType());
                     String addr = t(form.getAddress());
                     String mun  = t(form.getMunicipality());
                     if (!pt.isBlank())   existing.setPropertyType(pt);
@@ -268,7 +293,24 @@ public class ClientDetailController {
         return "redirect:/clientes/" + id;
     }
 
-    // ── HELPERS ──────────────────────────────────────────────────────────────
+    // ── HELPERS ──────────────────────────────────────────────
+
+    /** Construye el catálogo de inmuebles como DTOs simples (sin lazy collections). */
+    private List<PropertyCatalogDto> buildCatalog() {
+        return propertyRepository.findAllByOrderByPropertyCodeAsc()
+                .stream()
+                .filter(p -> !p.isSold())
+                .map(p -> new PropertyCatalogDto(
+                        p.getId(),
+                        p.getPropertyCode(),
+                        p.getPropertyType(),
+                        p.getAddress(),
+                        p.getMunicipality(),
+                        p.isPreVendido(),
+                        p.isSold()
+                ))
+                .collect(Collectors.toList());
+    }
 
     private ClientEditForm buildEditForm(Client client,
                                          List<ClientPropertyInteraction> interactions) {
@@ -297,23 +339,31 @@ public class ClientDetailController {
                 .filter(e -> e.getPosition() == 2)
                 .map(ClientEmail::getEmail).findFirst().orElse(""));
 
-        // Preseleccionar los inmuebles ya vendidos de sus interacciones
-        // para que el panel los muestre marcados al recargar
-        if (client.isCompradorFinal() && interactions != null) {
-            List<Long> vendidos = interactions.stream()
+        if (interactions != null) {
+            List<Long> preVendidos = interactions.stream()
                     .map(ClientPropertyInteraction::getProperty)
-                    .filter(Property::isSold)
+                    .filter(p -> p.isPreVendido() && !p.isSold())
                     .map(Property::getId)
                     .distinct()
                     .toList();
-            form.setPurchasedPropertyIds(vendidos);
-        }
+            form.setPreVendaPropertyIds(preVendidos);
+            if (!preVendidos.isEmpty()) form.setPreVenda(true);
 
+            if (client.isCompradorFinal()) {
+                List<Long> vendidos = interactions.stream()
+                        .map(ClientPropertyInteraction::getProperty)
+                        .filter(Property::isSold)
+                        .map(Property::getId)
+                        .distinct()
+                        .toList();
+                form.setPurchasedPropertyIds(vendidos);
+            }
+        }
         return form;
     }
 
-    private NewInteractionForm buildPrefilledInteractionForm(Client client,
-                                                              List<ClientPropertyInteraction> interactions) {
+    private NewInteractionForm buildPrefilledInteractionForm(
+            Client client, List<ClientPropertyInteraction> interactions) {
         NewInteractionForm ni = new NewInteractionForm();
         ni.setPhone(client.getPhones().stream()
                 .filter(p -> p.getPosition() != null && p.getPosition() == 1)
@@ -322,35 +372,35 @@ public class ClientDetailController {
                 .filter(e -> e.getPosition() != null && e.getPosition() == 1)
                 .map(ClientEmail::getEmail).findFirst().orElse(""));
         ni.setSolviaCode(t(client.getSolviaCode()));
-
         if (interactions != null && !interactions.isEmpty()) {
             ClientPropertyInteraction last = interactions.get(0);
             if (last.getChannel() != null) ni.setChannel(last.getChannel());
-            if (last.getStatus()  != null) ni.setStatus(last.getStatus());
+            if (last.getStatus() != null)  ni.setStatus(last.getStatus());
             if (last.getProperty() != null) {
                 Property p = last.getProperty();
-                if (!t(p.getPropertyCode()).isBlank())  ni.setPropertyCode(p.getPropertyCode());
-                if (!t(p.getPropertyType()).isBlank())  ni.setPropertyType(p.getPropertyType());
-                if (!t(p.getAddress()).isBlank())        ni.setAddress(p.getAddress());
-                if (!t(p.getMunicipality()).isBlank())   ni.setMunicipality(p.getMunicipality());
+                if (!t(p.getPropertyCode()).isBlank()) ni.setPropertyCode(p.getPropertyCode());
+                if (!t(p.getPropertyType()).isBlank()) ni.setPropertyType(p.getPropertyType());
+                if (!t(p.getAddress()).isBlank())      ni.setAddress(p.getAddress());
+                if (!t(p.getMunicipality()).isBlank()) ni.setMunicipality(p.getMunicipality());
             }
         }
         return ni;
     }
 
     private void repopulateDetailModel(Model model, Client client,
-                                        ClientEditForm editForm,
-                                        NewInteractionForm newInteractionForm) {
-        model.addAttribute("client",       client);
-        model.addAttribute("form",         editForm);
-        model.addAttribute("clientTypes",  ClientType.values());
+                                       ClientEditForm editForm,
+                                       NewInteractionForm newInteractionForm) {
+        model.addAttribute("client", client);
+        model.addAttribute("form", editForm);
+        model.addAttribute("clientTypes", ClientType.values());
         model.addAttribute("newInteraction", newInteractionForm);
-        model.addAttribute("channels",     ContactChannel.values());
-        model.addAttribute("statuses",     InterestStatus.values());
+        model.addAttribute("channels", ContactChannel.values());
+        model.addAttribute("statuses", InterestStatus.values());
         model.addAttribute("interactions",
                 interactionRepository.findByClientIdWithPropertyOrderByContactDateDesc(client.getId()));
         model.addAttribute("visits",
                 visitRepository.findByClient_IdOrderByVisitAtDescIdDesc(client.getId()));
+        model.addAttribute("catalogProperties", buildCatalog());
     }
 
     private void upsertPhone(Client client, int position, String number) {
@@ -386,7 +436,7 @@ public class ClientDetailController {
             if (!found.getClient().getId().equals(editingClientId))
                 br.rejectValue(fieldName, "phoneExists",
                         "Ese teléfono ya está asignado a otro cliente (ID "
-                        + found.getClient().getId() + ").");
+                                + found.getClient().getId() + ").");
         });
     }
 

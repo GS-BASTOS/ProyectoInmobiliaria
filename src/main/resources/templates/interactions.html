@@ -1,28 +1,189 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Interesados')}"></head>
+<style>
+  .copyable {
+    cursor: pointer;
+    border-bottom: 1px dashed var(--muted);
+    transition: color .15s;
+  }
+  .copyable:hover { color: var(--azul); }
+
+  .nda-ticket-cell {
+    display: flex;
+    flex-direction: column;
+    min-width: 52px;
+  }
+  .nda-ticket-half {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 6px;
+    flex: 1;
+  }
+  .nda-ticket-half:first-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  #copyToast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #111;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 9999;
+  }
+  #copyToast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .filter-grid-search {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .tabla-interesados {
+    margin-top: 14px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .tabla-interesados thead tr {
+    border-bottom: 2px solid var(--line);
+  }
+  .tabla-interesados th {
+    padding: 10px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+    text-align: left;
+    background: transparent;
+  }
+  .tabla-interesados td {
+    padding: 10px 12px;
+    vertical-align: top;
+    border-bottom: 1px solid var(--line);
+  }
+  .tabla-interesados tbody tr:last-child td { border-bottom: none; }
+  .tabla-interesados tbody tr:hover { background: #fafafa; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: box-shadow .18s ease, transform .18s ease;
+  }
+  .chip:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    transform: translateY(-1px);
+  }
+  .chip-green  { background: #e8f5e9; border: 1px solid #168a53; color: #168a53; }
+  .chip-orange { background: #fff4e6; border: 1px solid #e07a18; color: #a05800; }
+  .chip-red    { background: #ffebee; border: 1px solid #b42318; color: #b42318; }
+
+  .row-okupa           { background: #fff5f5 !important; border-left: 3px solid #b42318; }
+  .row-comprador       { background: #f0faf4 !important; border-left: 3px solid #168a53; }
+  .row-comprador-other { opacity: 0.45; }
+
+  .prop-code {
+    font-size: 13px;
+    font-weight: 800;
+    color: #111;
+    text-decoration: none;
+    letter-spacing: 0.3px;
+  }
+  .prop-type-badge {
+    font-size: 11px;
+    background: #f0f0f0;
+    color: #333;
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-weight: 600;
+    border: 1px solid #e0e0e0;
+  }
+  .prop-row {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    margin-bottom: 3px;
+    flex-wrap: wrap;
+  }
+  .prop-key {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #111;        /* ← negro */
+    flex-shrink: 0;
+  }
+  .prop-val {
+    font-size: 12px;
+    color: #111;
+    font-weight: 500;
+  }
+  .prop-mun {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .prop-mun-text {
+    font-size: 12px;
+    color: #111;
+    font-weight: 600;
+  }
+
+  @media (max-width: 640px) {
+    .filter-grid-search { grid-template-columns: 1fr; }
+  }
+</style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 
+<div id="copyToast">Copiado ✓</div>
+
 <div class="container">
   <div class="card">
+
+    <!-- CABECERA -->
     <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;">
       <div>
-        <h2 style="margin-bottom:6px;">Histórico de interesados</h2>
+        <h2 style="margin-bottom:4px;">Histórico de interesados</h2>
         <div class="small">Selecciona emails y pulsa copiar para pegarlos directamente en tu correo.</div>
       </div>
       <div class="actions" style="margin-top:0;">
-        <button type="button" id="copyEmailsBtn" disabled>Copiar (<span id="emailsCountInline">0</span>)</button>
+        <button type="button" id="copyEmailsBtn" disabled>
+          Copiar emails (<span id="emailsCountInline">0</span>)
+        </button>
         <a href="javascript:void(0)" class="btn btn-secondary" id="clearEmailsBtn" style="display:none;">Limpiar</a>
       </div>
     </div>
 
-    <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
+    <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
 
-    <!-- FILTROS -->
+    <!-- ══ FILTROS ══ -->
     <form class="filters" th:action="@{/interesados}" method="get"
-          style="padding:18px 20px; border-radius:14px;
-                 border:1px solid var(--line); background:#faf8f4;">
+          style="padding:18px 20px; border-radius:14px; border:1px solid var(--line); background:#faf8f4;">
 
       <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
@@ -36,137 +197,146 @@
 
       <!-- ESTADOS -->
       <div style="margin-bottom:14px;">
-        <div style="font-size:11px; font-weight:700; letter-spacing:0.8px;
-                    text-transform:uppercase; color:var(--muted); margin-bottom:8px;">
-          Estado <span style="font-weight:400; text-transform:none; letter-spacing:0;">(puedes marcar varios)</span>
-        </div>
+        <span class="filter-label">
+          Estado
+          <span style="font-weight:400; text-transform:none; letter-spacing:0;">(puedes marcar varios)</span>
+        </span>
         <div style="display:flex; flex-wrap:wrap; gap:8px;">
-          <label style="margin:0; cursor:pointer;">
+
+          <label style="margin:0; cursor:pointer; display:inline;">
             <input type="checkbox" name="statuses" value="GRIS_SIN_CONTACTO" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'GRIS_SIN_CONTACTO')}"/>
-            <span class="filter-pill"
-                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
-                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
-                         border:1.5px solid #d0d0d0; background:#f5f5f5; color:#555;
-                         user-select:none; transition:all .15s;">
+            <span class="filter-pill" style="border:1.5px solid #d0d0d0; background:#f5f5f5; color:#555;">
               <span style="width:8px;height:8px;border-radius:50%;background:#9e9e9e;flex-shrink:0;"></span>
               Sin contacto
             </span>
           </label>
-          <label style="margin:0; cursor:pointer;">
+
+          <label style="margin:0; cursor:pointer; display:inline;">
             <input type="checkbox" name="statuses" value="AZUL_VISITA_PROGRAMADA" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'AZUL_VISITA_PROGRAMADA')}"/>
-            <span class="filter-pill"
-                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
-                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
-                         border:1.5px solid #b3c4ff; background:#eef1ff; color:#0b1f5c;
-                         user-select:none; transition:all .15s;">
+            <span class="filter-pill" style="border:1.5px solid #b3c4ff; background:#eef1ff; color:#0b1f5c;">
               <span style="width:8px;height:8px;border-radius:50%;background:#0b1f5c;flex-shrink:0;"></span>
               Visita programada
             </span>
           </label>
-          <label style="margin:0; cursor:pointer;">
+
+          <label style="margin:0; cursor:pointer; display:inline;">
             <input type="checkbox" name="statuses" value="AZUL_VISITA_REALIZADA" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'AZUL_VISITA_REALIZADA')}"/>
-            <span class="filter-pill"
-                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
-                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
-                         border:1.5px solid #b3d9ff; background:#e8f4ff; color:#1565c0;
-                         user-select:none; transition:all .15s;">
+            <span class="filter-pill" style="border:1.5px solid #b3d9ff; background:#e8f4ff; color:#1565c0;">
               <span style="width:8px;height:8px;border-radius:50%;background:#5aa7ff;flex-shrink:0;"></span>
               Visita realizada
             </span>
           </label>
-          <label style="margin:0; cursor:pointer;">
+
+          <label style="margin:0; cursor:pointer; display:inline;">
             <input type="checkbox" name="statuses" value="NARANJA_QUIERE_VISITA" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'NARANJA_QUIERE_VISITA')}"/>
-            <span class="filter-pill"
-                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
-                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
-                         border:1.5px solid #f5c18a; background:#fff4e6; color:#a05800;
-                         user-select:none; transition:all .15s;">
+            <span class="filter-pill" style="border:1.5px solid #f5c18a; background:#fff4e6; color:#a05800;">
               <span style="width:8px;height:8px;border-radius:50%;background:#e07a18;flex-shrink:0;"></span>
               Quiere visita
             </span>
           </label>
-          <label style="margin:0; cursor:pointer;">
+
+          <label style="margin:0; cursor:pointer; display:inline;">
             <input type="checkbox" name="statuses" value="ROSA_DESCARTA" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'ROSA_DESCARTA')}"/>
-            <span class="filter-pill"
-                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
-                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
-                         border:1.5px solid #d9a8ff; background:#f7eeff; color:#6a0fa0;
-                         user-select:none; transition:all .15s;">
+            <span class="filter-pill" style="border:1.5px solid #d9a8ff; background:#f7eeff; color:#6a0fa0;">
               <span style="width:8px;height:8px;border-radius:50%;background:#b02cff;flex-shrink:0;"></span>
               Descarta
             </span>
           </label>
-          <label style="margin:0; cursor:pointer;">
+
+          <label style="margin:0; cursor:pointer; display:inline;">
             <input type="checkbox" name="statuses" value="VERDE_PENSANDO" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'VERDE_PENSANDO')}"/>
-            <span class="filter-pill"
-                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
-                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
-                         border:1.5px solid #a5d6a7; background:#e8f5e9; color:#1b5e20;
-                         user-select:none; transition:all .15s;">
+            <span class="filter-pill" style="border:1.5px solid #a5d6a7; background:#e8f5e9; color:#1b5e20;">
               <span style="width:8px;height:8px;border-radius:50%;background:#168a53;flex-shrink:0;"></span>
               Pensando
             </span>
           </label>
-          <label style="margin:0; cursor:pointer;">
+
+          <label style="margin:0; cursor:pointer; display:inline;">
             <input type="checkbox" name="statuses" value="AMARILLO_OFERTA" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'AMARILLO_OFERTA')}"/>
-            <span class="filter-pill"
-                  style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
-                         border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
-                         border:1.5px solid #ffe082; background:#fffde7; color:#795500;
-                         user-select:none; transition:all .15s;">
+            <span class="filter-pill" style="border:1.5px solid #ffe082; background:#fffde7; color:#795500;">
               <span style="width:8px;height:8px;border-radius:50%;background:#f5c800;flex-shrink:0;"></span>
               Oferta
             </span>
           </label>
+
         </div>
       </div>
 
       <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
 
-      <!-- CANAL + FECHAS + BÚSQUEDA -->
-      <div class="grid" style="gap:10px; margin-bottom:12px;">
-        <div>
-          <label style="font-size:11px; font-weight:700; letter-spacing:0.8px;
-                        text-transform:uppercase; color:var(--muted); margin:0 0 6px;">Canal</label>
-          <select name="channel">
+      <!-- CANAL + FECHAS + NDA -->
+      <div style="display:grid; grid-template-columns:1.2fr 1fr 1fr auto; gap:10px; align-items:end; margin-bottom:12px;">
+
+        <div style="display:flex; flex-direction:column;">
+          <span class="filter-label">Canal</span>
+          <select name="channel" style="margin:0;">
             <option value="" th:selected="${selectedChannel == null}">Todos</option>
             <option th:each="c : ${channels}" th:value="${c}" th:text="${c}"
                     th:selected="${selectedChannel == c}"></option>
           </select>
         </div>
-        <div>
-          <label style="font-size:11px; font-weight:700; letter-spacing:0.8px;
-                        text-transform:uppercase; color:var(--muted); margin:0 0 6px;">Buscar</label>
-          <input type="text" name="q"
-                 placeholder="Cliente, empresa, código, dirección, comentario..."
-                 th:value="${q}"/>
+
+        <div style="display:flex; flex-direction:column;">
+          <span class="filter-label">Desde</span>
+          <input type="date" name="from" id="inputFrom" th:value="${from}" style="margin:0;"/>
         </div>
-        <div>
-          <label style="font-size:11px; font-weight:700; letter-spacing:0.8px;
-                        text-transform:uppercase; color:var(--muted); margin:0 0 6px;">Desde</label>
-          <input type="date" name="from" id="inputFrom" th:value="${from}"/>
+
+        <div style="display:flex; flex-direction:column;">
+          <span class="filter-label">Hasta</span>
+          <input type="date" name="to" id="inputTo" th:value="${to}" style="margin:0;"/>
         </div>
-        <div>
-          <label style="font-size:11px; font-weight:700; letter-spacing:0.8px;
-                        text-transform:uppercase; color:var(--muted); margin:0 0 6px;">Hasta</label>
-          <input type="date" name="to" id="inputTo" th:value="${to}"/>
+
+        <div style="display:flex; flex-direction:column;">
+          <span class="filter-label">NDA</span>
+          <div id="ndaFilterLabel"
+               onclick="document.getElementById('ndaFilterCb').click()"
+               style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+                      padding:10px 14px; border:1.5px solid var(--line); border-radius:10px;
+                      background:#fff; font-size:13px; font-weight:600; user-select:none;
+                      transition:border-color .15s, background .15s, color .15s;
+                      white-space:nowrap; box-sizing:border-box;">
+            <input type="checkbox" name="ndaOnly" value="true" id="ndaFilterCb"
+                   th:checked="${ndaOnly != null and ndaOnly}"
+                   onclick="event.stopPropagation()"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Solo NDA
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BÚSQUEDA -->
+      <div style="margin-bottom:12px;">
+        <span class="filter-label">Buscar</span>
+        <div class="filter-grid-search">
+          <select name="searchField" style="width:auto; min-width:170px; margin:0;">
+            <option value="ALL"           th:selected="${searchField == 'ALL' or searchField == null}">Todos los campos</option>
+            <option value="CLIENT"        th:selected="${searchField == 'CLIENT'}">Cliente / Empresa</option>
+            <option value="PROPERTY_CODE" th:selected="${searchField == 'PROPERTY_CODE'}">Código inmueble</option>
+            <option value="MUNICIPALITY"  th:selected="${searchField == 'MUNICIPALITY'}">Municipio</option>
+            <option value="CHANNEL"       th:selected="${searchField == 'CHANNEL'}">Canal</option>
+            <option value="COMMENTS"      th:selected="${searchField == 'COMMENTS'}">Comentarios</option>
+          </select>
+          <input type="text" name="q" placeholder="Escribe para buscar..." th:value="${q}" style="margin:0;"/>
         </div>
       </div>
 
       <!-- ACCIONES -->
       <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
-        <a class="btn btn-secondary" th:href="@{/interesados}"
-           style="font-size:13px; padding:9px 16px;">Limpiar</a>
-        <button type="submit"
-                style="display:inline-flex; align-items:center; gap:7px;
-                       font-size:13px; padding:9px 20px;">
+        <a class="btn btn-secondary" th:href="@{/interesados}" style="font-size:13px; padding:9px 16px;">Limpiar</a>
+        <button type="submit" style="display:inline-flex; align-items:center; gap:7px; font-size:13px; padding:9px 20px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round">
@@ -177,187 +347,291 @@
       </div>
     </form>
 
-    <table style="margin-top:12px;">
+    <!-- ══ TABLA ══ -->
+    <table class="tabla-interesados">
       <thead>
-      <tr>
-        <th>Estado</th>
-        <th>Fecha</th>
-        <th>Cliente</th>
-        <th>Teléfonos</th>
-        <th>
-          <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;">
-            <span>Emails seleccionables</span>
-            <label id="selectAllLabel"
-                   style="display:inline-flex; align-items:center; gap:6px;
-                          cursor:pointer; font-weight:400; font-size:12px;
-                          padding:4px 10px; border:1px solid var(--line);
-                          border-radius:999px; background:#f5f5f5;
-                          user-select:none; white-space:nowrap;">
-              <input type="checkbox" id="selectAllEmails" style="cursor:pointer;"/>
-              <span id="selectAllText">Seleccionar todos</span>
-            </label>
-          </div>
-        </th>
-        <th>Inmueble</th>
-        <th>Canal</th>
-        <th>Comentarios</th>
-      </tr>
+        <tr>
+          <th style="width:36px; text-align:center;">Est.</th>
+          <th style="width:88px;">Fecha</th>
+          <th style="min-width:160px;">Cliente</th>
+          <th style="min-width:100px;">Teléfonos</th>
+          <th style="min-width:160px;">
+            <div style="display:flex; flex-direction:column; gap:5px; align-items:flex-start;">
+              <span>Emails</span>
+              <div style="display:inline-flex; align-items:center; gap:5px; cursor:pointer;
+                          padding:3px 9px; border:1px solid var(--line); border-radius:999px;
+                          background:#f5f5f5; user-select:none; white-space:nowrap;"
+                   onclick="document.getElementById('selectAllEmails').click()">
+                <input type="checkbox" id="selectAllEmails" style="margin:0; cursor:pointer;"
+                       onclick="event.stopPropagation()"/>
+                <span id="selectAllText" style="font-size:11px; font-weight:500;
+                                                text-transform:none; letter-spacing:0; color:var(--text);">
+                  Seleccionar todos
+                </span>
+              </div>
+            </div>
+          </th>
+          <th style="min-width:190px;">Inmueble</th>
+          <th style="width:90px;">Canal</th>
+          <th style="min-width:140px;">Comentarios</th>
+          <th style="width:52px; text-align:center;">
+            <div style="display:flex; flex-direction:column; align-items:center; line-height:1.3;">
+              <span>NDA</span>
+              <span style="border-top:1px solid var(--line); width:100%; display:block; margin:2px 0;"></span>
+              <span>TKT</span>
+            </div>
+          </th>
+        </tr>
       </thead>
 
       <tbody>
-      <tr th:if="${#lists.isEmpty(items)}">
-        <td colspan="8" class="small">No hay resultados.</td>
-      </tr>
+        <tr th:if="${#lists.isEmpty(items)}">
+          <td colspan="9" style="text-align:center; padding:32px; color:var(--muted); font-size:13px;">
+            No hay resultados para los filtros seleccionados.
+          </td>
+        </tr>
 
-      <tr th:each="it : ${items}"
-          th:attr="data-excluido=${it.client.posibleOcupa or it.client.compradorFinal} ? 'true' : null"
-          th:style="${it.client.posibleOcupa
-                      ? 'background:#fff5f5; border-left:3px solid #b42318;'
-                      : it.client.compradorFinal and it.property.sold
-                        ? 'background:#e8f5e9; border-left:3px solid #168a53;'
-                        : it.client.compradorFinal
-                          ? 'opacity:0.4;'
+        <tr th:each="it : ${items}"
+            th:attr="data-excluido=${it.client.posibleOcupa or it.client.compradorFinal} ? 'true' : null"
+            th:classappend="${it.client.posibleOcupa
+                              ? 'row-okupa'
+                              : it.client.compradorFinal and it.property.sold
+                                ? 'row-comprador'
+                                : it.client.compradorFinal
+                                  ? 'row-comprador-other'
+                                  : ''}">
+
+          <!-- ESTADO -->
+          <td style="text-align:center; padding-top:13px;">
+            <span class="dot-status status-dot"
+                  th:attr="data-status=${it.status}"
+                  th:title="${it.status}"></span>
+          </td>
+
+          <!-- FECHA -->
+          <td style="white-space:nowrap; color:var(--muted); font-size:12px;"
+              th:text="${#temporals.format(it.contactDate, 'dd/MM/yyyy')}">
+            13/02/2026
+          </td>
+
+          <!-- CLIENTE -->
+          <td>
+            <a th:href="@{|/clientes/${it.client.id}|}"
+               th:text="${it.client.fullName}"
+               th:style="${it.client.posibleOcupa
+                           ? 'font-weight:700; color:#b42318;'
+                           : it.client.compradorFinal
+                             ? 'font-weight:700; color:#168a53;'
+                             : 'font-weight:600;'}">
+              Cliente
+            </a>
+            <div th:if="${it.client.companyName != null and !#strings.isEmpty(it.client.companyName)}"
+                 style="font-size:11px; color:#888; margin-top:2px;"
+                 th:text="${it.client.companyName}">
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+              <span th:if="${it.client.posibleOcupa}"
+                    class="chip chip-red"
+                    style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.3px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                OKUPA
+              </span>
+              <span th:if="${it.client.compradorFinal}"
+                    class="chip chip-green"
+                    style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.3px;">
+                💰 COMPRADOR
+              </span>
+            </div>
+          </td>
+
+          <!-- TELÉFONOS -->
+          <td>
+            <span th:if="${phonesByClientId.get(it.client.id) == null}" style="color:#ccc;">—</span>
+            <span th:each="p : ${phonesByClientId.get(it.client.id)}"
+                  class="copyable"
+                  th:attr="data-copy=${p.phoneNumber}"
+                  th:text="${p.phoneNumber}"
+                  style="display:block; font-size:13px; margin-bottom:3px;">
+              600000000
+            </span>
+          </td>
+
+          <!-- EMAILS -->
+          <td style="vertical-align:top;">
+            <span th:if="${emailsByClientId.get(it.client.id) == null}" style="color:#ccc;">—</span>
+            <div th:each="e : ${emailsByClientId.get(it.client.id)}"
+                 style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
+              <input type="checkbox" class="email-item"
+                     th:attr="data-email=${e.email}"/>
+              <span class="copyable"
+                    th:attr="data-copy=${e.email}"
+                    th:text="${e.email}"
+                    style="font-size:12px; color:#333;">
+                email@demo.com
+              </span>
+            </div>
+          </td>
+
+          <!-- INMUEBLE -->
+          <td th:style="${it.client.compradorFinal and it.property.sold
+                          ? 'background:#edf7f1; border-radius:8px;'
                           : ''}">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px; flex-wrap:wrap;">
+              <a th:href="@{|/inmuebles/${it.property.id}|}"
+                 th:text="${it.property.propertyCode}"
+                 class="prop-code">INM-0001</a>
+              <span th:if="${it.property.propertyType != null and !#strings.isEmpty(it.property.propertyType)}"
+                    class="prop-type-badge"
+                    th:text="${it.property.propertyType}">Piso</span>
+            </div>
 
-        <!-- ESTADO DOT -->
-        <td>
-          <span class="badge" title="Estado">
-            <span class="dot-status status-dot" th:attr="data-status=${it.status}"></span>
-          </span>
-        </td>
+            <div th:if="${it.property.address != null and !#strings.isEmpty(it.property.address)}"
+                 class="prop-row">
+              <span class="prop-key">Dir.</span>
+              <span class="prop-val" th:text="${it.property.address}">Calle...</span>
+            </div>
 
-        <!-- FECHA -->
-        <td th:text="${#temporals.format(it.contactDate, 'dd/MM/yyyy')}">13/02/2026</td>
+            <div th:if="${it.property.municipality != null and !#strings.isEmpty(it.property.municipality)}"
+                 class="prop-mun">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
+                   fill="none" stroke="#111" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span class="prop-mun-text" th:text="${it.property.municipality}">Madrid</span>
+            </div>
 
-        <!-- CLIENTE -->
-        <td>
-          <a th:href="@{|/clientes/${it.client.id}|}"
-             th:text="${it.client.fullName}"
-             th:style="${it.client.posibleOcupa
-                         ? 'color:#b42318; font-weight:700;'
-                         : it.client.compradorFinal
-                           ? 'color:#168a53; font-weight:700;'
-                           : ''}">
-            Cliente
-          </a>
-          <div th:if="${it.client.companyName != null and !#strings.isEmpty(it.client.companyName)}"
-               class="small" style="color:#666;">
-            (<span th:text="${it.client.companyName}"></span>)
-          </div>
-          <!-- Badge OKUPA -->
-          <div th:if="${it.client.posibleOcupa}"
-               style="margin-top:4px; display:inline-flex; align-items:center; gap:5px;
-                      background:#ffebee; border:1px solid #b42318;
-                      border-radius:999px; padding:2px 8px;
-                      font-size:11px; color:#b42318; font-weight:800;
-                      text-transform:uppercase; letter-spacing:0.3px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
-                 fill="none" stroke="#b42318" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            OKUPA
-          </div>
-          <!-- Badge COMPRADOR -->
-          <div th:if="${it.client.compradorFinal}"
-               style="margin-top:4px; display:inline-flex; align-items:center; gap:5px;
-                      background:#e8f5e9; border:1px solid #168a53;
-                      border-radius:999px; padding:2px 8px;
-                      font-size:11px; color:#168a53; font-weight:800;
-                      text-transform:uppercase; letter-spacing:0.3px;
-                      box-shadow:0 0 0 2px rgba(22,138,83,.10);">
-            💰 COMPRADOR
-          </div>
-        </td>
+            <div style="display:flex; flex-wrap:wrap; gap:4px;">
+              <a th:if="${it.property.sold}"
+                 class="chip chip-green"
+                 th:href="${it.property.soldClient != null
+                            ? '/clientes/' + it.property.soldClient.id
+                            : '/clientes/' + it.client.id}">
+                💰 Comprado
+                <span th:if="${it.property.soldClient != null}"
+                      th:text="${' · ' + it.property.soldClient.fullName}"></span>
+              </a>
+              <a th:if="${!it.property.sold and it.property.preVendido}"
+                 class="chip chip-orange"
+                 th:href="${it.property.preVendidoClient != null
+                            ? '/clientes/' + it.property.preVendidoClient.id
+                            : '#'}">
+                ⏳ Pre vendido
+                <span th:if="${it.property.preVendidoClient != null}"
+                      th:text="${' · ' + it.property.preVendidoClient.fullName}"></span>
+              </a>
+            </div>
+          </td>
 
-        <!-- TELÉFONOS -->
-        <td>
-          <span th:if="${phonesByClientId.get(it.client.id) == null}">—</span>
-          <span th:each="p,st : ${phonesByClientId.get(it.client.id)}"
-                th:text="${p.phoneNumber} + ${!st.last ? ', ' : ''}">600000000</span>
-        </td>
+          <!-- CANAL -->
+          <td>
+            <span style="font-size:11px; font-weight:700; color:var(--muted);"
+                  th:text="${it.channel}">IDEALISTA</span>
+          </td>
 
-        <!-- EMAILS SELECCIONABLES -->
-        <td>
-          <span th:if="${emailsByClientId.get(it.client.id) == null}">—</span>
-          <span th:each="e,st : ${emailsByClientId.get(it.client.id)}"
-                style="display:inline-flex; align-items:center; gap:8px;
-                       margin-right:12px; margin-bottom:6px; padding:6px 10px;
-                       border:1px solid var(--line); border-radius:999px; background:#ffffff;">
-            <input type="checkbox" class="email-item" th:attr="data-email=${e.email}"/>
-            <span th:text="${e.email}">email@demo.com</span>
-          </span>
-        </td>
+          <!-- COMENTARIOS -->
+          <td style="font-size:12px; color:#555; max-width:180px;">
+            <span th:if="${it.comments == null or #strings.isEmpty(it.comments)}"
+                  style="color:#ccc;">—</span>
+            <span th:text="${it.comments}"></span>
+          </td>
 
-        <!-- INMUEBLE -->
-        <td th:style="${it.client.compradorFinal and it.property.sold
-                        ? 'background:#d6f5e3; border-radius:8px; padding:10px;'
-                        : ''}">
-          <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <span style="font-size:12px; font-weight:800;">Código</span>
-            <span th:text="${it.property.propertyCode}">ABC123</span>
-          </div>
-          <div th:if="${it.property.propertyType != null and !#strings.isEmpty(it.property.propertyType)}"
-               style="display:flex; gap:6px; flex-wrap:wrap;">
-            <span style="font-size:12px; font-weight:800;">Tipo</span>
-            <span th:text="${it.property.propertyType}">Piso</span>
-          </div>
-          <div th:if="${it.property.address != null and !#strings.isEmpty(it.property.address)}"
-               style="display:flex; gap:6px; flex-wrap:wrap;">
-            <span style="font-size:12px; font-weight:800;">Dirección</span>
-            <span th:text="${it.property.address}">Calle...</span>
-          </div>
-          <div th:if="${it.property.municipality != null and !#strings.isEmpty(it.property.municipality)}"
-               style="display:flex; gap:6px; flex-wrap:wrap;">
-            <span style="font-size:12px; font-weight:800;">Municipio</span>
-            <span th:text="${it.property.municipality}">Madrid</span>
-          </div>
-          <!-- Chip comprado -->
-          <div th:if="${it.property.sold}"
-               style="margin-top:4px; display:inline-flex; align-items:center; gap:4px;
-                      background:#e8f5e9; border:1px solid #168a53; border-radius:999px;
-                      padding:2px 8px; font-size:11px; color:#168a53; font-weight:700;">
-            💰 Comprado
-          </div>
-        </td>
+          <!-- NDA / TICKET -->
+          <td style="padding:0; vertical-align:middle;">
+            <div class="nda-ticket-cell">
+              <div class="nda-ticket-half"
+                   th:title="${it.ndaRequested} ? 'NDA firmado' : 'Sin NDA'">
+                <svg th:if="${it.ndaRequested}"
+                     xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="#168a53" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span th:if="${!it.ndaRequested}" style="color:#ddd; font-size:11px;">—</span>
+              </div>
+              <div class="nda-ticket-half"
+                   th:title="${it.ticketCode != null and !#strings.isEmpty(it.ticketCode)}
+                               ? 'Ticket: ' + ${it.ticketCode} : 'Sin ticket'">
+                <svg th:if="${it.ticketCode != null and !#strings.isEmpty(it.ticketCode)}"
+                     xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="#1f5eff" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+                  <line x1="9" y1="9" x2="15" y2="15"/>
+                  <line x1="15" y1="9" x2="9" y2="15"/>
+                </svg>
+                <span th:if="${it.ticketCode == null or #strings.isEmpty(it.ticketCode)}"
+                      style="color:#ddd; font-size:11px;">—</span>
+              </div>
+            </div>
+          </td>
 
-        <!-- CANAL -->
-        <td th:text="${it.channel}">IDEALISTA</td>
-
-        <!-- COMENTARIOS -->
-        <td th:text="${it.comments}">—</td>
-      </tr>
+        </tr>
       </tbody>
     </table>
+
   </div>
 </div>
 
 <script>
   (function () {
 
-    /* ── Fecha "Hasta" = hoy si el servidor no envía valor ── */
     const inputTo = document.getElementById('inputTo');
     if (inputTo && !inputTo.value) {
       inputTo.value = new Date().toISOString().split('T')[0];
     }
 
+    /* ── NDA filter highlight ── */
+    const ndaCb    = document.getElementById('ndaFilterCb');
+    const ndaLabel = document.getElementById('ndaFilterLabel');
+    function syncNdaLabel() {
+      ndaLabel.style.borderColor = ndaCb.checked ? '#168a53' : 'var(--line)';
+      ndaLabel.style.background  = ndaCb.checked ? '#e8f5e9' : '#fff';
+      ndaLabel.style.color       = ndaCb.checked ? '#168a53' : 'inherit';
+    }
+    syncNdaLabel();
+    ndaCb.addEventListener('change', syncNdaLabel);
+
     /* ── Pastillas de estado ── */
     document.querySelectorAll('.filter-pill').forEach(pill => {
       const cb = pill.previousElementSibling;
       function sync() {
-        if (cb.checked) {
-          pill.style.outline       = '2.5px solid #111';
-          pill.style.outlineOffset = '2px';
-          pill.style.fontWeight    = '800';
-        } else {
-          pill.style.outline    = 'none';
-          pill.style.fontWeight = '600';
-        }
+        cb.checked ? pill.classList.add('active') : pill.classList.remove('active');
       }
       sync();
       cb.addEventListener('change', sync);
+    });
+
+    /* ── Toast ── */
+    const toast = document.getElementById('copyToast');
+    let toastTimer;
+    function showToast(msg) {
+      toast.textContent = msg + ' ✓';
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    /* ── Copiar al click ── */
+    document.addEventListener('click', async function (e) {
+      const el = e.target.closest('.copyable');
+      if (!el) return;
+      const text = el.getAttribute('data-copy') || el.textContent.trim();
+      try { await navigator.clipboard.writeText(text); }
+      catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+      }
+      showToast('Copiado: ' + text);
     });
 
     /* ── Email copy ── */
@@ -367,48 +641,33 @@
     const selectAllCb  = document.getElementById('selectAllEmails');
     const selectAllTxt = document.getElementById('selectAllText');
 
-    function normalize(email) { return (email || '').trim().toLowerCase(); }
-
+    function normalize(e) { return (e || '').trim().toLowerCase(); }
     function getSelectedEmails() {
       const set = new Set();
       document.querySelectorAll('.email-item:checked').forEach(cb => {
-        const email = normalize(cb.getAttribute('data-email'));
-        if (email) set.add(email);
+        const e = normalize(cb.getAttribute('data-email'));
+        if (e) set.add(e);
       });
       return Array.from(set).sort();
     }
-
-    /* Todos los checkboxes — usado solo para limpiar selección */
-    function getAllEmailItems() {
-      return Array.from(document.querySelectorAll('.email-item'));
-    }
-
-    /* Solo checkboxes de filas sin data-excluido (no okupa, no comprador) */
+    function getAllEmailItems()         { return Array.from(document.querySelectorAll('.email-item')); }
     function getSelectableEmailItems() {
-      return Array.from(document.querySelectorAll('.email-item')).filter(cb => {
-        return cb.closest('tr[data-excluido]') === null;
-      });
+      return getAllEmailItems().filter(cb => cb.closest('tr[data-excluido]') === null);
     }
-
     function syncSelectAll() {
-      const seleccionables = getSelectableEmailItems();
-      const marcados       = seleccionables.filter(cb => cb.checked);
-
-      if (seleccionables.length === 0 || marcados.length === 0) {
-        selectAllCb.checked       = false;
-        selectAllCb.indeterminate = false;
-        selectAllTxt.textContent  = 'Seleccionar todos';
-      } else if (marcados.length === seleccionables.length) {
-        selectAllCb.checked       = true;
-        selectAllCb.indeterminate = false;
-        selectAllTxt.textContent  = 'Deseleccionar todos';
+      const sel    = getSelectableEmailItems();
+      const marked = sel.filter(cb => cb.checked);
+      if (!sel.length || !marked.length) {
+        selectAllCb.checked = false; selectAllCb.indeterminate = false;
+        selectAllTxt.textContent = 'Seleccionar todos';
+      } else if (marked.length === sel.length) {
+        selectAllCb.checked = true; selectAllCb.indeterminate = false;
+        selectAllTxt.textContent = 'Deseleccionar todos';
       } else {
-        selectAllCb.checked       = false;
-        selectAllCb.indeterminate = true;
-        selectAllTxt.textContent  = `Seleccionar todos (${marcados.length}/${seleccionables.length})`;
+        selectAllCb.checked = false; selectAllCb.indeterminate = true;
+        selectAllTxt.textContent = `Seleccionar todos (${marked.length}/${sel.length})`;
       }
     }
-
     function renderState() {
       const list = getSelectedEmails();
       counter.textContent    = String(list.length);
@@ -417,62 +676,46 @@
       syncSelectAll();
       return list;
     }
+    function clearSelection() { getAllEmailItems().forEach(cb => cb.checked = false); renderState(); }
 
-    function clearSelection() {
-      getAllEmailItems().forEach(cb => cb.checked = false);
-      renderState();
-    }
-
-    /* "Seleccionar todos" solo actúa sobre filas seleccionables */
-    selectAllCb.addEventListener('change', function () {
+    selectAllCb.addEventListener('change', () => {
       getSelectableEmailItems().forEach(cb => cb.checked = selectAllCb.checked);
       renderState();
     });
-
-    document.addEventListener('change', function (ev) {
-      if (ev.target && ev.target.classList.contains('email-item')) renderState();
+    document.addEventListener('change', ev => {
+      if (ev.target?.classList.contains('email-item')) renderState();
     });
-
-    copyBtn.addEventListener('click', async function () {
+    copyBtn.addEventListener('click', async () => {
       const list = renderState();
-      if (list.length === 0) return;
+      if (!list.length) return;
       const text = list.join('; ');
       try { await navigator.clipboard.writeText(text); }
-      catch (e) {
+      catch (_) {
         const ta = document.createElement('textarea');
-        ta.value = text; ta.setAttribute('readonly', 'readonly');
-        ta.style.position = 'fixed'; ta.style.left = '-9999px';
+        ta.value = text; ta.setAttribute('readonly','');
+        ta.style.cssText = 'position:fixed;left:-9999px';
         document.body.appendChild(ta); ta.select();
         document.execCommand('copy'); document.body.removeChild(ta);
       }
       clearSelection();
     });
-
-    clearBtn.addEventListener('click', function () { clearSelection(); });
+    clearBtn.addEventListener('click', clearSelection);
     renderState();
 
-    /* ── Dots de estado en tabla ── */
-    function statusToClass(v) {
-      const map = {
-        'GRIS_SIN_CONTACTO':      'gris',
-        'AZUL_VISITA_PROGRAMADA': 'azul-claro',
-        'AZUL_VISITA_REALIZADA':  'azul-oscuro',
-        'NARANJA_QUIERE_VISITA':  'naranja',
-        'ROSA_DESCARTA':          'rosa',
-        'VERDE_PENSANDO':         'verde',
-        'AMARILLO_OFERTA':        'amarillo'
-      };
-      return map[v] || '';
-    }
-    function paintDot(dotEl, v) {
-      dotEl.classList.remove('gris','azul-claro','azul-oscuro','naranja','rosa','verde','amarillo');
-      const cls = statusToClass(v);
-      if (cls) dotEl.classList.add(cls);
-      dotEl.setAttribute('data-status', v);
-    }
+    /* ── Dots de estado ── */
+    const statusMap = {
+      'GRIS_SIN_CONTACTO'    : 'gris',
+      'AZUL_VISITA_PROGRAMADA': 'azul-claro',
+      'AZUL_VISITA_REALIZADA' : 'azul-oscuro',
+      'NARANJA_QUIERE_VISITA' : 'naranja',
+      'ROSA_DESCARTA'         : 'rosa',
+      'VERDE_PENSANDO'        : 'verde',
+      'AMARILLO_OFERTA'       : 'amarillo'
+    };
     document.querySelectorAll('.status-dot').forEach(dot => {
-      const v = dot.getAttribute('data-status');
-      if (v) paintDot(dot, v);
+      const cls = statusMap[dot.getAttribute('data-status')];
+      dot.classList.remove(...Object.values(statusMap));
+      if (cls) dot.classList.add(cls);
     });
 
   })();

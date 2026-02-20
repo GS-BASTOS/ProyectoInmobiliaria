@@ -8,9 +8,9 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "client_property_interactions", indexes = {
-	    @Index(name = "idx_cpi_contact_date", columnList = "contact_date"),
-	    @Index(name = "idx_cpi_status", columnList = "status")
-	})
+        @Index(name = "idx_cpi_contact_date", columnList = "contact_date"),
+        @Index(name = "idx_cpi_status",       columnList = "status")
+})
 public class ClientPropertyInteraction {
 
     @Id
@@ -45,11 +45,16 @@ public class ClientPropertyInteraction {
     @Column(length = 1200)
     private String comments;
 
-    // NUEVO: NDA por interacción
     @NotNull
     @Column(nullable = false)
     private Boolean ndaRequested = false;
 
+    // ── NUEVO: código de ticket por interacción ────────────
+    @Size(max = 100)
+    @Column(name = "ticket_code", length = 100)
+    private String ticketCode;
+
+    // ── Getters y setters ──────────────────────────────────
     public Long getId() { return id; }
 
     public Client getClient() { return client; }
@@ -77,4 +82,7 @@ public class ClientPropertyInteraction {
     public void setNdaRequested(Boolean ndaRequested) {
         this.ndaRequested = (ndaRequested != null ? ndaRequested : false);
     }
+
+    public String getTicketCode() { return ticketCode; }
+    public void setTicketCode(String ticketCode) { this.ticketCode = ticketCode; }
 }

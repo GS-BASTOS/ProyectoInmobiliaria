@@ -2,48 +2,26 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Agregar')}"></head>
 <style>
-  /* ── Combobox inmueble ─────────────────────────────────── */
-  .combo-wrapper {
-    position: relative;
-    width: 100%;
-  }
-  .combo-input {
-    width: 100%;
-    cursor: pointer;
-  }
+  .combo-wrapper { position:relative; width:100%; }
+  .combo-input   { width:100%; cursor:pointer; }
   .combo-dropdown {
-    display: none;
-    position: absolute;
-    z-index: 999;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.10);
-    max-height: 260px;
-    overflow-y: auto;
+    display:none; position:absolute; z-index:999;
+    top:calc(100% + 4px); left:0; right:0;
+    background:#fff; border:1px solid var(--line);
+    border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,0.10);
+    max-height:260px; overflow-y:auto;
   }
-  .combo-dropdown.open { display: block; }
+  .combo-dropdown.open { display:block; }
   .combo-option {
-    padding: 9px 14px;
-    cursor: pointer;
-    font-size: 13px;
-    border-bottom: 1px solid var(--line);
-    transition: background 0.12s;
+    padding:9px 14px; cursor:pointer; font-size:13px;
+    border-bottom:1px solid var(--line); transition:background 0.12s;
   }
-  .combo-option:last-child { border-bottom: none; }
+  .combo-option:last-child { border-bottom:none; }
   .combo-option:hover,
-  .combo-option.highlighted { background: #f0ede8; }
-  .combo-option .opt-code { font-weight: 700; color: var(--text); }
-  .combo-option .opt-sub  { color: #888; font-size: 11px; margin-top:1px; }
-  .combo-empty {
-    padding: 12px 14px;
-    color: #aaa;
-    font-size: 13px;
-    text-align: center;
-  }
+  .combo-option.highlighted { background:#f0ede8; }
+  .combo-option .opt-code { font-weight:700; color:var(--text); }
+  .combo-option .opt-sub  { color:#888; font-size:11px; margin-top:1px; }
+  .combo-empty { padding:12px 14px; color:#aaa; font-size:13px; text-align:center; }
 </style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
@@ -150,31 +128,24 @@
         </div>
       </div>
 
-      <!-- ── COMBOBOX INMUEBLE ─────────────────────────────── -->
+      <!-- COMBOBOX INMUEBLE — muestra disponibles Y pre vendidos -->
       <div style="margin-top:16px;">
         <label style="font-weight:600;">Seleccionar inmueble del catálogo</label>
         <div class="small" style="margin-bottom:6px; color:#888;">
-          Solo disponibles. Escribe o haz clic para buscar.
+          Disponibles y pre vendidos. Escribe o haz clic para buscar.
         </div>
-
         <div class="combo-wrapper" id="comboWrapper">
-          <input type="text"
-                 id="comboInput"
-                 class="combo-input"
+          <input type="text" id="comboInput" class="combo-input"
                  placeholder="🔍  Buscar por código, municipio, tipo..."
-                 autocomplete="off"
-                 readonly/>
-          <div class="combo-dropdown" id="comboDropdown">
-            <!-- opciones inyectadas por JS -->
-          </div>
+                 autocomplete="off" readonly/>
+          <div class="combo-dropdown" id="comboDropdown"></div>
         </div>
-
-        <!-- Chip del seleccionado -->
+        <!-- Chip seleccionado -->
         <div id="comboChip"
              style="display:none; margin-top:8px; padding:6px 12px;
                     background:#e8f5e9; border:1px solid #4caf50;
                     border-radius:999px; font-size:13px; color:#2e7d32;
-                    display:none; align-items:center; gap:8px; width:fit-content;">
+                    align-items:center; gap:8px; width:fit-content;">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
                fill="none" stroke="#2e7d32" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round">
@@ -187,7 +158,7 @@
         </div>
       </div>
 
-      <!-- Datos del inmueble (se rellenan al seleccionar) -->
+      <!-- Datos del inmueble -->
       <div class="grid-3" style="margin-top:12px;">
         <div>
           <label>Código inmueble</label>
@@ -224,16 +195,13 @@
   </div>
 </div>
 
-<!-- Datos del catálogo inyectados desde Thymeleaf como JSON -->
 <script th:inline="javascript">
   /*<![CDATA[*/
   const CATALOG = /*[[${catalogProperties}]]*/ [];
   /*]]>*/
 </script>
-
 <script>
   (function () {
-
     const comboInput    = document.getElementById('comboInput');
     const dropdown      = document.getElementById('comboDropdown');
     const chip          = document.getElementById('comboChip');
@@ -244,21 +212,22 @@
     let currentHighlight = -1;
     let visibleOptions   = [];
 
-    // ── Construir lista de opciones desde el JSON ───────────
-    const allItems = (CATALOG || []).map(p => ({
-      code         : p.propertyCode   || '',
-      type         : p.propertyType   || '',
-      address      : p.address        || '',
-      municipality : p.municipality   || '',
-      label        : [p.propertyCode, p.propertyType, p.municipality]
-                       .filter(Boolean).join(' · ')
-    }));
+    /* Incluye disponibles (sold=false, preVendido=false|true) pero NO vendidos (sold=true) */
+    const allItems = (CATALOG || [])
+      .filter(p => !p.sold)
+      .map(p => ({
+        code         : p.propertyCode  || '',
+        type         : p.propertyType  || '',
+        address      : p.address       || '',
+        municipality : p.municipality  || '',
+        preVendido   : p.preVendido    || false,
+        label        : [p.propertyCode, p.propertyType, p.municipality]
+                         .filter(Boolean).join(' · ')
+      }));
 
-    // ── Render dropdown ─────────────────────────────────────
     function renderDropdown(q) {
       dropdown.innerHTML = '';
       currentHighlight = -1;
-
       const lq = (q || '').trim().toLowerCase();
       visibleOptions = lq === ''
         ? allItems
@@ -273,125 +242,84 @@
         dropdown.innerHTML = '<div class="combo-empty">Sin resultados</div>';
         return;
       }
-
       visibleOptions.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'combo-option';
         div.dataset.idx = idx;
+        const preTag = item.preVendido
+          ? `<span style="margin-left:6px; font-size:10px; color:#a05800;
+                          background:#fff4e6; border:1px solid #e07a18;
+                          border-radius:999px; padding:1px 6px; font-weight:700;">
+               ⏳ Pre vendido
+             </span>`
+          : '';
         div.innerHTML = `
-          <div class="opt-code">${escHtml(item.code)}</div>
+          <div class="opt-code">${escHtml(item.code)}${preTag}</div>
           <div class="opt-sub">${escHtml([item.type, item.municipality, item.address].filter(Boolean).join(' · '))}</div>
         `;
         div.addEventListener('mousedown', function (e) {
-          e.preventDefault(); // evita que el input pierda foco antes del click
+          e.preventDefault();
           selectItem(item);
         });
         dropdown.appendChild(div);
       });
     }
 
-    // ── Seleccionar un item ──────────────────────────────────
     function selectItem(item) {
-      // Rellena los campos del formulario
       document.getElementById('propertyCode').value  = item.code;
       document.getElementById('propertyType').value  = item.type;
-      document.getElementById('address').value        = item.address;
-      document.getElementById('municipality').value   = item.municipality;
-
-      // Muestra el chip y actualiza el input visible
-      comboInput.value        = item.label;
-      comboInput.readOnly     = true;
-      chipLabel.textContent   = item.label;
-      chip.style.display      = 'inline-flex';
-
+      document.getElementById('address').value       = item.address;
+      document.getElementById('municipality').value  = item.municipality;
+      comboInput.value      = item.label;
+      comboInput.readOnly   = true;
+      chipLabel.textContent = item.label;
+      chip.style.display    = 'inline-flex';
       closeDropdown();
     }
 
-    // ── Limpiar selección ────────────────────────────────────
     function clearSelection() {
-      comboInput.value   = '';
-      comboInput.readOnly = false;
-      chip.style.display = 'none';
+      comboInput.value      = '';
+      comboInput.readOnly   = false;
+      chip.style.display    = 'none';
       document.getElementById('propertyCode').value  = '';
       document.getElementById('propertyType').value  = '';
-      document.getElementById('address').value        = '';
-      document.getElementById('municipality').value   = '';
+      document.getElementById('address').value       = '';
+      document.getElementById('municipality').value  = '';
     }
 
-    // ── Abrir / cerrar ───────────────────────────────────────
-    function openDropdown(q) {
-      renderDropdown(q);
-      dropdown.classList.add('open');
-    }
+    function openDropdown(q) { renderDropdown(q); dropdown.classList.add('open'); }
+    function closeDropdown()  { dropdown.classList.remove('open'); currentHighlight = -1; }
 
-    function closeDropdown() {
-      dropdown.classList.remove('open');
-      currentHighlight = -1;
-    }
-
-    // ── Highlight con teclado ────────────────────────────────
     function setHighlight(idx) {
       const opts = dropdown.querySelectorAll('.combo-option');
       opts.forEach(o => o.classList.remove('highlighted'));
       if (idx >= 0 && idx < opts.length) {
         opts[idx].classList.add('highlighted');
-        opts[idx].scrollIntoView({ block: 'nearest' });
+        opts[idx].scrollIntoView({ block:'nearest' });
         currentHighlight = idx;
       }
     }
 
-    // ── Eventos ──────────────────────────────────────────────
     comboInput.addEventListener('click', function () {
       comboInput.readOnly = false;
       comboInput.value    = '';
       openDropdown('');
     });
-
-    comboInput.addEventListener('input', function () {
-      openDropdown(comboInput.value);
-    });
-
+    comboInput.addEventListener('input',  function () { openDropdown(comboInput.value); });
     comboInput.addEventListener('keydown', function (e) {
       const opts = dropdown.querySelectorAll('.combo-option');
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setHighlight(Math.min(currentHighlight + 1, opts.length - 1));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setHighlight(Math.max(currentHighlight - 1, 0));
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (currentHighlight >= 0 && visibleOptions[currentHighlight]) {
-          selectItem(visibleOptions[currentHighlight]);
-        }
-      } else if (e.key === 'Escape') {
-        closeDropdown();
-      }
+      if      (e.key === 'ArrowDown') { e.preventDefault(); setHighlight(Math.min(currentHighlight + 1, opts.length - 1)); }
+      else if (e.key === 'ArrowUp')   { e.preventDefault(); setHighlight(Math.max(currentHighlight - 1, 0)); }
+      else if (e.key === 'Enter')     { e.preventDefault(); if (currentHighlight >= 0 && visibleOptions[currentHighlight]) selectItem(visibleOptions[currentHighlight]); }
+      else if (e.key === 'Escape')    { closeDropdown(); }
     });
+    comboInput.addEventListener('blur', function () { setTimeout(closeDropdown, 150); });
+    comboClearBtn.addEventListener('click', clearSelection);
+    document.addEventListener('click', function (e) { if (!wrapper.contains(e.target)) closeDropdown(); });
 
-    comboInput.addEventListener('blur', function () {
-      // Pequeño delay para permitir el mousedown de las opciones
-      setTimeout(closeDropdown, 150);
-    });
-
-    comboClearBtn.addEventListener('click', function () {
-      clearSelection();
-    });
-
-    // Cerrar si se hace click fuera
-    document.addEventListener('click', function (e) {
-      if (!wrapper.contains(e.target)) closeDropdown();
-    });
-
-    // ── Helper ───────────────────────────────────────────────
     function escHtml(str) {
-      return (str || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+      return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
-
   })();
 </script>
 </body>

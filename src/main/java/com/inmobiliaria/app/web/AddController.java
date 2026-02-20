@@ -6,6 +6,7 @@ import com.inmobiliaria.app.repo.ClientPropertyInteractionRepository;
 import com.inmobiliaria.app.repo.ClientRepository;
 import com.inmobiliaria.app.repo.PropertyRepository;
 import com.inmobiliaria.app.web.dto.AddClientInterestForm;
+import com.inmobiliaria.app.web.dto.PropertyCatalogDto;
 import jakarta.validation.Valid;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Controller
@@ -139,11 +141,23 @@ public class AddController {
         model.addAttribute("clientTypes", ClientType.values());
         model.addAttribute("channels", ContactChannel.values());
         model.addAttribute("statuses", InterestStatus.values());
-        model.addAttribute("catalogProperties",
-                propertyRepository.findAllByOrderByPropertyCodeAsc()
-                        .stream()
-                        .filter(p -> !p.isSold())
-                        .collect(Collectors.toList()));
+
+        List<PropertyCatalogDto> catalog = propertyRepository
+                .findAllByOrderByPropertyCodeAsc()
+                .stream()
+                .filter(p -> !p.isSold())
+                .map(p -> new PropertyCatalogDto(
+                        p.getId(),
+                        p.getPropertyCode(),
+                        p.getPropertyType(),
+                        p.getAddress(),
+                        p.getMunicipality(),
+                        p.isPreVendido(),
+                        p.isSold()
+                ))
+                .collect(Collectors.toList());
+
+        model.addAttribute("catalogProperties", catalog);
     }
 
     private Long checkPhoneUniqueForCreate(BindingResult br, String fieldName, String phone) {

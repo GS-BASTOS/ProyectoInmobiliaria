@@ -56,9 +56,10 @@
       <div>
         <label>Estado</label>
         <select name="soldFilter">
-          <option value="ALL"    th:selected="${soldFilter == 'ALL'}">Todos</option>
-          <option value="ACTIVE" th:selected="${soldFilter == 'ACTIVE'}">Disponibles</option>
-          <option value="SOLD"   th:selected="${soldFilter == 'SOLD'}">Vendidos</option>
+          <option value="ALL"          th:selected="${soldFilter == 'ALL'}">Todos</option>
+          <option value="ACTIVE"       th:selected="${soldFilter == 'ACTIVE'}">Disponibles</option>
+          <option value="PRE_VENDIDO"  th:selected="${soldFilter == 'PRE_VENDIDO'}">Pre vendidos</option>
+          <option value="SOLD"         th:selected="${soldFilter == 'SOLD'}">Vendidos</option>
         </select>
       </div>
       <div class="actions" style="margin-top:0;">
@@ -85,10 +86,12 @@
       <tr th:if="${#lists.isEmpty(properties)}">
         <td colspan="8" class="small">No hay inmuebles con esos filtros.</td>
       </tr>
-      <tr th:each="p : ${properties}" th:style="${p.sold ? 'opacity:0.55;' : ''}">
+      <tr th:each="p : ${properties}"
+          th:style="${p.sold ? 'opacity:0.55;' : p.preVendido ? 'opacity:0.80;' : ''}">
 
         <!-- ESTADO -->
         <td style="text-align:center;">
+          <!-- Vendido -->
           <span th:if="${p.sold}" title="Vendido">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
                  fill="none" stroke="#2e7d32" stroke-width="2"
@@ -97,16 +100,35 @@
               <polyline points="9 21 9 12 15 12 15 21"/>
             </svg>
           </span>
-          <span th:if="${!p.sold}" title="Disponible"
+          <!-- Pre Vendido -->
+          <span th:if="${!p.sold and p.preVendido}" title="Pre Vendido"
+                style="display:inline-flex; align-items:center; justify-content:center;
+                       width:22px; height:22px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                 fill="none" stroke="#e07a18" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </span>
+          <!-- Disponible -->
+          <span th:if="${!p.sold and !p.preVendido}" title="Disponible"
                 style="display:inline-block; width:12px; height:12px;
                        border-radius:50%; background:#4caf50; margin:auto;"></span>
         </td>
 
-        <!-- CÓDIGO — enlace a ficha -->
+        <!-- CÓDIGO -->
         <td>
           <a th:href="@{|/inmuebles/${p.id}|}"
              th:text="${p.propertyCode}"
              style="font-weight:700; text-decoration:none; color:var(--text);">COD</a>
+          <!-- Chip pre vendido -->
+          <div th:if="${p.preVendido and !p.sold}"
+               style="margin-top:3px; display:inline-flex; align-items:center; gap:4px;
+                      background:#fff4e6; border:1px solid #e07a18; border-radius:999px;
+                      padding:1px 7px; font-size:10px; color:#a05800; font-weight:700;">
+            ⏳ Pre vendido
+          </div>
         </td>
 
         <td th:text="${p.propertyType != null ? p.propertyType : '—'}">—</td>
@@ -127,6 +149,16 @@
             <a class="btn btn-secondary" th:href="@{|/inmuebles/${p.id}|}">Ver ficha</a>
             <a class="btn btn-secondary" th:href="@{|/inmuebles/${p.id}/editar|}">Editar</a>
 
+            <!-- Toggle Pre Vendido -->
+            <button type="button" class="btn-prevendido"
+                    th:attr="data-id=${p.id}, data-prevendido=${p.preVendido}"
+                    th:text="${p.preVendido ? 'Quitar Pre Vendido' : 'Marcar Pre Vendido'}"
+                    th:style="${p.preVendido
+                                ? 'background:#e07a18; color:#fff;'
+                                : 'background:#fff4e6; color:#a05800; border:1px solid #e07a18;'}">
+            </button>
+
+            <!-- Toggle Vendido -->
             <button type="button" class="btn-vendido"
                     th:attr="data-id=${p.id}, data-sold=${p.sold}"
                     th:text="${p.sold ? 'Marcar disponible' : 'Marcar vendido'}"
@@ -146,6 +178,7 @@
 </div>
 
 <script>
+  /* ── Marcar vendido / disponible ── */
   document.querySelectorAll('.btn-vendido').forEach(btn => {
     btn.addEventListener('click', async function () {
       const id     = btn.getAttribute('data-id');
@@ -159,9 +192,25 @@
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         window.location.reload();
-      } catch (e) {
-        alert('No se pudo actualizar el estado.');
-      }
+      } catch (e) { alert('No se pudo actualizar el estado.'); }
+    });
+  });
+
+  /* ── Marcar pre vendido / quitar pre vendido ── */
+  document.querySelectorAll('.btn-prevendido').forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const id         = btn.getAttribute('data-id');
+      const preVendido = btn.getAttribute('data-prevendido') === 'true';
+      const newVal     = !preVendido;
+      try {
+        const res = await fetch(`/inmuebles/${id}/prevendido`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'preVendido=' + encodeURIComponent(String(newVal))
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        window.location.reload();
+      } catch (e) { alert('No se pudo actualizar el estado.'); }
     });
   });
 </script>

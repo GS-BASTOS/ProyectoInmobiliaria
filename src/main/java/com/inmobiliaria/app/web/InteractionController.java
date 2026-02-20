@@ -38,11 +38,13 @@ public class InteractionController {
             @RequestParam(required = false) List<String> statuses,
             @RequestParam(required = false) ContactChannel channel,
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) String searchField,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false, defaultValue = "false") boolean ndaOnly,
             Model model
     ) {
-        // Convertir strings a enums ignorando valores inválidos
+        // Convertir strings a enums
         List<InterestStatus> statusEnums = new ArrayList<>();
         if (statuses != null) {
             for (String s : statuses) {
@@ -51,19 +53,40 @@ public class InteractionController {
             }
         }
 
-        List<ClientPropertyInteraction> items;
+        // Normalizar searchField
+        String field = (searchField == null || searchField.isBlank()) ? "ALL" : searchField.trim().toUpperCase();
 
+        List<ClientPropertyInteraction> items;
         if (statusEnums.isEmpty()) {
-            // Sin filtro de estado: todos los resultados
-            items = interactionRepository.searchWithFilters(null, channel, q, from, to);
+            items = interactionRepository.searchWithFilters(null, channel, "ALL".equals(field) ? q : null, from, to);
         } else if (statusEnums.size() == 1) {
-            // Un solo estado: usa el método existente directamente
-            items = interactionRepository.searchWithFilters(statusEnums.get(0), channel, q, from, to);
+            items = interactionRepository.searchWithFilters(statusEnums.get(0), channel, "ALL".equals(field) ? q : null, from, to);
         } else {
-            // Varios estados: filtramos en memoria
-            items = interactionRepository.searchWithFilters(null, channel, q, from, to)
+            items = interactionRepository.searchWithFilters(null, channel, "ALL".equals(field) ? q : null, from, to)
                     .stream()
                     .filter(i -> statusEnums.contains(i.getStatus()))
+                    .collect(Collectors.toList());
+        }
+
+        // Filtro por campo específico en memoria
+        if (q != null && !q.isBlank() && !"ALL".equals(field)) {
+            String lq = q.trim().toLowerCase();
+            items = items.stream().filter(it -> switch (field) {
+                case "CLIENT"        -> matches(it.getClient().getFullName(), lq)
+                                     || matches(it.getClient().getCompanyName(), lq);
+                case "PROPERTY_CODE" -> matches(it.getProperty().getPropertyCode(), lq);
+                case "MUNICIPALITY"  -> matches(it.getProperty().getMunicipality(), lq);
+                case "CHANNEL"       -> it.getChannel() != null
+                                     && it.getChannel().name().toLowerCase().contains(lq);
+                case "COMMENTS"      -> matches(it.getComments(), lq);
+                default              -> true;
+            }).collect(Collectors.toList());
+        }
+
+        // Filtro NDA
+        if (ndaOnly) {
+            items = items.stream()
+                    .filter(it -> Boolean.TRUE.equals(it.getNdaRequested()))
                     .collect(Collectors.toList());
         }
 
@@ -83,7 +106,6 @@ public class InteractionController {
                     .findByClient_IdInOrderByClient_IdAscPositionAsc(clientIds)
                     .stream()
                     .collect(Collectors.groupingBy(p -> p.getClient().getId()));
-
             emailsByClientId = clientEmailRepository
                     .findByClient_IdInOrderByClient_IdAscPositionAsc(clientIds)
                     .stream()
@@ -93,16 +115,19 @@ public class InteractionController {
         model.addAttribute("items", items);
         model.addAttribute("phonesByClientId", phonesByClientId);
         model.addAttribute("emailsByClientId", emailsByClientId);
-
         model.addAttribute("statuses", InterestStatus.values());
         model.addAttribute("channels", ContactChannel.values());
-
         model.addAttribute("selectedStatuses", statuses != null ? statuses : Collections.emptyList());
         model.addAttribute("selectedChannel", channel);
         model.addAttribute("q", q);
+        model.addAttribute("searchField", field);
         model.addAttribute("from", from);
         model.addAttribute("to", to);
-
+        model.addAttribute("ndaOnly", ndaOnly);
         return "interactions";
+    }
+
+    private boolean matches(String value, String lq) {
+        return value != null && value.toLowerCase().contains(lq);
     }
 }

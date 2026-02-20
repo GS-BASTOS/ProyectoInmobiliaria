@@ -1,6 +1,29 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Cliente')}"></head>
+<style>
+  /* ── Combobox inmueble ── */
+  .combo-wrapper { position:relative; width:100%; }
+  .combo-input   { width:100%; cursor:pointer; }
+  .combo-dropdown {
+    display:none; position:absolute; z-index:999;
+    top:calc(100% + 4px); left:0; right:0;
+    background:#fff; border:1px solid var(--line);
+    border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,0.10);
+    max-height:260px; overflow-y:auto;
+  }
+  .combo-dropdown.open { display:block; }
+  .combo-option {
+    padding:9px 14px; cursor:pointer; font-size:13px;
+    border-bottom:1px solid var(--line); transition:background 0.12s;
+  }
+  .combo-option:last-child { border-bottom:none; }
+  .combo-option:hover,
+  .combo-option.highlighted { background:#f0ede8; }
+  .combo-option .opt-code { font-weight:700; color:var(--text); }
+  .combo-option .opt-sub  { color:#888; font-size:11px; margin-top:1px; }
+  .combo-empty { padding:12px 14px; color:#aaa; font-size:13px; text-align:center; }
+</style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 
@@ -17,9 +40,7 @@
     <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
       <h2 style="margin:0;" th:text="${client.fullName}">Cliente</h2>
 
-      <!-- Badge COMPRADOR -->
       <span th:if="${client.compradorFinal}"
-            title="Comprador final — inmueble adquirido"
             style="display:inline-flex; align-items:center; gap:6px;
                    background:#e8f5e9; border:1px solid #168a53;
                    border-radius:999px; padding:4px 12px;
@@ -29,9 +50,7 @@
         💰 COMPRADOR
       </span>
 
-      <!-- Badge OKUPA -->
       <span th:if="${client.posibleOcupa}"
-            title="Posible okupa"
             style="display:inline-flex; align-items:center; gap:6px;
                    background:#ffebee; border:1px solid #b42318;
                    border-radius:999px; padding:4px 12px;
@@ -49,7 +68,6 @@
       </span>
     </div>
 
-    <!-- Nota okupa -->
     <div th:if="${client.posibleOcupa
                   and client.generalNotes != null
                   and !#strings.isEmpty(client.generalNotes)}"
@@ -59,7 +77,6 @@
       <strong>Nota:</strong> <span th:text="${client.generalNotes}"></span>
     </div>
 
-    <!-- Nota comprador -->
     <div th:if="${client.compradorFinal}"
          style="margin-top:8px; padding:8px 12px; background:#e8f5e9;
                 border-left:4px solid #168a53; border-radius:6px;
@@ -125,14 +142,15 @@
         <th>Fecha</th>
         <th>Inmueble</th>
         <th>NDA</th>
+        <th>Ticket</th>
         <th>Canal</th>
         <th>Estado</th>
-        <th>Comentarios</th>
+        <th style="min-width:320px;">Comentarios</th>
       </tr>
       </thead>
       <tbody>
       <tr th:if="${#lists.isEmpty(interactions)}">
-        <td colspan="6" class="small">Aún no hay interacciones registradas.</td>
+        <td colspan="7" class="small">Aún no hay interacciones registradas.</td>
       </tr>
       <tr th:each="it : ${interactions}"
           th:style="${client.compradorFinal and it.property.sold
@@ -143,6 +161,8 @@
                           ? 'background:#fff8f8;'
                           : ''}">
         <td th:text="${#temporals.format(it.contactDate, 'dd/MM/yyyy')}">13/02/2026</td>
+
+        <!-- INMUEBLE -->
         <td>
           <div><strong th:text="${it.property.propertyCode}">-</strong></div>
           <div class="small"
@@ -154,20 +174,65 @@
           <div class="small"
                th:if="${it.property.municipality != null and !#strings.isEmpty(it.property.municipality)}"
                th:text="${it.property.municipality}">Municipio</div>
-          <!-- Chip comprado -->
-          <div th:if="${it.property.sold}"
-               style="margin-top:4px; display:inline-flex; align-items:center; gap:4px;
-                      background:#e8f5e9; border:1px solid #168a53; border-radius:999px;
-                      padding:2px 8px; font-size:11px; color:#168a53; font-weight:700;">
+
+          <a th:if="${it.property.sold}"
+             th:href="${it.property.soldClient != null
+                        ? '/clientes/' + it.property.soldClient.id
+                        : '/clientes/' + it.client.id}"
+             style="margin-top:4px; display:inline-flex; align-items:center; gap:4px;
+                    background:#e8f5e9; border:1px solid #168a53; border-radius:999px;
+                    padding:2px 8px; font-size:11px; color:#168a53; font-weight:700;
+                    text-decoration:none; transition:box-shadow .15s; white-space:nowrap;"
+             onmouseover="this.style.boxShadow='0 0 0 3px rgba(22,138,83,.2)'"
+             onmouseout="this.style.boxShadow='none'">
             💰 Comprado
-          </div>
+            <span th:if="${it.property.soldClient != null}"
+                  th:text="${' · ' + it.property.soldClient.fullName}"></span>
+          </a>
+
+          <a th:if="${!it.property.sold and it.property.preVendido}"
+             th:href="${it.property.preVendidoClient != null
+                        ? '/clientes/' + it.property.preVendidoClient.id
+                        : '#'}"
+             style="margin-top:4px; display:inline-flex; align-items:center; gap:4px;
+                    background:#fff4e6; border:1px solid #e07a18; border-radius:999px;
+                    padding:2px 8px; font-size:11px; color:#a05800; font-weight:700;
+                    text-decoration:none; transition:box-shadow .15s; white-space:nowrap;"
+             onmouseover="this.style.boxShadow='0 0 0 3px rgba(224,122,24,.2)'"
+             onmouseout="this.style.boxShadow='none'">
+            ⏳ Pre vendido
+            <span th:if="${it.property.preVendidoClient != null}"
+                  th:text="${' · ' + it.property.preVendidoClient.fullName}"></span>
+          </a>
         </td>
+
+        <!-- NDA -->
         <td style="text-align:center;">
           <input type="checkbox" class="nda-toggle"
                  th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
                  th:checked="${it.ndaRequested}" />
         </td>
+
+        <!-- TICKET -->
+        <td style="min-width:130px;">
+          <input type="text" class="ticket-input"
+                 th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
+                 th:value="${it.ticketCode}"
+                 placeholder="Código ticket..."
+                 style="width:100%; font-size:12px; padding:5px 8px;"/>
+          <div style="display:flex; gap:6px; margin-top:4px; align-items:center;">
+            <button type="button" class="ticket-save"
+                    th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
+                    style="padding:3px 8px; font-size:11px;">Guardar</button>
+            <span class="ticket-feedback small"
+                  style="display:none; color:#4caf50;">✓</span>
+          </div>
+        </td>
+
+        <!-- CANAL -->
         <td th:text="${it.channel}">-</td>
+
+        <!-- ESTADO -->
         <td>
           <select class="status-select"
                   th:attr="data-client-id=${client.id},data-interaction-id=${it.id}">
@@ -179,11 +244,13 @@
             <span class="dot status-dot" th:attr="data-status=${it.status}"></span>
           </span>
         </td>
-        <td style="min-width:220px;">
+
+        <!-- COMENTARIOS -->
+        <td style="min-width:320px;">
           <textarea class="comments-input"
                     th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
                     th:text="${it.comments}" rows="3"
-                    style="width:100%; resize:vertical; font-size:13px;"></textarea>
+                    style="width:100%; min-width:300px; resize:vertical; font-size:13px;"></textarea>
           <div style="display:flex; gap:6px; margin-top:4px; align-items:center;">
             <button type="button" class="comments-save"
                     th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
@@ -229,19 +296,73 @@
           </select>
         </div>
       </div>
-      <div class="grid-3">
-        <div><label>Código Solvia</label><input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123" /></div>
-        <div><label>Teléfono</label><input th:field="*{phone}" readonly /></div>
-        <div><label>Email</label><input th:field="*{email}" readonly /></div>
+
+      <!-- ══ COMBOBOX INMUEBLE ══ -->
+      <div style="margin-top:14px;">
+        <label style="font-weight:600;">Seleccionar inmueble del catálogo</label>
+        <div class="small" style="margin-bottom:6px; color:#888;">
+          Disponibles y pre vendidos. Escribe o haz clic para buscar.
+        </div>
+        <div class="combo-wrapper" id="niComboWrapper">
+          <input type="text" id="niComboInput" class="combo-input"
+                 placeholder="🔍  Buscar por código, municipio, tipo..."
+                 autocomplete="off" readonly/>
+          <div class="combo-dropdown" id="niComboDropdown"></div>
+        </div>
+        <!-- Chip seleccionado -->
+        <div id="niComboChip"
+             style="display:none; margin-top:8px; padding:6px 12px;
+                    background:#e8f5e9; border:1px solid #4caf50;
+                    border-radius:999px; font-size:13px; color:#2e7d32;
+                    align-items:center; gap:8px; width:fit-content;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="#2e7d32" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span id="niComboChipLabel"></span>
+          <span id="niComboClearBtn"
+                style="cursor:pointer; font-size:15px; color:#888; margin-left:4px;"
+                title="Limpiar selección">×</span>
+        </div>
       </div>
-      <div class="grid-3">
-        <div><label>Municipio</label><input th:field="*{municipality}" placeholder="Ej: Madrid" /></div>
-        <div><label>Tipo inmueble</label><input th:field="*{propertyType}" placeholder="Ej: Piso / Chalet" /></div>
-        <div><label>Código inm.</label><input th:field="*{propertyCode}" placeholder="Ej: 1234" /></div>
+
+      <!-- Datos del inmueble (se rellenan solos al elegir del combo) -->
+      <div class="grid-3" style="margin-top:12px;">
+        <div>
+          <label>Código Solvia</label>
+          <input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123"/>
+        </div>
+        <div>
+          <label>Teléfono</label>
+          <input th:field="*{phone}" readonly/>
+        </div>
+        <div>
+          <label>Email</label>
+          <input th:field="*{email}" readonly/>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top:0;">
+        <div>
+          <label>Municipio</label>
+          <input th:field="*{municipality}" id="niMunicipality" placeholder="Ej: Madrid"/>
+        </div>
+        <div>
+          <label>Tipo inmueble</label>
+          <input th:field="*{propertyType}" id="niPropertyType" placeholder="Ej: Piso / Chalet"/>
+        </div>
+        <div>
+          <label>Código inm.</label>
+          <input th:field="*{propertyCode}" id="niPropertyCode" placeholder="Ej: 1234"/>
+        </div>
       </div>
       <div class="grid">
-        <div><label>Dirección</label><input th:field="*{address}" placeholder="Ej: Calle ..." /></div>
+        <div>
+          <label>Dirección</label>
+          <input th:field="*{address}" id="niAddress" placeholder="Ej: Calle ..."/>
+        </div>
       </div>
+
       <div><label>Comentarios</label><textarea th:field="*{comments}"></textarea></div>
       <button type="submit">Guardar interacción</button>
     </form>
@@ -281,12 +402,11 @@
       </div>
       <div><label>Notas generales</label><textarea th:field="*{generalNotes}"></textarea></div>
 
-      <!-- FLAGS ESPECIALES -->
+      <!-- CHECKBOXES ESPECIALES -->
       <div style="margin-top:14px; padding:14px; border:1px solid var(--line);
                   border-radius:10px; background:#faf8f4;">
         <div style="display:flex; gap:24px; flex-wrap:wrap;">
 
-          <!-- Okupa -->
           <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
             <input type="checkbox" th:field="*{posibleOcupa}" id="chkPosibleOcupa"/>
             <span style="display:inline-flex; align-items:center; gap:6px;
@@ -302,7 +422,20 @@
             </span>
           </label>
 
-          <!-- Comprador -->
+          <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+            <input type="checkbox" th:field="*{preVenda}" id="chkPreVenda"/>
+            <span style="display:inline-flex; align-items:center; gap:6px;
+                         color:#a05800; font-weight:700; text-transform:uppercase; font-size:13px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                   fill="none" stroke="#e07a18" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              ⏳ Pre Venda
+            </span>
+          </label>
+
           <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
             <input type="checkbox" th:field="*{compradorFinal}" id="chkCompradorFinal"/>
             <span style="display:inline-flex; align-items:center; gap:6px;
@@ -312,7 +445,50 @@
           </label>
         </div>
 
-        <!-- Panel inmueble comprado -->
+        <!-- Panel Pre Venda -->
+        <div id="panelPreVenda"
+             th:style="${form.preVenda} ? 'display:block;' : 'display:none;'"
+             style="margin-top:14px; padding:12px; border:1px solid #f5c18a;
+                    border-radius:8px; background:#fffbf4;">
+          <label style="font-weight:600; color:#a05800; margin-bottom:6px; display:block;">
+            🏠 ¿Qué inmueble(s) marcar como Pre Vendido?
+            <span class="small" style="color:#555;">(puedes marcar varios)</span>
+          </label>
+          <div class="small" style="margin-bottom:10px; color:#555;">
+            Los inmuebles seleccionados se marcarán como <strong style="color:#e07a18;">⏳ pre vendido</strong> en el catálogo.
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <label th:each="it : ${interactions}"
+                   style="display:inline-flex; align-items:center; gap:8px;
+                          padding:8px 12px; border:1px solid #f5c18a;
+                          border-radius:8px; background:#fff; cursor:pointer;">
+              <input type="checkbox" name="preVendaPropertyIds"
+                     th:value="${it.property.id}"
+                     th:checked="${form.preVendaPropertyIds != null
+                                   and form.preVendaPropertyIds.contains(it.property.id)}"/>
+              <span>
+                <strong th:text="${it.property.propertyCode}">COD</strong>
+                <span th:if="${it.property.propertyType != null}"
+                      th:text="${' · ' + it.property.propertyType}"></span>
+                <span th:if="${it.property.municipality != null}"
+                      th:text="${' · ' + it.property.municipality}"></span>
+                <span th:if="${it.property.preVendido}"
+                      style="margin-left:6px; font-size:11px; color:#a05800; font-weight:700;">
+                  ⏳ ya pre vendido
+                </span>
+                <span th:if="${it.property.sold}"
+                      style="margin-left:6px; font-size:11px; color:#168a53; font-weight:700;">
+                  ✓ ya comprado
+                </span>
+              </span>
+            </label>
+          </div>
+          <div class="small" style="margin-top:8px; color:#888;">
+            Si el inmueble ya está vendido no se modificará.
+          </div>
+        </div>
+
+        <!-- Panel Comprador -->
         <div id="panelInmuebleComprado"
              th:style="${form.compradorFinal} ? 'display:block;' : 'display:none;'"
              style="margin-top:14px; padding:12px; border:1px solid #a5d6a7;
@@ -351,6 +527,7 @@
             Si el inmueble ya está marcado como vendido no cambiará nada.
           </div>
         </div>
+
       </div>
 
       <button type="submit" style="margin-top:16px;">Guardar</button>
@@ -359,8 +536,148 @@
 
 </div>
 
+<!-- Catálogo de inmuebles para el combobox -->
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  const CATALOG = /*[[${catalogProperties}]]*/ [];
+  /*]]>*/
+</script>
+
 <script>
 (function () {
+
+  /* ══════════════════════════════════════════
+     COMBOBOX — Nueva interacción
+  ══════════════════════════════════════════ */
+  const comboInput    = document.getElementById('niComboInput');
+  const dropdown      = document.getElementById('niComboDropdown');
+  const chip          = document.getElementById('niComboChip');
+  const chipLabel     = document.getElementById('niComboChipLabel');
+  const comboClearBtn = document.getElementById('niComboClearBtn');
+  const wrapper       = document.getElementById('niComboWrapper');
+
+  let currentHighlight = -1;
+  let visibleOptions   = [];
+
+  const allItems = (CATALOG || [])
+    .filter(p => !p.sold)
+    .map(p => ({
+      code        : p.propertyCode  || '',
+      type        : p.propertyType  || '',
+      address     : p.address       || '',
+      municipality: p.municipality  || '',
+      preVendido  : p.preVendido    || false,
+      label       : [p.propertyCode, p.propertyType, p.municipality]
+                      .filter(Boolean).join(' · ')
+    }));
+
+  function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderDropdown(q) {
+    dropdown.innerHTML  = '';
+    currentHighlight    = -1;
+    const lq = (q || '').trim().toLowerCase();
+    visibleOptions = lq === ''
+      ? allItems
+      : allItems.filter(item =>
+          item.code.toLowerCase().includes(lq)         ||
+          item.type.toLowerCase().includes(lq)         ||
+          item.municipality.toLowerCase().includes(lq) ||
+          item.address.toLowerCase().includes(lq)
+        );
+
+    if (visibleOptions.length === 0) {
+      dropdown.innerHTML = '<div class="combo-empty">Sin resultados</div>';
+      return;
+    }
+    visibleOptions.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className   = 'combo-option';
+      div.dataset.idx = idx;
+      const preTag = item.preVendido
+        ? `<span style="margin-left:6px; font-size:10px; color:#a05800;
+                        background:#fff4e6; border:1px solid #e07a18;
+                        border-radius:999px; padding:1px 6px; font-weight:700;">
+             ⏳ Pre vendido
+           </span>`
+        : '';
+      div.innerHTML = `
+        <div class="opt-code">${escHtml(item.code)}${preTag}</div>
+        <div class="opt-sub">${escHtml([item.type, item.municipality, item.address].filter(Boolean).join(' · '))}</div>
+      `;
+      div.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+        selectItem(item);
+      });
+      dropdown.appendChild(div);
+    });
+  }
+
+  function selectItem(item) {
+    document.getElementById('niPropertyCode').value  = item.code;
+    document.getElementById('niPropertyType').value  = item.type;
+    document.getElementById('niAddress').value       = item.address;
+    document.getElementById('niMunicipality').value  = item.municipality;
+    comboInput.value      = item.label;
+    comboInput.readOnly   = true;
+    chipLabel.textContent = item.label;
+    chip.style.display    = 'inline-flex';
+    closeDropdown();
+  }
+
+  function clearSelection() {
+    comboInput.value    = '';
+    comboInput.readOnly = false;
+    chip.style.display  = 'none';
+    document.getElementById('niPropertyCode').value  = '';
+    document.getElementById('niPropertyType').value  = '';
+    document.getElementById('niAddress').value       = '';
+    document.getElementById('niMunicipality').value  = '';
+  }
+
+  function openDropdown(q) { renderDropdown(q); dropdown.classList.add('open'); }
+  function closeDropdown()  { dropdown.classList.remove('open'); currentHighlight = -1; }
+
+  function setHighlight(idx) {
+    const opts = dropdown.querySelectorAll('.combo-option');
+    opts.forEach(o => o.classList.remove('highlighted'));
+    if (idx >= 0 && idx < opts.length) {
+      opts[idx].classList.add('highlighted');
+      opts[idx].scrollIntoView({ block: 'nearest' });
+      currentHighlight = idx;
+    }
+  }
+
+  comboInput.addEventListener('click', function () {
+    comboInput.readOnly = false;
+    comboInput.value    = '';
+    openDropdown('');
+  });
+  comboInput.addEventListener('input', function () { openDropdown(comboInput.value); });
+  comboInput.addEventListener('keydown', function (e) {
+    const opts = dropdown.querySelectorAll('.combo-option');
+    if      (e.key === 'ArrowDown') { e.preventDefault(); setHighlight(Math.min(currentHighlight + 1, opts.length - 1)); }
+    else if (e.key === 'ArrowUp')   { e.preventDefault(); setHighlight(Math.max(currentHighlight - 1, 0)); }
+    else if (e.key === 'Enter')     { e.preventDefault(); if (currentHighlight >= 0 && visibleOptions[currentHighlight]) selectItem(visibleOptions[currentHighlight]); }
+    else if (e.key === 'Escape')    { closeDropdown(); }
+  });
+  comboInput.addEventListener('blur', function () { setTimeout(closeDropdown, 150); });
+  comboClearBtn.addEventListener('click', clearSelection);
+  document.addEventListener('click', function (e) { if (!wrapper.contains(e.target)) closeDropdown(); });
+
+  /* ══════════════════════════════════════════
+     PANEL PRE VENDA / COMPRADOR
+  ══════════════════════════════════════════ */
+  const chkPreVenda   = document.getElementById('chkPreVenda');
+  const panelPreVenda = document.getElementById('panelPreVenda');
+  if (chkPreVenda && panelPreVenda) {
+    chkPreVenda.addEventListener('change', function () {
+      panelPreVenda.style.display = chkPreVenda.checked ? 'block' : 'none';
+    });
+  }
+
   const chkComprador = document.getElementById('chkCompradorFinal');
   const panel        = document.getElementById('panelInmuebleComprado');
   if (chkComprador && panel) {
@@ -369,6 +686,9 @@
     });
   }
 
+  /* ══════════════════════════════════════════
+     NDA TOGGLE
+  ══════════════════════════════════════════ */
   document.querySelectorAll('.nda-toggle').forEach(cb => {
     cb.addEventListener('change', async function () {
       const clientId      = cb.getAttribute('data-client-id');
@@ -384,15 +704,43 @@
     });
   });
 
+  /* ══════════════════════════════════════════
+     TICKET SAVE
+  ══════════════════════════════════════════ */
+  document.querySelectorAll('.ticket-save').forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const clientId      = btn.getAttribute('data-client-id');
+      const interactionId = btn.getAttribute('data-interaction-id');
+      const td            = btn.closest('td');
+      const input         = td?.querySelector('.ticket-input');
+      const feedback      = td?.querySelector('.ticket-feedback');
+      if (!input) return;
+      try {
+        const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/ticket`, {
+          method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'ticketCode=' + encodeURIComponent(input.value)
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        if (feedback) {
+          feedback.style.display = 'inline';
+          setTimeout(() => { feedback.style.display = 'none'; }, 2000);
+        }
+      } catch (e) { alert('No se pudo guardar el ticket.'); }
+    });
+  });
+
+  /* ══════════════════════════════════════════
+     STATUS DOTS + SELECT
+  ══════════════════════════════════════════ */
   function statusToClass(v) {
     const map = {
-      'GRIS_SIN_CONTACTO':      'gris',
+      'GRIS_SIN_CONTACTO'    : 'gris',
       'AZUL_VISITA_PROGRAMADA': 'azul-claro',
-      'AZUL_VISITA_REALIZADA':  'azul-oscuro',
-      'NARANJA_QUIERE_VISITA':  'naranja',
-      'ROSA_DESCARTA':          'rosa',
-      'VERDE_PENSANDO':         'verde',
-      'AMARILLO_OFERTA':        'amarillo'
+      'AZUL_VISITA_REALIZADA' : 'azul-oscuro',
+      'NARANJA_QUIERE_VISITA' : 'naranja',
+      'ROSA_DESCARTA'         : 'rosa',
+      'VERDE_PENSANDO'        : 'verde',
+      'AMARILLO_OFERTA'       : 'amarillo'
     };
     return map[v] || '';
   }
@@ -427,6 +775,9 @@
     });
   });
 
+  /* ══════════════════════════════════════════
+     COMMENTS SAVE
+  ══════════════════════════════════════════ */
   document.querySelectorAll('.comments-save').forEach(btn => {
     btn.addEventListener('click', async function () {
       const clientId      = btn.getAttribute('data-client-id');
@@ -448,6 +799,7 @@
       } catch (e) { alert('No se pudo guardar el comentario.'); }
     });
   });
+
 })();
 </script>
 </body>

@@ -50,9 +50,13 @@ public class ClientEditForm {
 
     private boolean posibleOcupa;
     private boolean compradorFinal;
+    private boolean preVenda;
 
-    // ── Lista de inmuebles comprados (puede comprar más de uno) ──
+    // ── Lista de inmuebles comprados ──
     private List<Long> purchasedPropertyIds = new ArrayList<>();
+
+    // ── Lista de inmuebles pre-vendidos ──
+    private List<Long> preVendaPropertyIds = new ArrayList<>();
 
     // ── Getters / Setters ────────────────────────────────────────
 
@@ -95,8 +99,16 @@ public class ClientEditForm {
     public boolean isCompradorFinal() { return compradorFinal; }
     public void setCompradorFinal(boolean compradorFinal) { this.compradorFinal = compradorFinal; }
 
+    public boolean isPreVenda() { return preVenda; }
+    public void setPreVenda(boolean preVenda) { this.preVenda = preVenda; }
+
     public List<Long> getPurchasedPropertyIds() { return purchasedPropertyIds; }
     public void setPurchasedPropertyIds(List<Long> purchasedPropertyIds) {
         this.purchasedPropertyIds = purchasedPropertyIds != null ? purchasedPropertyIds : new ArrayList<>();
+    }
+
+    public List<Long> getPreVendaPropertyIds() { return preVendaPropertyIds; }
+    public void setPreVendaPropertyIds(List<Long> preVendaPropertyIds) {
+        this.preVendaPropertyIds = preVendaPropertyIds != null ? preVendaPropertyIds : new ArrayList<>();
     }
 }

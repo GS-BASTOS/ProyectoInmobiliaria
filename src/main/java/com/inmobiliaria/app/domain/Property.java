@@ -28,7 +28,9 @@ public class Property {
     @Column(name = "sold")
     private boolean sold = false;
 
-    // ── Campos nuevos ──────────────────────────────────────
+    @Column(name = "pre_vendido")
+    private boolean preVendido = false;
+
     @Column(name = "province", length = 80)
     private String province;
 
@@ -43,6 +45,16 @@ public class Property {
 
     @Column(name = "description", length = 1000)
     private String description;
+
+    // ── Cliente que marcó pre-vendido ──────────────────────
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "pre_vendido_client_id")
+    private Client preVendidoClient;
+
+    // ── Cliente que compró (vendido definitivo) ────────────
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "sold_client_id")
+    private Client soldClient;
 
     // ── Getters y setters ──────────────────────────────────
     public Long getId() { return id; }
@@ -66,6 +78,9 @@ public class Property {
     public boolean isSold() { return sold; }
     public void setSold(boolean sold) { this.sold = sold; }
 
+    public boolean isPreVendido() { return preVendido; }
+    public void setPreVendido(boolean preVendido) { this.preVendido = preVendido; }
+
     public String getProvince() { return province; }
     public void setProvince(String province) { this.province = province; }
 
@@ -80,4 +95,10 @@ public class Property {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public Client getPreVendidoClient() { return preVendidoClient; }
+    public void setPreVendidoClient(Client preVendidoClient) { this.preVendidoClient = preVendidoClient; }
+
+    public Client getSoldClient() { return soldClient; }
+    public void setSoldClient(Client soldClient) { this.soldClient = soldClient; }
 }

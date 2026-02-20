@@ -1,14 +1,17 @@
 package com.inmobiliaria.app.repo;
 
 import com.inmobiliaria.app.domain.ClientPropertyInteraction;
+import com.inmobiliaria.app.domain.ContactChannel;
 import com.inmobiliaria.app.domain.InterestStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
-public interface ClientPropertyInteractionRepository extends JpaRepository<ClientPropertyInteraction, Long> {
+public interface ClientPropertyInteractionRepository
+        extends JpaRepository<ClientPropertyInteraction, Long> {
 
     @Query("""
         select i
@@ -26,7 +29,8 @@ public interface ClientPropertyInteractionRepository extends JpaRepository<Clien
         where i.client.id = :clientId
         order by i.contactDate desc, i.id desc
     """)
-    List<ClientPropertyInteraction> findByClientIdWithPropertyOrderByContactDateDesc(@Param("clientId") Long clientId);
+    List<ClientPropertyInteraction> findByClientIdWithPropertyOrderByContactDateDesc(
+            @Param("clientId") Long clientId);
 
     @Query("""
         select i
@@ -36,7 +40,8 @@ public interface ClientPropertyInteractionRepository extends JpaRepository<Clien
         where i.status = :status
         order by i.contactDate desc, i.id desc
     """)
-    List<ClientPropertyInteraction> findByStatusWithClientAndPropertyOrderByContactDateDesc(@Param("status") InterestStatus status);
+    List<ClientPropertyInteraction> findByStatusWithClientAndPropertyOrderByContactDateDesc(
+            @Param("status") InterestStatus status);
 
     @Query("""
         select max(i2.id)
@@ -57,7 +62,8 @@ public interface ClientPropertyInteractionRepository extends JpaRepository<Clien
         join fetch i.property p
         where i.id in :ids
     """)
-    List<ClientPropertyInteraction> findByIdInWithClientAndProperty(@Param("ids") List<Long> ids);
+    List<ClientPropertyInteraction> findByIdInWithClientAndProperty(
+            @Param("ids") List<Long> ids);
 
     @Query("""
         select i
@@ -80,7 +86,7 @@ public interface ClientPropertyInteractionRepository extends JpaRepository<Clien
     """)
     List<ClientPropertyInteraction> searchWithFilters(
             @Param("status") InterestStatus status,
-            @Param("channel") com.inmobiliaria.app.domain.ContactChannel channel,
+            @Param("channel") ContactChannel channel,
             @Param("q") String q
     );
 
@@ -108,12 +114,11 @@ public interface ClientPropertyInteractionRepository extends JpaRepository<Clien
     """)
     List<ClientPropertyInteraction> searchWithFilters(
             @Param("status") InterestStatus status,
-            @Param("channel") com.inmobiliaria.app.domain.ContactChannel channel,
+            @Param("channel") ContactChannel channel,
             @Param("q") String q,
-            @Param("from") java.time.LocalDate from,
-            @Param("to") java.time.LocalDate to
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
     );
 
-    // ── NUEVO ──────────────────────────────────────────────
     long countByPropertyId(Long propertyId);
 }
