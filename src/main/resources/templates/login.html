@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Login · BBDD</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}"/>
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(160deg, #ffffff 0%, #f4f1ea 100%);
+    }
+    .login-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 48px 40px 36px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 16px 48px rgba(0,0,0,.10);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .login-card img {
+      max-width: 180px;
+      margin-bottom: 6px;
+    }
+    .login-card .db-label {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+    .login-card form { width: 100%; }
+    .login-card label { margin: 0 0 5px; color: var(--muted); font-size: 13px; }
+    .login-card input { margin-bottom: 14px; }
+    .login-card button { width: 100%; margin-top: 6px; font-size: 15px; padding: 12px; }
+    .login-error {
+      background: #fff5f5;
+      border: 1px solid rgba(180,35,24,.3);
+      color: #b42318;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      width: 100%;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <img th:src="@{/images/logo.png}" alt="Logo"/>
+    <div class="db-label">BBDD</div>
+
+    <div class="login-error" th:if="${param.error}">
+      Usuario o contraseña incorrectos.
+    </div>
+    <div class="login-error" style="background:#f0fff4; border-color:#168a53; color:#168a53;"
+         th:if="${param.logout}">
+      Sesión cerrada correctamente.
+    </div>
+
+    <form method="post" th:action="@{/login}">
+      <label>Usuario</label>
+      <input type="text" name="username" autocomplete="username" autofocus required/>
+      <label>Contraseña</label>
+      <input type="password" name="password" autocomplete="current-password" required/>
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+</body>
+</html>

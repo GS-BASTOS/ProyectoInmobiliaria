@@ -3,6 +3,7 @@ package com.inmobiliaria.app.repo;
 import com.inmobiliaria.app.domain.ClientPropertyInteraction;
 import com.inmobiliaria.app.domain.ContactChannel;
 import com.inmobiliaria.app.domain.InterestStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -121,4 +122,15 @@ public interface ClientPropertyInteractionRepository
     );
 
     long countByPropertyId(Long propertyId);
+
+    List<ClientPropertyInteraction> findByProperty_IdOrderByContactDateDesc(Long propertyId);
+
+    @Query("""
+        select p.propertyCode, count(i) as cnt
+        from ClientPropertyInteraction i
+        join i.property p
+        group by p.id, p.propertyCode
+        order by cnt desc
+    """)
+    List<Object[]> findTopPropertiesByInteractionCount(Pageable pageable);
 }

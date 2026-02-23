@@ -52,9 +52,9 @@ public class AddController {
                       BindingResult br,
                       Model model) {
 
-        String p1 = t(form.getPhone1());
-        String p2 = t(form.getPhone2());
-        String p3 = t(form.getPhone3());
+        String p1 = normalizePhone(form.getPhone1());
+        String p2 = normalizePhone(form.getPhone2());
+        String p3 = normalizePhone(form.getPhone3());
 
         if (!p1.isBlank() && !p2.isBlank() && p1.equals(p2)) br.rejectValue("phone2", "dup", "Teléfono repetido.");
         if (!p1.isBlank() && !p3.isBlank() && p1.equals(p3)) br.rejectValue("phone3", "dup", "Teléfono repetido.");
@@ -170,6 +170,15 @@ public class AddController {
                     return ownerId;
                 })
                 .orElse(null);
+    }
+
+    private static String normalizePhone(String s) {
+        if (s == null) return "";
+        String trimmed = s.trim();
+        if (trimmed.isEmpty()) return "";
+        boolean hasDdi = trimmed.startsWith("+");
+        String digits = trimmed.replaceAll("[^0-9]", "");
+        return hasDdi ? "+" + digits : digits;
     }
 
     private static String t(String s) { return s == null ? "" : s.trim(); }

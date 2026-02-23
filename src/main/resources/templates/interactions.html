@@ -133,7 +133,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    color: #111;        /* ← negro */
+    color: #111;
     flex-shrink: 0;
   }
   .prop-val {
@@ -153,6 +153,33 @@
     font-weight: 600;
   }
 
+  /* ── Modal visita ── */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.38);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: 0 16px 48px rgba(0,0,0,.18);
+  }
+  .modal-box h3 { margin: 0 0 18px; font-size: 17px; }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+  }
+
   @media (max-width: 640px) {
     .filter-grid-search { grid-template-columns: 1fr; }
   }
@@ -161,6 +188,51 @@
 <nav th:replace="~{fragments :: nav}"></nav>
 
 <div id="copyToast">Copiado ✓</div>
+
+<!-- ══ MODAL PROGRAMAR VISITA ══ -->
+<div class="modal-backdrop" id="visitModalBackdrop">
+  <div class="modal-box">
+    <h3>📅 Programar visita</h3>
+    <form method="post" th:action="@{/visitas/crear}">
+      <input type="hidden" name="interactionId" id="visitModalInteractionId"/>
+
+      <div style="margin-bottom:12px;">
+        <label>Cliente</label>
+        <input type="text" id="visitModalClientName" readonly
+               style="background:#f5f5f5; color:#555; cursor:default;"/>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label>Inmueble</label>
+        <input type="text" id="visitModalPropertyCode" readonly
+               style="background:#f5f5f5; color:#555; cursor:default;"/>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label>Fecha y hora <span style="color:#b42318;">*</span></label>
+        <input type="datetime-local" name="visitAt" id="visitModalAt" required/>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label>Notas (opcional)</label>
+        <textarea name="notes" rows="3"
+                  placeholder="Observaciones sobre la visita..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button"
+                onclick="closeVisitModal()"
+                style="background:#fff; color:#111; border:1px solid var(--line);">
+          Cancelar
+        </button>
+        <button type="submit"
+                style="background:#0b1f5c; border-color:#0b1f5c;">
+          Guardar visita
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <div class="container">
   <div class="card">
@@ -381,12 +453,13 @@
               <span>TKT</span>
             </div>
           </th>
+          <th style="width:70px; text-align:center;">Visita</th>
         </tr>
       </thead>
 
       <tbody>
         <tr th:if="${#lists.isEmpty(items)}">
-          <td colspan="9" style="text-align:center; padding:32px; color:var(--muted); font-size:13px;">
+          <td colspan="10" style="text-align:center; padding:32px; color:var(--muted); font-size:13px;">
             No hay resultados para los filtros seleccionados.
           </td>
         </tr>
@@ -573,6 +646,22 @@
             </div>
           </td>
 
+          <!-- BOTÓN CREAR VISITA -->
+          <td style="text-align:center; vertical-align:middle; padding:6px;">
+            <button type="button"
+                    th:attr="data-interaction-id=${it.id},
+                             data-client-name=${it.client.fullName},
+                             data-property-code=${it.property.propertyCode}"
+                    onclick="openVisitModal(this)"
+                    title="Programar visita"
+                    style="background:#eef1ff; color:#0b1f5c; border:1.5px solid #b3c4ff;
+                           font-size:11px; padding:5px 8px; border-radius:8px;
+                           cursor:pointer; white-space:nowrap; font-weight:700;
+                           transition:background .15s;">
+              📅 Visita
+            </button>
+          </td>
+
         </tr>
       </tbody>
     </table>
@@ -704,7 +793,7 @@
 
     /* ── Dots de estado ── */
     const statusMap = {
-      'GRIS_SIN_CONTACTO'    : 'gris',
+      'GRIS_SIN_CONTACTO'     : 'gris',
       'AZUL_VISITA_PROGRAMADA': 'azul-claro',
       'AZUL_VISITA_REALIZADA' : 'azul-oscuro',
       'NARANJA_QUIERE_VISITA' : 'naranja',
@@ -719,6 +808,20 @@
     });
 
   })();
+
+  /* ── Modal visita (fuera del IIFE para ser globales) ── */
+  function openVisitModal(btn) {
+    document.getElementById('visitModalInteractionId').value = btn.getAttribute('data-interaction-id');
+    document.getElementById('visitModalClientName').value    = btn.getAttribute('data-client-name');
+    document.getElementById('visitModalPropertyCode').value  = btn.getAttribute('data-property-code');
+    document.getElementById('visitModalBackdrop').classList.add('open');
+  }
+  function closeVisitModal() {
+    document.getElementById('visitModalBackdrop').classList.remove('open');
+  }
+  document.getElementById('visitModalBackdrop').addEventListener('click', function(e) {
+    if (e.target === this) closeVisitModal();
+  });
 </script>
 </body>
 </html>

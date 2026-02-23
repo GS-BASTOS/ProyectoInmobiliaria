@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Panel')}"></head>
+<style>
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 18px;
+    align-items: start;
+  }
+  .dash-left  { display: flex; flex-direction: column; gap: 18px; }
+  .dash-right { display: flex; flex-direction: column; gap: 18px; }
+
+  .welcome-box {
+    background: #111;
+    color: #fff;
+    border-radius: 16px;
+    padding: 28px 32px;
+  }
+  .welcome-box h1 { margin: 0; font-size: 28px; font-weight: 800; }
+  .welcome-box p  { margin: 6px 0 0; color: #aaa; font-size: 14px; }
+
+  .mini-cal {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.05);
+  }
+  .mini-cal .cal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .mini-cal .cal-header span { font-weight: 700; font-size: 14px; }
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 3px; text-align: center;
+  }
+  .cal-grid .day-name {
+    font-size: 10px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; padding: 4px 0;
+  }
+  .cal-grid .day {
+    font-size: 12px; padding: 5px 0; border-radius: 8px; cursor: default;
+  }
+  .cal-grid .day.today {
+    background: #111; color: #fff; font-weight: 800;
+  }
+  .cal-grid .day.empty { visibility: hidden; }
+
+  .section-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+  }
+  .note-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--line);
+  }
+  .note-item:last-child { border-bottom: none; }
+  .note-date {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    white-space: nowrap; min-width: 72px;
+  }
+  .note-content { font-size: 13px; flex: 1; }
+  .note-del {
+    background: none; border: none; color: #ccc; padding: 0;
+    cursor: pointer; font-size: 16px; line-height: 1;
+  }
+  .note-del:hover { color: #b42318; background: none; }
+
+  .visit-today-item {
+    padding: 10px 12px; border: 1px solid var(--line);
+    border-radius: 10px; margin-bottom: 8px; font-size: 13px;
+  }
+  .visit-today-item:last-child { margin-bottom: 0; }
+  .visit-hour { font-weight: 800; color: #111; font-size: 15px; }
+
+  .chart-wrap { position: relative; height: 220px; }
+
+  .user-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px;
+  }
+  .user-row:last-child { border-bottom: none; }
+
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.35); z-index: 2000;
+    align-items: center; justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-box {
+    background: #fff; border-radius: 16px; padding: 28px;
+    width: 100%; max-width: 440px;
+    box-shadow: 0 16px 48px rgba(0,0,0,.18);
+  }
+  .modal-box h3 { margin: 0 0 18px; font-size: 17px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end; }
+
+  @media (max-width: 900px) {
+    .dash-grid { grid-template-columns: 1fr; }
+  }
+</style>
+<body>
+
+<!-- CSRF para fetch AJAX -->
+<meta name="_csrf"        th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<!-- ══ MODAL NUEVA NOTA ══ -->
+<div class="modal-backdrop" id="modalNota">
+  <div class="modal-box">
+    <h3>📝 Nueva anotación</h3>
+    <form method="post" th:action="@{/agenda/nueva}">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <label>Fecha</label>
+      <input type="date" name="noteDate" id="notaFecha" required style="margin:0 0 12px;"/>
+      <label>Nota</label>
+      <textarea name="content" rows="4" placeholder="Escribe tu anotación..."
+                style="margin:0;" required></textarea>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary"
+                onclick="document.getElementById('modalNota').classList.remove('open')">
+          Cancelar
+        </button>
+        <button type="submit">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL REGISTRAR USUARIO (solo ADMIN) ══ -->
+<div class="modal-backdrop" id="modalUsuario"
+     th:if="${appUser.role == 'ADMIN'}">
+  <div class="modal-box">
+    <h3>👤 Registrar usuario</h3>
+    <form method="post" th:action="@{/usuarios/registrar}">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <label>Nombre para mostrar</label>
+      <input type="text" name="displayName" required style="margin:0 0 12px;"/>
+      <label>Usuario (login)</label>
+      <input type="text" name="username" required style="margin:0 0 12px;"/>
+      <label>Contraseña</label>
+      <input type="password" name="password" required style="margin:0;"/>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary"
+                onclick="document.getElementById('modalUsuario').classList.remove('open')">
+          Cancelar
+        </button>
+        <button type="submit">Registrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="container">
+  <div class="dash-grid">
+
+    <!-- ══ COLUMNA IZQUIERDA ══ -->
+    <div class="dash-left">
+
+      <!-- Bienvenida -->
+      <div class="welcome-box">
+        <h1 th:text="'Bienvenido, ' + ${appUser.displayName} + ' 👋'">Bienvenido</h1>
+        <p th:text="${#temporals.format(today, 'EEEE, d MMMM yyyy')}">Lunes, 23 febrero 2026</p>
+      </div>
+
+      <!-- Agenda -->
+      <div class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <div class="section-title" style="margin:0;">📓 Agenda</div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <form method="get" th:action="@{/dashboard}"
+                  style="display:flex; gap:6px; align-items:center; margin:0;">
+              <input type="date" name="agendaDate"
+                     th:value="${agendaDate}"
+                     style="margin:0; font-size:12px; padding:6px 10px; width:auto;"/>
+              <button type="submit" style="font-size:12px; padding:6px 12px;">Filtrar</button>
+              <a th:href="@{/dashboard}"
+                 style="font-size:12px; color:var(--muted); text-decoration:none; padding:6px 8px;">✕</a>
+            </form>
+            <button type="button" onclick="openNotaModal()"
+                    style="font-size:12px; padding:7px 14px;">
+              + Nueva nota
+            </button>
+          </div>
+        </div>
+
+        <p th:if="${#lists.isEmpty(notes)}"
+           style="color:var(--muted); font-size:13px; margin:0;">
+          No hay anotaciones.
+        </p>
+
+        <div th:each="n : ${notes}" class="note-item">
+          <div class="note-date"
+               th:text="${#temporals.format(n.noteDate, 'dd/MM/yyyy')}">01/01/2026</div>
+          <div class="note-content" th:text="${n.content}">Nota...</div>
+          <button class="note-del"
+                  th:attr="data-id=${n.id}"
+                  onclick="deleteNota(this)" title="Eliminar">✕</button>
+        </div>
+      </div>
+
+      <!-- Gráfico inmuebles -->
+      <div class="card">
+        <div class="section-title">🏠 Inmuebles con más interacciones</div>
+        <div class="chart-wrap">
+          <canvas id="chartInmuebles"></canvas>
+        </div>
+      </div>
+
+      <!-- Gestión de usuarios (solo ADMIN) -->
+      <div class="card" th:if="${appUser.role == 'ADMIN'}">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <div class="section-title" style="margin:0;">👥 Usuarios</div>
+          <button type="button"
+                  onclick="document.getElementById('modalUsuario').classList.add('open')"
+                  style="font-size:12px; padding:7px 14px;">
+            + Registrar usuario
+          </button>
+        </div>
+        <div th:each="u : ${allUsers}" class="user-row">
+          <div>
+            <strong th:text="${u.displayName}">Nombre</strong>
+            <span style="color:var(--muted); font-size:12px;"
+                  th:text="' · ' + ${u.username}"> · user</span>
+            <span th:if="${u.role == 'ADMIN'}"
+                  style="font-size:10px; background:#111; color:#fff;
+                         border-radius:4px; padding:1px 6px; margin-left:6px;">
+              ADMIN
+            </span>
+          </div>
+          <button th:if="${u.username != appUser.username}"
+                  type="button"
+                  th:attr="data-id=${u.id}"
+                  onclick="deleteUser(this)"
+                  style="background:#b42318; border-color:#b42318;
+                         font-size:11px; padding:5px 10px;">
+            Eliminar
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ COLUMNA DERECHA ══ -->
+    <div class="dash-right">
+
+      <!-- Mini calendario -->
+      <div class="mini-cal">
+        <div class="cal-header">
+          <span id="calMonthYear"></span>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <!-- Visitas de hoy -->
+      <div class="card">
+        <div class="section-title">📅 Visitas para hoy</div>
+        <p th:if="${#lists.isEmpty(todayVisits)}"
+           style="color:var(--muted); font-size:13px; margin:0;">
+          No hay visitas programadas para hoy.
+        </p>
+        <div th:each="v : ${todayVisits}" class="visit-today-item">
+          <div class="visit-hour"
+               th:text="${#temporals.format(v.visitAt, 'HH:mm')}">10:00</div>
+          <div style="margin-top:3px;">
+            <a th:href="@{|/clientes/${v.client.id}|}"
+               th:text="${v.client.fullName}"
+               style="font-weight:600; text-decoration:none; color:inherit; font-size:13px;"></a>
+          </div>
+          <div style="font-size:12px; color:var(--muted); margin-top:2px;">
+            <a th:href="@{|/inmuebles/${v.property.id}|}"
+               th:text="${v.property.propertyCode}"
+               style="text-decoration:none; color:var(--muted); font-weight:600;"></a>
+            <span th:if="${v.property.municipality != null}"
+                  th:text="' · ' + ${v.property.municipality}"></span>
+          </div>
+          <div th:if="${v.notes != null and !#strings.isEmpty(v.notes)}"
+               style="font-size:11px; color:#888; margin-top:3px;"
+               th:text="${v.notes}"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+const TOP_PROPS = /*[[${topProps}]]*/ [];
+const TODAY_STR = /*[[${#temporals.format(today, 'yyyy-MM-dd')}]]*/ '';
+/*]]>*/
+</script>
+
+<script>
+  /* ══ CSRF para fetch ══ */
+  function getCsrf() {
+    return {
+      token:  document.querySelector('meta[name="_csrf"]').getAttribute('content'),
+      header: document.querySelector('meta[name="_csrf_header"]').getAttribute('content')
+    };
+  }
+
+  /* ══ MINI CALENDARIO ══ */
+  (function() {
+    const today    = new Date(TODAY_STR + 'T00:00:00');
+    const year     = today.getFullYear();
+    const month    = today.getMonth();
+    const days     = new Date(year, month + 1, 0).getDate();
+    const firstDow = (new Date(year, month, 1).getDay() + 6) % 7;
+
+    const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                    'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    document.getElementById('calMonthYear').textContent = months[month] + ' ' + year;
+
+    const grid = document.getElementById('calGrid');
+    ['L','M','X','J','V','S','D'].forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'day-name'; el.textContent = d;
+      grid.appendChild(el);
+    });
+    for (let i = 0; i < firstDow; i++) {
+      const el = document.createElement('div');
+      el.className = 'day empty'; grid.appendChild(el);
+    }
+    for (let d = 1; d <= days; d++) {
+      const el = document.createElement('div');
+      el.className = 'day' + (d === today.getDate() ? ' today' : '');
+      el.textContent = d;
+      grid.appendChild(el);
+    }
+  })();
+
+  /* ══ GRÁFICO INMUEBLES ══ */
+  (function() {
+    const labels = TOP_PROPS.map(p => p[0]);
+    const data   = TOP_PROPS.map(p => p[1]);
+
+    const COLORS = [
+      '#1f5eff', // azul
+      '#f5c800', // amarillo
+      '#b42318', // rojo
+      '#168a53', // verde
+      '#b02cff', // morado
+      '#e07a18', // naranja
+      '#5aa7ff', // azul claro
+      '#ff4d6d', // rosa
+      '#00b4d8', // cian
+      '#6d6875', // malva
+    ];
+
+    const backgroundColors = data.map((_, i) => COLORS[i % COLORS.length]);
+
+    const ctx = document.getElementById('chartInmuebles').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Interacciones',
+          data,
+          backgroundColor: backgroundColors,
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } },
+          x: { ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  })();
+
+  /* ══ MODAL NOTA ══ */
+  function openNotaModal() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('notaFecha').value = today;
+    document.getElementById('modalNota').classList.add('open');
+  }
+  document.getElementById('modalNota').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+
+  /* ══ ELIMINAR NOTA ══ */
+  async function deleteNota(btn) {
+    if (!confirm('¿Eliminar esta nota?')) return;
+    const id   = btn.getAttribute('data-id');
+    const csrf = getCsrf();
+    await fetch('/agenda/' + id + '/eliminar', {
+      method: 'POST',
+      headers: { [csrf.header]: csrf.token }
+    });
+    btn.closest('.note-item').remove();
+  }
+
+  /* ══ ELIMINAR USUARIO ══ */
+  async function deleteUser(btn) {
+    if (!confirm('¿Eliminar este usuario?')) return;
+    const id   = btn.getAttribute('data-id');
+    const csrf = getCsrf();
+    await fetch('/usuarios/' + id + '/eliminar', {
+      method: 'POST',
+      headers: { [csrf.header]: csrf.token }
+    });
+    btn.closest('.user-row').remove();
+  }
+</script>
+</body>
+</html>

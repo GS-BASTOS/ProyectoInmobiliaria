@@ -132,9 +132,9 @@ public class ClientDetailController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         clientRepository.findWithEmailsById(id).ifPresent(c2 -> client.setEmails(c2.getEmails()));
 
-        String p1 = t(form.getPhone1());
-        String p2 = t(form.getPhone2());
-        String p3 = t(form.getPhone3());
+        String p1 = normalizePhone(form.getPhone1());
+        String p2 = normalizePhone(form.getPhone2());
+        String p3 = normalizePhone(form.getPhone3());
 
         if (!p2.isBlank() && p2.equals(p1)) br.rejectValue("phone2", "dup", "Teléfono repetido.");
         if (!p3.isBlank() && (p3.equals(p1) || p3.equals(p2))) br.rejectValue("phone3", "dup", "Teléfono repetido.");
@@ -295,7 +295,6 @@ public class ClientDetailController {
 
     // ── HELPERS ──────────────────────────────────────────────
 
-    /** Construye el catálogo de inmuebles como DTOs simples (sin lazy collections). */
     private List<PropertyCatalogDto> buildCatalog() {
         return propertyRepository.findAllByOrderByPropertyCodeAsc()
                 .stream()
@@ -438,6 +437,15 @@ public class ClientDetailController {
                         "Ese teléfono ya está asignado a otro cliente (ID "
                                 + found.getClient().getId() + ").");
         });
+    }
+
+    private static String normalizePhone(String s) {
+        if (s == null) return "";
+        String trimmed = s.trim();
+        if (trimmed.isEmpty()) return "";
+        boolean hasDdi = trimmed.startsWith("+");
+        String digits = trimmed.replaceAll("[^0-9]", "");
+        return hasDdi ? "+" + digits : digits;
     }
 
     private static String t(String s) { return s == null ? "" : s.trim(); }

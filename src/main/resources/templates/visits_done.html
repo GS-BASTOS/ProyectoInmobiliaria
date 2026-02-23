@@ -1,6 +1,17 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Visitas realizadas')}"></head>
+<style>
+  .visit-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:16px; }
+  .visit-table thead tr { border-bottom:2px solid var(--line); }
+  .visit-table th {
+    padding:10px 12px; font-size:11px; font-weight:700; letter-spacing:0.7px;
+    text-transform:uppercase; color:var(--muted); white-space:nowrap; text-align:left;
+  }
+  .visit-table td { padding:10px 12px; vertical-align:top; border-bottom:1px solid var(--line); }
+  .visit-table tbody tr:last-child td { border-bottom:none; }
+  .visit-table tbody tr:hover { background:#fafafa; }
+</style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 
@@ -8,27 +19,86 @@
   <div class="card">
     <h2>Visitas realizadas</h2>
 
-    <table>
-      <thead>
-      <tr>
-        <th>Fecha/Hora</th>
-        <th>Cliente</th>
-        <th>Inmueble</th>
-        <th>Notas</th>
-      </tr>
-      </thead>
+    <p th:if="${#lists.isEmpty(visits)}"
+       style="color:var(--muted); margin-top:20px; font-size:13px;">
+      No hay visitas realizadas aún.
+    </p>
 
+    <table class="visit-table" th:if="${!#lists.isEmpty(visits)}">
+      <thead>
+        <tr>
+          <th>Fecha / Hora</th>
+          <th>Cliente</th>
+          <th>Teléfonos</th>
+          <th>Emails</th>
+          <th>Inmueble</th>
+          <th>Notas</th>
+        </tr>
+      </thead>
       <tbody>
-      <tr th:each="v : ${visits}">
-        <td th:text="${v.visitAt}">2026-02-11T12:00</td>
-        <td th:text="${v.client.fullName}">Nombre</td>
-        <td th:text="${v.property.propertyCode}">COD</td>
-        <td th:text="${v.notes}">—</td>
-      </tr>
+        <tr th:each="v : ${visits}">
+          <!-- FECHA/HORA -->
+          <td style="white-space:nowrap; font-weight:600;">
+            <div th:text="${#temporals.format(v.visitAt, 'dd/MM/yyyy')}">01/01/2026</div>
+            <div style="color:var(--muted); font-size:12px;"
+                 th:text="${#temporals.format(v.visitAt, 'HH:mm')}">10:00</div>
+          </td>
+
+          <!-- CLIENTE -->
+          <td>
+            <a th:href="@{|/clientes/${v.client.id}|}"
+               th:text="${v.client.fullName}"
+               style="font-weight:600; text-decoration:none; color:inherit;">
+            </a>
+          </td>
+
+          <!-- TELÉFONOS -->
+          <td>
+            <span th:if="${phonesByClientId.get(v.client.id) == null}"
+                  style="color:#ccc;">—</span>
+            <span th:each="p : ${phonesByClientId.get(v.client.id)}"
+                  style="display:block; font-size:13px;"
+                  th:text="${p.phoneNumber}">600000000</span>
+          </td>
+
+          <!-- EMAILS -->
+          <td>
+            <span th:if="${emailsByClientId.get(v.client.id) == null}"
+                  style="color:#ccc;">—</span>
+            <span th:each="e : ${emailsByClientId.get(v.client.id)}"
+                  style="display:block; font-size:12px;"
+                  th:text="${e.email}">mail@mail.com</span>
+          </td>
+
+          <!-- INMUEBLE -->
+          <td>
+            <a th:href="@{|/inmuebles/${v.property.id}|}"
+               th:text="${v.property.propertyCode}"
+               style="font-weight:800; text-decoration:none; color:#111; font-size:13px;">
+            </a>
+            <div th:if="${v.property.propertyType != null and !#strings.isEmpty(v.property.propertyType)}"
+                 style="font-size:11px; background:#f0f0f0; border:1px solid #e0e0e0;
+                        border-radius:4px; padding:1px 6px; display:inline-block;
+                        margin-top:3px; font-weight:600; color:#333;"
+                 th:text="${v.property.propertyType}">Piso</div>
+            <div th:if="${v.property.address != null and !#strings.isEmpty(v.property.address)}"
+                 style="font-size:12px; color:#555; margin-top:2px;"
+                 th:text="${v.property.address}">Calle...</div>
+            <div th:if="${v.property.municipality != null and !#strings.isEmpty(v.property.municipality)}"
+                 style="font-size:12px; font-weight:600; margin-top:1px;"
+                 th:text="${v.property.municipality}">Madrid</div>
+          </td>
+
+          <!-- NOTAS -->
+          <td style="font-size:12px; color:#555; max-width:160px;">
+            <span th:if="${v.notes == null or #strings.isEmpty(v.notes)}"
+                  style="color:#ccc;">—</span>
+            <span th:text="${v.notes}"></span>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
 </div>
-
 </body>
 </html>
