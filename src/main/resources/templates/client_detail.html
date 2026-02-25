@@ -25,6 +25,11 @@
   .combo-empty { padding:12px 14px; color:#aaa; font-size:13px; text-align:center; }
 </style>
 <body>
+
+<!-- ── CSRF meta tags ── -->
+<meta name="_csrf"        th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
 <nav th:replace="~{fragments :: nav}"></nav>
 
 <div class="container">
@@ -309,7 +314,6 @@
                  autocomplete="off" readonly/>
           <div class="combo-dropdown" id="niComboDropdown"></div>
         </div>
-        <!-- Chip seleccionado -->
         <div id="niComboChip"
              style="display:none; margin-top:8px; padding:6px 12px;
                     background:#e8f5e9; border:1px solid #4caf50;
@@ -327,7 +331,6 @@
         </div>
       </div>
 
-      <!-- Datos del inmueble (se rellenan solos al elegir del combo) -->
       <div class="grid-3" style="margin-top:12px;">
         <div>
           <label>Código Solvia</label>
@@ -546,6 +549,10 @@
 <script>
 (function () {
 
+  /* ── CSRF ────────────────────────────────────── */
+  const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+  const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
   /* ══════════════════════════════════════════
      COMBOBOX — Nueva interacción
   ══════════════════════════════════════════ */
@@ -696,7 +703,11 @@
       const checked       = cb.checked;
       try {
         const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/nda`, {
-          method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            [csrfHeader]: csrfToken
+          },
           body: 'ndaRequested=' + encodeURIComponent(String(checked))
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -717,7 +728,11 @@
       if (!input) return;
       try {
         const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/ticket`, {
-          method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            [csrfHeader]: csrfToken
+          },
           body: 'ticketCode=' + encodeURIComponent(input.value)
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -762,7 +777,11 @@
       if (dot) paintDot(dot, value);
       try {
         const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/status`, {
-          method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            [csrfHeader]: csrfToken
+          },
           body: 'status=' + encodeURIComponent(value)
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -788,7 +807,11 @@
       if (!textarea) return;
       try {
         const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/comments`, {
-          method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            [csrfHeader]: csrfToken
+          },
           body: 'comments=' + encodeURIComponent(textarea.value)
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
