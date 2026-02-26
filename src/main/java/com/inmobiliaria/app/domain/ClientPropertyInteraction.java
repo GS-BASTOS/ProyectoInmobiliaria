@@ -41,15 +41,14 @@ public class ClientPropertyInteraction {
     @Column(nullable = false, length = 60)
     private InterestStatus status = InterestStatus.VERDE_PENSANDO;
 
-    @Size(max = 1200)
-    @Column(length = 1200)
+    // ▼ CAMBIO: ampliado a 2000 y quitado @Size para permitir HTML con <mark>
+    @Column(length = 2000)
     private String comments;
 
     @NotNull
     @Column(nullable = false)
     private Boolean ndaRequested = false;
 
-    // ── NUEVO: código de ticket por interacción ────────────
     @Size(max = 100)
     @Column(name = "ticket_code", length = 100)
     private String ticketCode;

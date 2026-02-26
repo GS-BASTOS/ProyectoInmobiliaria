@@ -180,14 +180,127 @@
     justify-content: flex-end;
   }
 
+  /* ── Modal comentarios ── */
+  #commentModalBackdrop { z-index: 2100; }
+  .comment-editor-toolbar {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 8px 10px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+  }
+  .toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 28px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: #333;
+    transition: background .15s, border-color .15s;
+    user-select: none;
+  }
+  .toolbar-btn:hover { background: #e8e8e8; border-color: #bbb; }
+  .toolbar-sep {
+    width: 1px;
+    height: 20px;
+    background: #ddd;
+    margin: 0 2px;
+  }
+  .comment-editor-body {
+    min-height: 120px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 0 0 10px 10px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #333;
+    outline: none;
+    white-space: pre-wrap;
+  }
+  .comment-editor-body mark {
+    background: #ffcccc;
+    color: #b42318;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .comment-display {
+    cursor: pointer;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    display: block;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+  .comment-display:hover { background: #f5f5f5; }
+  .comment-display mark {
+    background: #ffcccc;
+    color: #b42318;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .hint-text {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
   @media (max-width: 640px) {
     .filter-grid-search { grid-template-columns: 1fr; }
   }
 </style>
 <body>
+
+<!-- ▼ CSRF meta tags — necesarios para el fetch del modal ▼ -->
+<meta name="_csrf"        th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
 <nav th:replace="~{fragments :: nav}"></nav>
 
 <div id="copyToast">Copiado ✓</div>
+
+<!-- ══ MODAL COMENTARIOS ══ -->
+<div class="modal-backdrop" id="commentModalBackdrop">
+  <div class="modal-box" style="max-width:520px;">
+    <h3 style="margin:0 0 4px;">✏️ Editar comentario</h3>
+    <p class="hint-text" style="margin:0 0 14px;">
+      Selecciona texto y pulsa <strong>🔴</strong> para marcarlo en rojo.
+      Usa <kbd>Ctrl+Enter</kbd> o <kbd>Alt+Enter</kbd> para saltar de línea.
+    </p>
+    <div class="comment-editor-toolbar">
+      <button type="button" class="toolbar-btn" id="btnHighlight" title="Marcar en rojo (Ctrl+H)">🔴</button>
+      <button type="button" class="toolbar-btn" id="btnClearMark" title="Quitar marcado">✕</button>
+      <div class="toolbar-sep"></div>
+      <button type="button" class="toolbar-btn" id="btnClearAll"
+              style="font-size:11px; width:auto; padding:0 8px;">Limpiar todo</button>
+    </div>
+    <div id="commentEditor"
+         class="comment-editor-body"
+         contenteditable="true"
+         spellcheck="true">
+    </div>
+    <div class="modal-actions">
+      <button type="button" id="btnCancelComment"
+              style="background:#fff; color:#111; border:1px solid var(--line);">
+        Cancelar
+      </button>
+      <button type="button" id="btnSaveComment"
+              style="background:#0b1f5c; border-color:#0b1f5c;">
+        Guardar
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ MODAL PROGRAMAR VISITA ══ -->
 <div class="modal-backdrop" id="visitModalBackdrop">
@@ -220,13 +333,11 @@
       </div>
 
       <div class="modal-actions">
-        <button type="button"
-                onclick="closeVisitModal()"
+        <button type="button" onclick="closeVisitModal()"
                 style="background:#fff; color:#111; border:1px solid var(--line);">
           Cancelar
         </button>
-        <button type="submit"
-                style="background:#0b1f5c; border-color:#0b1f5c;">
+        <button type="submit" style="background:#0b1f5c; border-color:#0b1f5c;">
           Guardar visita
         </button>
       </div>
@@ -612,8 +723,18 @@
           <!-- COMENTARIOS -->
           <td style="font-size:12px; color:#555; max-width:180px;">
             <span th:if="${it.comments == null or #strings.isEmpty(it.comments)}"
-                  style="color:#ccc;">—</span>
-            <span th:text="${it.comments}"></span>
+                  class="comment-display"
+                  th:attr="data-iid=${it.id}, data-cid=${it.client.id}"
+                  style="color:#ccc;"
+                  onclick="openCommentModal(this)">
+              — <span style="font-size:10px; color:#bbb;">(editar)</span>
+            </span>
+            <span th:if="${it.comments != null and !#strings.isEmpty(it.comments)}"
+                  class="comment-display"
+                  th:attr="data-iid=${it.id}, data-cid=${it.client.id}"
+                  th:utext="${it.comments}"
+                  onclick="openCommentModal(this)">
+            </span>
           </td>
 
           <!-- NDA / TICKET -->
@@ -635,7 +756,10 @@
                 <svg th:if="${it.ticketCode != null and !#strings.isEmpty(it.ticketCode)}"
                      xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                      fill="none" stroke="#1f5eff" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
+                     stroke-linecap="round" stroke-linejoin="round"
+                     class="copyable"
+                     th:attr="data-copy=${it.ticketCode}"
+                     style="cursor:pointer; flex-shrink:0;">
                   <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
                   <line x1="9" y1="9" x2="15" y2="15"/>
                   <line x1="15" y1="9" x2="9" y2="15"/>
@@ -670,6 +794,10 @@
 </div>
 
 <script>
+  /* ── CSRF ── */
+  const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+  const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
   (function () {
 
     const inputTo = document.getElementById('inputTo');
@@ -710,6 +838,8 @@
 
     /* ── Copiar al click ── */
     document.addEventListener('click', async function (e) {
+      // Evitar que el click en comment-display propague al copyable
+      if (e.target.closest('.comment-display')) return;
       const el = e.target.closest('.copyable');
       if (!el) return;
       const text = el.getAttribute('data-copy') || el.textContent.trim();
@@ -809,7 +939,152 @@
 
   })();
 
-  /* ── Modal visita (fuera del IIFE para ser globales) ── */
+  /* ════════════════════════════════════════════
+     MODAL COMENTARIOS
+  ════════════════════════════════════════════ */
+  let _commentTargetSpan = null;
+  let _commentClientId   = null;
+  let _commentIid        = null;
+
+  const commentEditor   = document.getElementById('commentEditor');
+  const commentBackdrop = document.getElementById('commentModalBackdrop');
+
+  function sanitizeHtml(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    const walker = document.createTreeWalker(div, NodeFilter.SHOW_ELEMENT);
+    const toUnwrap = [];
+    let node = walker.nextNode();
+    while (node) {
+      const tag = node.tagName.toLowerCase();
+      if (tag !== 'mark' && tag !== 'br') toUnwrap.push(node);
+      node = walker.nextNode();
+    }
+    toUnwrap.forEach(el => el.replaceWith(...el.childNodes));
+    div.querySelectorAll('mark').forEach(m => {
+      while (m.attributes.length > 0) m.removeAttribute(m.attributes[0].name);
+    });
+    return div.innerHTML;
+  }
+
+  function openCommentModal(span) {
+    _commentTargetSpan = span;
+    _commentClientId   = span.getAttribute('data-cid');
+    _commentIid        = span.getAttribute('data-iid');
+    const rawHtml      = span.innerHTML.trim();
+    const isPlaceholder = span.style.color === 'rgb(204, 204, 204)' || rawHtml.includes('(editar)');
+    commentEditor.innerHTML = isPlaceholder ? '' : rawHtml;
+    commentBackdrop.classList.add('open');
+    setTimeout(() => {
+      commentEditor.focus();
+      const range = document.createRange();
+      range.selectNodeContents(commentEditor);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }, 80);
+  }
+
+  function closeCommentModal() {
+    commentBackdrop.classList.remove('open');
+    _commentTargetSpan = null;
+  }
+
+  document.getElementById('btnCancelComment').addEventListener('click', closeCommentModal);
+
+  commentEditor.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.altKey) && e.key === 'Enter') {
+      e.preventDefault();
+      document.execCommand('insertLineBreak');
+    }
+    if (e.ctrlKey && e.key === 'h') {
+      e.preventDefault();
+      applyHighlight();
+    }
+  });
+
+  document.getElementById('btnHighlight').addEventListener('click', function() {
+    commentEditor.focus();
+    applyHighlight();
+  });
+
+  document.getElementById('btnClearMark').addEventListener('click', function() {
+    commentEditor.focus();
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    const range = sel.getRangeAt(0);
+    const fragment = range.extractContents();
+    fragment.querySelectorAll('mark').forEach(m => m.replaceWith(...m.childNodes));
+    range.insertNode(fragment);
+    sel.removeAllRanges();
+  });
+
+  document.getElementById('btnClearAll').addEventListener('click', function() {
+    commentEditor.innerHTML = '';
+    commentEditor.focus();
+  });
+
+  function applyHighlight() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    const range = sel.getRangeAt(0);
+    const ancestor = range.commonAncestorContainer;
+    const markParent = ancestor.nodeType === 3
+      ? ancestor.parentElement?.closest('mark')
+      : ancestor.closest?.('mark');
+    if (markParent) {
+      markParent.replaceWith(...markParent.childNodes);
+      return;
+    }
+    const mark = document.createElement('mark');
+    try {
+      range.surroundContents(mark);
+    } catch(_) {
+      const fragment = range.extractContents();
+      mark.appendChild(fragment);
+      range.insertNode(mark);
+    }
+    sel.removeAllRanges();
+  }
+
+  /* ── Guardar con CSRF ── */
+  document.getElementById('btnSaveComment').addEventListener('click', async function() {
+    if (!_commentIid || !_commentClientId) return;
+    const html = sanitizeHtml(commentEditor.innerHTML);
+    try {
+      const res = await fetch(`/clientes/${_commentClientId}/interacciones/${_commentIid}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          [csrfHeader]: csrfToken
+        },
+        body: 'comments=' + encodeURIComponent(html)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      // Actualizar celda sin recargar
+      if (_commentTargetSpan) {
+        if (!html || html.trim() === '' || html.trim() === '<br>') {
+          _commentTargetSpan.innerHTML = '— <span style="font-size:10px; color:#bbb;">(editar)</span>';
+          _commentTargetSpan.style.color = '#ccc';
+        } else {
+          _commentTargetSpan.innerHTML = html;
+          _commentTargetSpan.style.color = '#555';
+        }
+      }
+      closeCommentModal();
+    } catch(err) {
+      alert('Error al guardar el comentario.');
+      console.error(err);
+    }
+  });
+
+  commentBackdrop.addEventListener('click', function(e) {
+    if (e.target === this) closeCommentModal();
+  });
+
+  /* ── Modal visita ── */
   function openVisitModal(btn) {
     document.getElementById('visitModalInteractionId').value = btn.getAttribute('data-interaction-id');
     document.getElementById('visitModalClientName').value    = btn.getAttribute('data-client-name');

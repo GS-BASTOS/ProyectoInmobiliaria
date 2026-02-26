@@ -23,12 +23,147 @@
   .combo-option .opt-code { font-weight:700; color:var(--text); }
   .combo-option .opt-sub  { color:#888; font-size:11px; margin-top:1px; }
   .combo-empty { padding:12px 14px; color:#aaa; font-size:13px; text-align:center; }
+
+  /* ── Modal comentarios ── */
+  .comment-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.38);
+    z-index: 2100;
+    align-items: center;
+    justify-content: center;
+  }
+  .comment-modal-backdrop.open { display: flex; }
+  .comment-modal-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 16px 48px rgba(0,0,0,.18);
+  }
+  .comment-modal-box h3 { margin: 0 0 4px; font-size: 17px; }
+  .comment-editor-toolbar {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 8px 10px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+  }
+  .toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 28px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: #333;
+    transition: background .15s, border-color .15s;
+    user-select: none;
+  }
+  .toolbar-btn:hover { background: #e8e8e8; border-color: #bbb; }
+  .toolbar-sep {
+    width: 1px;
+    height: 20px;
+    background: #ddd;
+    margin: 0 2px;
+  }
+  .comment-editor-body {
+    min-height: 120px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 0 0 10px 10px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #333;
+    outline: none;
+    white-space: pre-wrap;
+  }
+  .comment-editor-body mark {
+    background: #ffcccc;
+    color: #b42318;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .comment-display-cell {
+    cursor: pointer;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    padding: 4px 6px;
+    border-radius: 4px;
+    min-height: 28px;
+    display: block;
+  }
+  .comment-display-cell:hover {
+    background: #f5f5f5;
+  }
+  .comment-display-cell mark {
+    background: #ffcccc;
+    color: #b42318;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .comment-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+  }
+  .hint-text {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
 </style>
 <body>
 
 <!-- ── CSRF meta tags ── -->
 <meta name="_csrf"        th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+<!-- ══ MODAL COMENTARIOS ══ -->
+<div class="comment-modal-backdrop" id="commentModalBackdrop">
+  <div class="comment-modal-box">
+    <h3>✏️ Editar comentario</h3>
+    <p class="hint-text" style="margin:0 0 14px;">
+      Selecciona texto y pulsa <strong>🔴</strong> para marcarlo en rojo.
+      Usa <kbd>Ctrl+Enter</kbd> o <kbd>Alt+Enter</kbd> para saltar de línea.
+    </p>
+    <div class="comment-editor-toolbar">
+      <button type="button" class="toolbar-btn" id="btnHighlight" title="Marcar en rojo (Ctrl+H)">🔴</button>
+      <button type="button" class="toolbar-btn" id="btnClearMark" title="Quitar marcado">✕</button>
+      <div class="toolbar-sep"></div>
+      <button type="button" class="toolbar-btn" id="btnClearAll"
+              style="font-size:11px; width:auto; padding:0 8px;">Limpiar todo</button>
+    </div>
+    <div id="commentEditor"
+         class="comment-editor-body"
+         contenteditable="true"
+         spellcheck="true">
+    </div>
+    <div class="comment-modal-actions">
+      <button type="button" id="btnCancelComment"
+              style="background:#fff; color:#111; border:1px solid var(--line);">
+        Cancelar
+      </button>
+      <button type="button" id="btnSaveComment"
+              style="background:#0b1f5c; border-color:#0b1f5c;">
+        Guardar
+      </button>
+    </div>
+  </div>
+</div>
 
 <nav th:replace="~{fragments :: nav}"></nav>
 
@@ -150,7 +285,7 @@
         <th>Ticket</th>
         <th>Canal</th>
         <th>Estado</th>
-        <th style="min-width:320px;">Comentarios</th>
+        <th style="min-width:220px;">Comentarios</th>
       </tr>
       </thead>
       <tbody>
@@ -250,20 +385,29 @@
           </span>
         </td>
 
-        <!-- COMENTARIOS -->
-        <td style="min-width:320px;">
-          <textarea class="comments-input"
-                    th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
-                    th:text="${it.comments}" rows="3"
-                    style="width:100%; min-width:300px; resize:vertical; font-size:13px;"></textarea>
-          <div style="display:flex; gap:6px; margin-top:4px; align-items:center;">
-            <button type="button" class="comments-save"
-                    th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
-                    style="padding:4px 10px; font-size:12px;">Guardar</button>
+        <!-- COMENTARIOS ── ▼ NUEVO: modal editor en lugar de textarea ▼ -->
+        <td style="min-width:220px; vertical-align:top;">
+          <span th:if="${it.comments == null or #strings.isEmpty(it.comments)}"
+                class="comment-display-cell"
+                th:attr="data-iid=${it.id}, data-cid=${client.id}"
+                style="color:#ccc; font-size:12px;"
+                onclick="openCommentModal(this)">
+            — <span style="font-size:10px;">(editar)</span>
+          </span>
+          <span th:if="${it.comments != null and !#strings.isEmpty(it.comments)}"
+                class="comment-display-cell"
+                th:attr="data-iid=${it.id}, data-cid=${client.id}"
+                th:utext="${it.comments}"
+                style="font-size:13px; color:#333;"
+                onclick="openCommentModal(this)">
+          </span>
+          <div style="margin-top:4px;">
             <span class="comments-feedback small"
                   style="display:none; color:#4caf50;">✓ Guardado</span>
           </div>
         </td>
+        <!-- ▲ FIN COMENTARIOS ▲ -->
+
       </tr>
       </tbody>
     </table>
@@ -794,36 +938,162 @@
     });
   });
 
-  /* ══════════════════════════════════════════
-     COMMENTS SAVE
-  ══════════════════════════════════════════ */
-  document.querySelectorAll('.comments-save').forEach(btn => {
-    btn.addEventListener('click', async function () {
-      const clientId      = btn.getAttribute('data-client-id');
-      const interactionId = btn.getAttribute('data-interaction-id');
-      const td            = btn.closest('td');
-      const textarea      = td?.querySelector('.comments-input');
-      const feedback      = td?.querySelector('.comments-feedback');
-      if (!textarea) return;
-      try {
-        const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/comments`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            [csrfHeader]: csrfToken
-          },
-          body: 'comments=' + encodeURIComponent(textarea.value)
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        if (feedback) {
-          feedback.style.display = 'inline';
-          setTimeout(() => { feedback.style.display = 'none'; }, 2000);
-        }
-      } catch (e) { alert('No se pudo guardar el comentario.'); }
-    });
-  });
-
 })();
+
+/* ════════════════════════════════════════════
+   MODAL COMENTARIOS — compartido entre vistas
+════════════════════════════════════════════ */
+const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+let _commentTargetSpan = null;
+let _commentClientId   = null;
+let _commentIid        = null;
+
+const commentEditor   = document.getElementById('commentEditor');
+const commentBackdrop = document.getElementById('commentModalBackdrop');
+
+function sanitizeHtml(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  // Eliminar cualquier tag que no sea <mark> o <br>
+  const walker = document.createTreeWalker(div, NodeFilter.SHOW_ELEMENT);
+  const toUnwrap = [];
+  let node = walker.nextNode();
+  while (node) {
+    const tag = node.tagName.toLowerCase();
+    if (tag !== 'mark' && tag !== 'br') toUnwrap.push(node);
+    node = walker.nextNode();
+  }
+  toUnwrap.forEach(el => el.replaceWith(...el.childNodes));
+  // Limpiar atributos de <mark>
+  div.querySelectorAll('mark').forEach(m => {
+    while (m.attributes.length > 0) m.removeAttribute(m.attributes[0].name);
+  });
+  return div.innerHTML;
+}
+
+function openCommentModal(span) {
+  _commentTargetSpan = span;
+  _commentClientId   = span.getAttribute('data-cid');
+  _commentIid        = span.getAttribute('data-iid');
+  const rawHtml = span.innerHTML.trim();
+  const isPlaceholder = span.style.color === 'rgb(204, 204, 204)' || rawHtml.includes('(editar)');
+  commentEditor.innerHTML = isPlaceholder ? '' : rawHtml;
+  commentBackdrop.classList.add('open');
+  setTimeout(() => {
+    commentEditor.focus();
+    const range = document.createRange();
+    range.selectNodeContents(commentEditor);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }, 80);
+}
+
+function closeCommentModal() {
+  commentBackdrop.classList.remove('open');
+  _commentTargetSpan = null;
+}
+
+document.getElementById('btnCancelComment').addEventListener('click', closeCommentModal);
+
+commentEditor.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.altKey) && e.key === 'Enter') {
+    e.preventDefault();
+    document.execCommand('insertLineBreak');
+  }
+  if (e.ctrlKey && e.key === 'h') {
+    e.preventDefault();
+    applyHighlight();
+  }
+});
+
+document.getElementById('btnHighlight').addEventListener('click', function() {
+  commentEditor.focus();
+  applyHighlight();
+});
+
+document.getElementById('btnClearMark').addEventListener('click', function() {
+  commentEditor.focus();
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  const fragment = range.extractContents();
+  fragment.querySelectorAll('mark').forEach(m => m.replaceWith(...m.childNodes));
+  range.insertNode(fragment);
+  sel.removeAllRanges();
+});
+
+document.getElementById('btnClearAll').addEventListener('click', function() {
+  commentEditor.innerHTML = '';
+  commentEditor.focus();
+});
+
+function applyHighlight() {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  const ancestor = range.commonAncestorContainer;
+  const markParent = ancestor.nodeType === 3
+    ? ancestor.parentElement?.closest('mark')
+    : ancestor.closest?.('mark');
+  if (markParent) {
+    markParent.replaceWith(...markParent.childNodes);
+    return;
+  }
+  const mark = document.createElement('mark');
+  try {
+    range.surroundContents(mark);
+  } catch(_) {
+    const fragment = range.extractContents();
+    mark.appendChild(fragment);
+    range.insertNode(mark);
+  }
+  sel.removeAllRanges();
+}
+
+document.getElementById('btnSaveComment').addEventListener('click', async function() {
+  if (!_commentIid || !_commentClientId) return;
+  const html = sanitizeHtml(commentEditor.innerHTML);
+  try {
+    const res = await fetch(`/clientes/${_commentClientId}/interacciones/${_commentIid}/comments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        [csrfHeader]: csrfToken
+      },
+      body: 'comments=' + encodeURIComponent(html)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    // Actualizar la celda en tabla sin recargar
+    if (_commentTargetSpan) {
+      if (!html || html.trim() === '' || html.trim() === '<br>') {
+        _commentTargetSpan.innerHTML = '— <span style="font-size:10px;">(editar)</span>';
+        _commentTargetSpan.style.color = '#ccc';
+      } else {
+        _commentTargetSpan.innerHTML = html;
+        _commentTargetSpan.style.color = '#333';
+      }
+      // Mostrar feedback ✓
+      const feedback = _commentTargetSpan.closest('td')?.querySelector('.comments-feedback');
+      if (feedback) {
+        feedback.style.display = 'inline';
+        setTimeout(() => { feedback.style.display = 'none'; }, 2000);
+      }
+    }
+    closeCommentModal();
+  } catch(err) {
+    alert('Error al guardar el comentario. Revisa la consola.');
+    console.error(err);
+  }
+});
+
+commentBackdrop.addEventListener('click', function(e) {
+  if (e.target === this) closeCommentModal();
+});
 </script>
 </body>
 </html>

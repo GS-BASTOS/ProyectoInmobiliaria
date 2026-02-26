@@ -103,7 +103,9 @@ public class ClientDetailController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (it.getClient() == null || !it.getClient().getId().equals(clientId))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        it.setComments(comments == null ? "" : comments.trim());
+        // ▼ Sin trim() para preservar el HTML con <mark> y <br>
+        String sanitized = (comments == null) ? "" : comments;
+        it.setComments(sanitized.isBlank() ? "" : sanitized);
         interactionRepository.save(it);
     }
 
