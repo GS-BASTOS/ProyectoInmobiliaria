@@ -30,7 +30,7 @@
     font-size:11px; font-weight:700; color:#0d47a1;
   }
 
-  /* ── Checkboxes de selección ── */
+  /* ── Checkboxes de selección (solo emails) ── */
   .check-label {
     display:inline-flex; align-items:center; gap:6px;
     cursor:pointer; font-size:12px; padding:2px 0;
@@ -38,14 +38,9 @@
   }
   .check-label input[type=checkbox] { accent-color:#0b1f5c; cursor:pointer; }
 
-  /* ── Okupas: deshabilitar visualmente checkboxes ── */
-  tr[data-excluido] .email-item,
-  tr[data-excluido] .phone-item {
-    opacity:0.35; cursor:not-allowed; pointer-events:none;
-  }
-  tr[data-excluido] .check-label {
-    opacity:0.4; cursor:not-allowed;
-  }
+  /* ── Okupas: deshabilitar visualmente checkboxes de email ── */
+  tr[data-excluido] .email-item { opacity:0.35; cursor:not-allowed; pointer-events:none; }
+  tr[data-excluido] .check-label { opacity:0.4; cursor:not-allowed; }
 
   /* ── WhatsApp link ── */
   .wa-link {
@@ -65,18 +60,9 @@
     display:flex; align-items:center; gap:10px; flex-wrap:wrap;
     padding:10px 14px;
     background:#f0f4ff; border:1px solid #c7d4ff; border-radius:10px;
-    margin-bottom:10px;
-  }
-  .email-counter { font-size:13px; font-weight:700; color:#0b1f5c; }
-
-  /* ── Toolbar teléfonos ── */
-  .phone-toolbar {
-    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-    padding:10px 14px;
-    background:#f0fff4; border:1px solid #b2dfdb; border-radius:10px;
     margin-bottom:14px;
   }
-  .phone-counter { font-size:13px; font-weight:700; color:#1b5e20; }
+  .email-counter { font-size:13px; font-weight:700; color:#0b1f5c; }
 
   /* ── Toast ── */
   #copyToast {
@@ -163,28 +149,6 @@
       </button>
     </div>
 
-    <!-- TOOLBAR TELÉFONOS -->
-    <div class="phone-toolbar">
-      <label style="display:inline-flex; align-items:center; gap:6px;
-                    cursor:pointer; font-size:13px; margin:0;">
-        <input type="checkbox" id="selectAllPhones" style="accent-color:#168a53;"/>
-        <span id="selectAllPhoneText">Seleccionar todos los teléfonos</span>
-      </label>
-      <span class="phone-counter">
-        📱 <span id="phonesCount">0</span> seleccionados
-      </span>
-      <button type="button" id="copyPhonesBtn" disabled
-              style="padding:5px 14px; font-size:12px;
-                     background:#168a53; border-color:#168a53;">
-        Copiar teléfonos
-      </button>
-      <button type="button" id="clearPhonesBtn"
-              style="display:none; padding:5px 14px; font-size:12px;
-                     background:#fff; color:#888; border:1px solid #ddd;">
-        Limpiar
-      </button>
-    </div>
-
     <!-- SIN RESULTADOS -->
     <p th:if="${#lists.isEmpty(clients)}"
        style="color:var(--muted); font-size:13px; margin:0; padding:20px 0; text-align:center;">
@@ -240,27 +204,22 @@
             </div>
           </td>
 
-          <!-- TELÉFONOS -->
+          <!-- TELÉFONOS — solo enlaces WhatsApp, sin checkbox -->
           <td>
             <span th:if="${phonesByClientId.get(c.id) == null or
                            #lists.isEmpty(phonesByClientId.get(c.id))}"
                   style="color:#ccc;">—</span>
-            <label th:each="p : ${phonesByClientId.get(c.id)}"
-                   class="check-label" style="display:flex;">
-              <input type="checkbox"
-                     class="phone-item"
-                     th:attr="data-phone=${p.phoneNumber}"
-                     th:value="${p.phoneNumber}"/>
+            <div th:each="p : ${phonesByClientId.get(c.id)}" style="margin-bottom:3px;">
               <a class="wa-link"
                  th:href="${'https://wa.me/' + #strings.replace(#strings.replace(p.phoneNumber, '+', ''), ' ', '')}"
                  target="_blank"
                  th:text="${p.phoneNumber}"
                  onclick="event.stopPropagation()">
               </a>
-            </label>
+            </div>
           </td>
 
-          <!-- EMAILS -->
+          <!-- EMAILS — con checkbox para copiar -->
           <td>
             <span th:if="${emailsByClientId.get(c.id) == null or
                            #lists.isEmpty(emailsByClientId.get(c.id))}"
@@ -328,10 +287,10 @@
     toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
   }
 
-  /* ── Copiar al click en .copyable (solo emails) ── */
+  /* ── Copiar al click en .copyable ── */
   document.addEventListener('click', async function (e) {
     if (e.target.tagName === 'INPUT') return;
-    if (e.target.closest('.wa-link')) return;   // ← dejar pasar los links de WA
+    if (e.target.closest('.wa-link')) return;
     const el = e.target.closest('.copyable');
     if (!el) return;
     const text = el.getAttribute('data-copy') || el.textContent.trim();
@@ -412,74 +371,6 @@
   });
   clearEmailsBtn.addEventListener('click', clearEmailSelection);
   renderEmails();
-
-  /* ════════════════════════════
-     TELÉFONOS
-  ════════════════════════════ */
-  const selectAllPhonesCb  = document.getElementById('selectAllPhones');
-  const selectAllPhoneText = document.getElementById('selectAllPhoneText');
-  const phonesCount        = document.getElementById('phonesCount');
-  const copyPhonesBtn      = document.getElementById('copyPhonesBtn');
-  const clearPhonesBtn     = document.getElementById('clearPhonesBtn');
-
-  function getPhoneItems()           { return Array.from(document.querySelectorAll('.phone-item')); }
-  function getSelectablePhoneItems() { return getPhoneItems().filter(cb => cb.closest('tr[data-excluido]') === null); }
-  function getSelectedPhones() {
-    const set = new Set();
-    getPhoneItems().filter(cb => cb.checked).forEach(cb => {
-      const v = (cb.getAttribute('data-phone') || '').trim();
-      if (v) set.add(v);
-    });
-    return Array.from(set);
-  }
-  function syncSelectAllPhones() {
-    const all     = getSelectablePhoneItems();
-    const checked = getPhoneItems().filter(cb => cb.checked);
-    if (!all.length || !checked.length) {
-      selectAllPhonesCb.checked = false; selectAllPhonesCb.indeterminate = false;
-      selectAllPhoneText.textContent = 'Seleccionar todos los teléfonos';
-    } else if (checked.length === all.length) {
-      selectAllPhonesCb.checked = true; selectAllPhonesCb.indeterminate = false;
-      selectAllPhoneText.textContent = 'Deseleccionar todos';
-    } else {
-      selectAllPhonesCb.checked = false; selectAllPhonesCb.indeterminate = true;
-      selectAllPhoneText.textContent = `Seleccionar todos (${checked.length}/${all.length})`;
-    }
-  }
-  function renderPhones() {
-    const list = getSelectedPhones();
-    phonesCount.textContent      = String(list.length);
-    copyPhonesBtn.disabled       = list.length === 0;
-    clearPhonesBtn.style.display = list.length === 0 ? 'none' : 'inline-flex';
-    syncSelectAllPhones();
-    return list;
-  }
-  function clearPhoneSelection() { getPhoneItems().forEach(cb => cb.checked = false); renderPhones(); }
-
-  selectAllPhonesCb.addEventListener('change', () => {
-    getSelectablePhoneItems().forEach(cb => cb.checked = selectAllPhonesCb.checked);
-    renderPhones();
-  });
-  document.addEventListener('change', ev => {
-    if (ev.target?.classList.contains('phone-item')) renderPhones();
-  });
-  copyPhonesBtn.addEventListener('click', async () => {
-    const list = renderPhones();
-    if (!list.length) return;
-    const text = list.join(', ');
-    try { await navigator.clipboard.writeText(text); }
-    catch (_) {
-      const ta = document.createElement('textarea');
-      ta.value = text; ta.setAttribute('readonly', '');
-      ta.style.cssText = 'position:fixed;left:-9999px';
-      document.body.appendChild(ta); ta.select();
-      document.execCommand('copy'); document.body.removeChild(ta);
-    }
-    showToast(list.length + ' teléfono(s) copiados');
-    clearPhoneSelection();
-  });
-  clearPhonesBtn.addEventListener('click', clearPhoneSelection);
-  renderPhones();
 
 })();
 </script>
