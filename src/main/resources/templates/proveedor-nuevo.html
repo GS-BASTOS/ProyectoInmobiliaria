@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Nuevo proveedor')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<div class="container">
+  <div class="card">
+
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+                justify-content:space-between;">
+      <div>
+        <h2 style="margin-bottom:4px;">Nuevo proveedor</h2>
+        <div class="small">Persona que nos ofrece un inmueble para gestionar.</div>
+      </div>
+      <a class="btn btn-secondary" th:href="@{/proveedores}">← Volver</a>
+    </div>
+
+    <hr style="border:none; border-top:1px solid var(--line); margin:16px 0;"/>
+
+    <form th:action="@{/proveedores/nuevo}" th:object="${form}" method="post">
+
+      <!-- ══ AVISO: teléfono duplicado ══════════════════════════════════ -->
+      <div th:if="${existingSupplier != null}"
+           style="margin-bottom:16px; padding:14px 16px; background:#fff3cd;
+                  border:1px solid #ffc107; border-radius:8px; font-size:13px;
+                  display:flex; align-items:center; gap:10px;">
+        <span style="font-size:18px;">⚠️</span>
+        <div>
+          <strong>¡Este teléfono ya está registrado!</strong>
+          Pertenece al proveedor
+          <a th:href="@{/proveedores/{id}(id=${existingSupplier.id})}"
+             th:text="${existingSupplier.fullName}"
+             style="font-weight:700; color:#856404;">
+          </a>
+          — haz clic para ver su ficha.
+        </div>
+      </div>
+
+      <!-- ── DATOS DEL PROVEEDOR ─────────────────── -->
+      <div style="font-size:12px; font-weight:700; color:#888; text-transform:uppercase;
+                  letter-spacing:0.5px; margin-bottom:12px;">
+        Datos del proveedor
+      </div>
+
+      <div class="grid-3">
+        <div>
+          <label>Nombre completo *</label>
+          <input th:field="*{fullName}" placeholder="Juan García López"/>
+          <div class="field-error" th:if="${#fields.hasErrors('fullName')}"
+               th:errors="*{fullName}"></div>
+        </div>
+        <div>
+          <label>Empresa / Razón social</label>
+          <input th:field="*{companyName}" placeholder="Inmuebles García S.L."/>
+        </div>
+        <div>
+          <label>Fecha de contacto</label>
+          <input type="date" th:field="*{contactDate}"/>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div>
+          <label>Teléfono 1</label>
+          <input th:field="*{phone1}" placeholder="600123456"/>
+          <div class="field-error" th:if="${#fields.hasErrors('phone1')}"
+               th:errors="*{phone1}"></div>
+        </div>
+        <div>
+          <label>Teléfono 2</label>
+          <input th:field="*{phone2}" placeholder="600123457"/>
+          <div class="field-error" th:if="${#fields.hasErrors('phone2')}"
+               th:errors="*{phone2}"></div>
+        </div>
+        <div>
+          <label>Teléfono 3</label>
+          <input th:field="*{phone3}" placeholder="600123458"/>
+          <div class="field-error" th:if="${#fields.hasErrors('phone3')}"
+               th:errors="*{phone3}"></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label>Email 1</label>
+          <input type="email" th:field="*{email1}" placeholder="juan@email.com"/>
+        </div>
+        <div>
+          <label>Email 2</label>
+          <input type="email" th:field="*{email2}" placeholder="empresa@email.com"/>
+        </div>
+      </div>
+
+      <div>
+        <label>Notas del proveedor</label>
+        <textarea th:field="*{notes}" rows="2"
+                  placeholder="Observaciones sobre el proveedor..."></textarea>
+      </div>
+
+      <hr style="border:none; border-top:1px solid var(--line); margin:20px 0;"/>
+
+      <!-- ── DATOS DEL INMUEBLE ──────────────────── -->
+      <div style="font-size:12px; font-weight:700; color:#888; text-transform:uppercase;
+                  letter-spacing:0.5px; margin-bottom:4px;">
+        Inmueble ofrecido
+      </div>
+      <div class="small" style="margin-bottom:14px; color:#aaa;">
+        Opcional — si lo rellenas, se creará automáticamente en el catálogo de inmuebles.
+      </div>
+
+      <div class="grid-3">
+        <div>
+          <label>Código inmueble</label>
+          <input th:field="*{propertyCode}" placeholder="Ej: PROV-001"/>
+        </div>
+        <div>
+          <label>Tipo</label>
+          <input th:field="*{propertyType}" placeholder="Piso, Chalet, Local..."/>
+        </div>
+        <div>
+          <label>Precio de venta deseado (€)</label>
+          <input type="number" step="0.01" th:field="*{askingPrice}"
+                 placeholder="150000"/>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div>
+          <label>Dirección</label>
+          <input th:field="*{address}" placeholder="Calle Mayor 1"/>
+        </div>
+        <div>
+          <label>Municipio</label>
+          <input th:field="*{municipality}" placeholder="Madrid"/>
+        </div>
+        <div>
+          <label>Provincia</label>
+          <input th:field="*{province}" placeholder="Madrid"/>
+        </div>
+      </div>
+
+      <div>
+        <label>Notas del inmueble</label>
+        <textarea th:field="*{propertyNotes}" rows="2"
+                  placeholder="Estado, características, accesos..."></textarea>
+      </div>
+
+      <div class="actions" style="margin-top:20px;">
+        <button type="submit">Guardar proveedor</button>
+        <a class="btn btn-secondary" th:href="@{/proveedores}">Cancelar</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+</body>
+</html>
