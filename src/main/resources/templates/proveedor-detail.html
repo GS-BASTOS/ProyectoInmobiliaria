@@ -2,11 +2,12 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Ficha proveedor')}"></head>
 <style>
-  .tabla-links { width:100%; border-collapse:collapse; font-size:13px; margin-top:12px; }
+  /* ── Tabla links ── */
+  .tabla-links { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
+  .tabla-links thead tr { border-bottom:2px solid var(--line); }
   .tabla-links th {
-    padding:8px 12px; font-size:11px; font-weight:700; letter-spacing:0.6px;
-    text-transform:uppercase; color:var(--muted); text-align:left;
-    border-bottom:2px solid var(--line);
+    padding:10px 12px; font-size:11px; font-weight:700; letter-spacing:0.7px;
+    text-transform:uppercase; color:var(--muted); white-space:nowrap; text-align:left;
   }
   .tabla-links td {
     padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle;
@@ -17,12 +18,13 @@
   /* ── Toast ── */
   #copyToast {
     position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px);
-    background:#222; color:#fff; font-size:13px; padding:10px 22px;
+    background:#111; color:#fff; font-size:13px; padding:10px 22px;
     border-radius:999px; opacity:0; pointer-events:none;
     transition:opacity .22s, transform .22s; z-index:9999;
   }
   #copyToast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
+  /* ── WhatsApp ── */
   .wa-link {
     display:inline-flex; align-items:center; gap:4px;
     color:#168a53; text-decoration:none; font-size:13px;
@@ -33,22 +35,27 @@
     background-repeat:no-repeat; background-size:contain;
   }
   .wa-link:hover { text-decoration:underline; }
-  .copyable { cursor:pointer; }
-  .copyable:hover { text-decoration:underline dotted; }
 
-  /* ── Edición precio inline ── */
-  .precio-display { cursor:pointer; display:inline-flex; align-items:center; gap:5px; }
+  .copyable { cursor:pointer; border-bottom:1px dashed var(--muted); transition:color .15s; }
+  .copyable:hover { color:var(--azul, #0b1f5c); }
+
+  /* ── Precio inline ── */
+  .precio-display {
+    cursor:pointer; display:inline-flex;
+    align-items:center; gap:5px;
+  }
   .precio-display:hover .precio-edit-icon { opacity:1; }
   .precio-edit-icon {
     opacity:0; font-size:11px; color:#888;
     transition:opacity .15s;
   }
   .precio-form {
-    display:none; align-items:center; gap:5px; flex-wrap:nowrap;
+    display:none; align-items:center;
+    gap:5px; flex-wrap:nowrap;
   }
   .precio-form input[type="number"] {
     width:110px; padding:4px 8px; font-size:13px;
-    border:1px solid var(--line); border-radius:6px;
+    border:1px solid var(--line); border-radius:6px; margin:0;
   }
   .precio-form button[type="submit"] {
     padding:4px 10px; font-size:12px;
@@ -58,6 +65,17 @@
     border:1px solid var(--line); border-radius:6px;
     cursor:pointer; color:#666;
   }
+
+  .section-block {
+    padding:18px 20px; border-radius:14px;
+    border:1px solid var(--line); background:#faf8f4;
+    margin-bottom:16px;
+  }
+  .section-block-title {
+    font-size:11px; font-weight:700; letter-spacing:1.2px;
+    text-transform:uppercase; color:var(--muted); margin-bottom:14px;
+    display:flex; align-items:center; gap:6px;
+  }
 </style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
@@ -65,23 +83,37 @@
 
 <div class="container">
 
-  <!-- ── CABECERA ───────────────────────────────── -->
+  <!-- ══ CABECERA ══ -->
   <div class="card">
     <div style="display:flex; align-items:flex-start; justify-content:space-between;
                 gap:12px; flex-wrap:wrap;">
       <div>
-        <h2 style="margin-bottom:2px;" th:text="${supplier.fullName}">Proveedor</h2>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px;">
+          <h2 style="margin:0;" th:text="${supplier.fullName}">Proveedor</h2>
+          <span style="display:inline-flex; align-items:center; gap:5px;
+                       background:#f0ede8; border-radius:999px; padding:3px 10px;
+                       font-size:12px; font-weight:600; color:#555;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                 fill="none" stroke="#888" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            Proveedor
+          </span>
+        </div>
         <div th:if="${supplier.companyName != null and !#strings.isEmpty(supplier.companyName)}"
              style="font-size:13px; color:#888; margin-bottom:4px;"
              th:text="${supplier.companyName}"></div>
-        <div style="font-size:12px; color:#aaa;">
-          Alta: <span th:text="${supplier.contactDate != null ?
-                       #temporals.format(supplier.contactDate,'dd/MM/yyyy') : '—'}"></span>
+        <div style="font-size:12px; color:#bbb;">
+          Alta:
+          <span th:text="${supplier.contactDate != null
+                           ? #temporals.format(supplier.contactDate,'dd/MM/yyyy') : '—'}"></span>
         </div>
       </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <a class="btn btn-secondary" th:href="@{/proveedores}">← Proveedores</a>
-      </div>
+
+      <a class="btn btn-secondary" th:href="@{/proveedores}"
+         style="font-size:13px; padding:8px 14px; white-space:nowrap;">← Proveedores</a>
     </div>
 
     <hr style="border:none; border-top:1px solid var(--line); margin:16px 0;"/>
@@ -98,6 +130,7 @@
              th:text="${p.phoneNumber}"></a>
         </div>
       </div>
+
       <!-- Emails -->
       <div>
         <div class="small" style="margin-bottom:6px;">Emails</div>
@@ -109,6 +142,7 @@
                 style="font-size:13px;"></span>
         </div>
       </div>
+
       <!-- Notas -->
       <div>
         <div class="small" style="margin-bottom:6px;">Notas</div>
@@ -119,26 +153,46 @@
     </div>
   </div>
 
-  <!-- ── INMUEBLES VINCULADOS ───────────────────── -->
-  <div class="card" style="margin-top:20px;">
+  <!-- ══ INMUEBLES VINCULADOS ══ -->
+  <div class="card" style="margin-top:24px;">
 
     <div style="display:flex; align-items:center; justify-content:space-between;
-                flex-wrap:wrap; gap:10px;">
-      <h3 style="margin:0;">Inmuebles ofrecidos</h3>
+                flex-wrap:wrap; gap:10px; margin-bottom:4px;">
+      <div>
+        <h2 style="margin:0 0 4px;">Inmuebles ofrecidos</h2>
+        <div class="small">Inmuebles que este proveedor pone a nuestra disposición.</div>
+      </div>
       <button type="button" id="btnShowAddForm"
-              class="btn btn-primary" style="font-size:12px; padding:7px 14px;">
-        + Añadir inmueble
+              style="display:inline-flex; align-items:center; gap:7px;
+                     font-size:13px; padding:9px 18px; white-space:nowrap;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Añadir inmueble
       </button>
     </div>
 
-    <!-- Formulario añadir inmueble (oculto por defecto) -->
+    <!-- Form añadir (oculto) -->
     <div id="addPropertyForm"
-         style="display:none; margin-top:16px; padding:16px;
-                background:#faf8f4; border:1px solid var(--line); border-radius:10px;">
-      <div style="font-size:12px; font-weight:700; color:#888; text-transform:uppercase;
-                  letter-spacing:0.5px; margin-bottom:12px;">Nuevo inmueble</div>
+         style="display:none; margin-top:16px; padding:18px 20px;
+                background:#faf8f4; border:1px solid var(--line); border-radius:14px;">
+      <div class="section-block-title" style="margin-bottom:14px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+             fill="none" stroke="var(--muted)" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+          <polyline points="9 21 9 12 15 12 15 21"/>
+        </svg>
+        Nuevo inmueble
+      </div>
+
       <form th:action="@{|/proveedores/${supplier.id}/inmuebles|}" method="post">
-        <div class="grid-3">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px;">
           <div>
             <label>Código inmueble *</label>
             <input name="propertyCode" placeholder="PROV-002" required/>
@@ -152,7 +206,8 @@
             <input type="number" step="0.01" name="askingPrice" placeholder="150000"/>
           </div>
         </div>
-        <div class="grid-3">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px;">
           <div>
             <label>Dirección</label>
             <input name="address" placeholder="Calle Mayor 1"/>
@@ -166,28 +221,50 @@
             <input name="province" placeholder="Madrid"/>
           </div>
         </div>
-        <div>
+
+        <div style="margin-bottom:14px;">
           <label>Notas del inmueble</label>
           <textarea name="propertyNotes" rows="2"
                     placeholder="Estado, características..."></textarea>
         </div>
-        <div class="actions" style="margin-top:12px;">
-          <button type="submit">Guardar inmueble</button>
+
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
           <button type="button" id="btnCancelAddForm"
-                  class="btn btn-secondary">Cancelar</button>
+                  class="btn btn-secondary"
+                  style="font-size:13px; padding:9px 16px;">Cancelar</button>
+          <button type="submit"
+                  style="display:inline-flex; align-items:center; gap:7px;
+                         font-size:13px; padding:9px 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Guardar inmueble
+          </button>
         </div>
       </form>
     </div>
 
-    <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
+    <hr style="border:none; border-top:1px solid var(--line); margin:16px 0;"/>
 
     <!-- Sin inmuebles -->
-    <p th:if="${#lists.isEmpty(links)}"
-       style="color:var(--muted); font-size:13px; margin:0; text-align:center; padding:20px 0;">
-      Este proveedor aún no tiene inmuebles vinculados.
-    </p>
+    <div th:if="${#lists.isEmpty(links)}"
+         style="padding:32px; text-align:center; border:1px dashed var(--line);
+                border-radius:10px; color:#ccc;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
+           fill="none" stroke="#ddd" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round"
+           style="display:block; margin:0 auto 8px;">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+        <polyline points="9 21 9 12 15 12 15 21"/>
+      </svg>
+      <span class="small">Este proveedor aún no tiene inmuebles vinculados.</span>
+    </div>
 
-    <!-- Tabla inmuebles -->
+    <!-- Tabla -->
     <table class="tabla-links" th:if="${!#lists.isEmpty(links)}">
       <thead>
         <tr>
@@ -202,60 +279,74 @@
       </thead>
       <tbody>
         <tr th:each="lnk : ${links}">
+
+          <!-- CÓDIGO -->
           <td>
             <a th:href="@{|/inmuebles/${lnk.property.id}|}"
                th:text="${lnk.property.propertyCode}"
-               style="font-weight:700; text-decoration:none; color:var(--text);"></a>
-          </td>
-          <td th:text="${lnk.property.propertyType != null ? lnk.property.propertyType : '—'}"></td>
-          <td>
-            <div th:text="${lnk.property.address != null ? lnk.property.address : '—'}"
-                 style="font-size:13px;"></div>
-            <div th:text="${lnk.property.municipality != null ? lnk.property.municipality : ''}"
-                 style="font-size:11px; color:#888;"></div>
+               style="font-weight:800; text-decoration:none; color:var(--text);
+                      font-size:13px; letter-spacing:0.3px;"></a>
           </td>
 
-          <!-- ── PRECIO EDITABLE ── -->
+          <!-- TIPO -->
+          <td style="font-size:12px; color:#555;"
+              th:text="${lnk.property.propertyType != null ? lnk.property.propertyType : '—'}"></td>
+
+          <!-- DIRECCIÓN -->
           <td>
-            <!-- Vista precio: clic para editar -->
+            <div style="font-size:13px;"
+                 th:text="${lnk.property.address != null ? lnk.property.address : '—'}"></div>
+            <div style="font-size:11px; color:#888;"
+                 th:text="${lnk.property.municipality != null ? lnk.property.municipality : ''}"></div>
+          </td>
+
+          <!-- PRECIO EDITABLE -->
+          <td>
             <div class="precio-display"
                  th:attr="data-link-id=${lnk.id}"
                  title="Clic para editar precio">
               <span th:if="${lnk.askingPrice != null}"
                     th:text="${#numbers.formatDecimal(lnk.askingPrice,1,'COMMA',0,'POINT') + ' €'}"
-                    style="font-weight:600; color:#0b1f5c;"></span>
+                    style="font-weight:700; color:#0b1f5c;"></span>
               <span th:if="${lnk.askingPrice == null}" style="color:#ccc;">—</span>
               <span class="precio-edit-icon">✏️</span>
             </div>
-            <!-- Formulario edición precio -->
             <form class="precio-form"
                   th:action="@{|/proveedores/${supplier.id}/inmuebles/${lnk.id}/precio|}"
                   method="post">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
               <input type="number" step="0.01" name="askingPrice"
-                     th:value="${lnk.askingPrice}"
-                     placeholder="150000"/>
-              <button type="submit">✔</button>
+                     th:value="${lnk.askingPrice}" placeholder="150000"/>
+              <button type="submit" style="padding:4px 10px; font-size:12px;">✔</button>
               <button type="button" class="btn-cancel-precio">✕</button>
             </form>
           </td>
 
-          <td style="font-size:12px; color:#666; max-width:180px;"
+          <!-- NOTAS -->
+          <td style="font-size:12px; color:#777; max-width:180px;"
               th:text="${lnk.notes != null and !#strings.isEmpty(lnk.notes) ? lnk.notes : '—'}"></td>
+
+          <!-- FECHA VINCULADO -->
           <td style="text-align:center; font-size:12px; color:#888; white-space:nowrap;">
             <span th:if="${lnk.linkedDate != null}"
                   th:text="${#temporals.format(lnk.linkedDate,'dd/MM/yyyy')}"></span>
             <span th:if="${lnk.linkedDate == null}" style="color:#ccc;">—</span>
           </td>
-          <td>
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-              <a class="btn btn-secondary"
-                 th:href="@{|/inmuebles/${lnk.property.id}|}"
-                 style="font-size:11px; padding:5px 10px;">Ver ficha</a>
+
+          <!-- ACCIONES -->
+          <td style="white-space:nowrap; vertical-align:middle;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              <a class="btn btn-secondary" th:href="@{|/inmuebles/${lnk.property.id}|}"
+                 style="font-size:12px; padding:6px 12px;">Ver ficha</a>
+
               <form th:action="@{|/proveedores/${supplier.id}/inmuebles/${lnk.id}/eliminar|}"
                     method="post"
-                    onsubmit="return confirm('¿Desvincular este inmueble del proveedor?')">
+                    onsubmit="return confirm('¿Desvincular este inmueble del proveedor?')"
+                    style="margin:0;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <button type="submit"
-                        style="font-size:11px; padding:5px 10px; background:#b42318;">
+                        style="background:#b42318; border-color:#b42318;
+                               font-size:12px; padding:6px 12px;">
                   Desvincular
                 </button>
               </form>
@@ -270,6 +361,9 @@
 
 <script>
 (function () {
+  const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+  const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
   /* ── Toast ── */
   const toast = document.getElementById('copyToast');
   let toastTimer;
@@ -296,23 +390,27 @@
     showToast('Copiado: ' + text);
   });
 
-  /* ── Toggle formulario añadir inmueble ── */
-  document.getElementById('btnShowAddForm').addEventListener('click', () => {
-    document.getElementById('addPropertyForm').style.display = 'block';
-    document.getElementById('btnShowAddForm').style.display  = 'none';
+  /* ── Toggle form añadir ── */
+  const btnShow   = document.getElementById('btnShowAddForm');
+  const btnCancel = document.getElementById('btnCancelAddForm');
+  const formWrap  = document.getElementById('addPropertyForm');
+
+  btnShow.addEventListener('click', () => {
+    formWrap.style.display = 'block';
+    btnShow.style.display  = 'none';
   });
-  document.getElementById('btnCancelAddForm').addEventListener('click', () => {
-    document.getElementById('addPropertyForm').style.display = 'none';
-    document.getElementById('btnShowAddForm').style.display  = 'inline-flex';
+  btnCancel.addEventListener('click', () => {
+    formWrap.style.display = 'none';
+    btnShow.style.display  = 'inline-flex';
   });
 
-  /* ── Edición precio inline ── */
+  /* ── Precio inline ── */
   document.querySelectorAll('.precio-display').forEach(display => {
     display.addEventListener('click', () => {
       const form = display.nextElementSibling;
       display.style.display = 'none';
       form.style.display    = 'inline-flex';
-      form.querySelector('input').focus();
+      form.querySelector('input[type="number"]').focus();
     });
   });
   document.querySelectorAll('.btn-cancel-precio').forEach(btn => {

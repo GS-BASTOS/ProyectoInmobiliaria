@@ -2,7 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Cliente')}"></head>
 <style>
-  /* ── Combobox inmueble ── */
+  /* ── Combobox ── */
   .combo-wrapper { position:relative; width:100%; }
   .combo-input   { width:100%; cursor:pointer; }
   .combo-dropdown {
@@ -26,105 +26,87 @@
 
   /* ── Modal comentarios ── */
   .comment-modal-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.38);
-    z-index: 2100;
-    align-items: center;
-    justify-content: center;
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.38); z-index: 2100;
+    align-items: center; justify-content: center;
   }
   .comment-modal-backdrop.open { display: flex; }
   .comment-modal-box {
-    background: #fff;
-    border-radius: 16px;
-    padding: 28px;
-    width: 100%;
-    max-width: 520px;
+    background: #fff; border-radius: 16px; padding: 28px;
+    width: 100%; max-width: 520px;
     box-shadow: 0 16px 48px rgba(0,0,0,.18);
   }
   .comment-modal-box h3 { margin: 0 0 4px; font-size: 17px; }
   .comment-editor-toolbar {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    padding: 8px 10px;
-    background: #f5f5f5;
-    border: 1px solid #e0e0e0;
-    border-bottom: none;
+    display: flex; gap: 6px; align-items: center;
+    padding: 8px 10px; background: #f5f5f5;
+    border: 1px solid #e0e0e0; border-bottom: none;
     border-radius: 10px 10px 0 0;
   }
   .toolbar-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 28px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: #fff;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 700;
-    color: #333;
-    transition: background .15s, border-color .15s;
-    user-select: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 28px; border: 1px solid #ddd; border-radius: 6px;
+    background: #fff; cursor: pointer; font-size: 13px; font-weight: 700;
+    color: #333; transition: background .15s, border-color .15s; user-select: none;
   }
   .toolbar-btn:hover { background: #e8e8e8; border-color: #bbb; }
-  .toolbar-sep {
-    width: 1px;
-    height: 20px;
-    background: #ddd;
-    margin: 0 2px;
-  }
+  .toolbar-sep { width: 1px; height: 20px; background: #ddd; margin: 0 2px; }
   .comment-editor-body {
-    min-height: 120px;
-    max-height: 320px;
-    overflow-y: auto;
-    padding: 10px 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 0 0 10px 10px;
-    font-size: 13px;
-    line-height: 1.55;
-    color: #333;
-    outline: none;
-    white-space: pre-wrap;
+    min-height: 120px; max-height: 320px; overflow-y: auto;
+    padding: 10px 12px; border: 1px solid #e0e0e0;
+    border-radius: 0 0 10px 10px; font-size: 13px;
+    line-height: 1.55; color: #333; outline: none; white-space: pre-wrap;
   }
-  .comment-editor-body mark {
-    background: #ffcccc;
-    color: #b42318;
-    border-radius: 2px;
-    padding: 0 1px;
-  }
+  .comment-editor-body mark { background:#ffcccc; color:#b42318; border-radius:2px; padding:0 1px; }
   .comment-display-cell {
-    cursor: pointer;
-    white-space: pre-wrap;
-    line-height: 1.5;
-    padding: 4px 6px;
-    border-radius: 4px;
-    min-height: 28px;
-    display: block;
+    cursor: pointer; white-space: pre-wrap; line-height: 1.5;
+    padding: 4px 6px; border-radius: 4px; min-height: 28px; display: block;
   }
   .comment-display-cell:hover { background: #f5f5f5; }
-  .comment-display-cell mark {
-    background: #ffcccc;
-    color: #b42318;
-    border-radius: 2px;
-    padding: 0 1px;
+  .comment-display-cell mark { background:#ffcccc; color:#b42318; border-radius:2px; padding:0 1px; }
+  .comment-modal-actions { display:flex; gap:10px; margin-top:20px; justify-content:flex-end; }
+  .hint-text { font-size:11px; color:var(--muted); margin-top:6px; }
+
+  /* ── WhatsApp link ── */
+  .wa-link {
+    display:inline-flex; align-items:center; gap:4px;
+    color:#168a53; text-decoration:none; font-size:13px;
   }
-  .comment-modal-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    justify-content: flex-end;
+  .wa-link::before {
+    content:''; display:inline-block; width:14px; height:14px; flex-shrink:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23168a53'%3E%3Cpath d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-size:contain;
   }
-  .hint-text {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 6px;
+  .wa-link:hover { text-decoration:underline; }
+
+  /* ── Tabla interacciones ── */
+  .tabla-interacciones {
+    width:100%; border-collapse:collapse; font-size:13px; margin-top:4px;
+  }
+  .tabla-interacciones thead tr { border-bottom:2px solid var(--line); }
+  .tabla-interacciones th {
+    padding:10px 12px; font-size:11px; font-weight:700; letter-spacing:0.7px;
+    text-transform:uppercase; color:var(--muted); white-space:nowrap; text-align:left;
+  }
+  .tabla-interacciones td {
+    padding:10px 12px; vertical-align:top; border-bottom:1px solid var(--line);
+  }
+  .tabla-interacciones tbody tr:last-child td { border-bottom:none; }
+  .tabla-interacciones tbody tr:hover { background:#fafafa; }
+
+  /* ── Section block (bloques crema) ── */
+  .section-block {
+    padding:18px 20px; border-radius:14px;
+    border:1px solid var(--line); background:#faf8f4; margin-bottom:20px;
+  }
+  .section-block-title {
+    font-size:11px; font-weight:700; letter-spacing:1.2px;
+    text-transform:uppercase; color:var(--muted); margin-bottom:14px;
+    display:flex; align-items:center; gap:6px;
   }
 </style>
 <body>
+
 <meta name="_csrf"        th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
@@ -143,20 +125,12 @@
       <button type="button" class="toolbar-btn" id="btnClearAll"
               style="font-size:11px; width:auto; padding:0 8px;">Limpiar todo</button>
     </div>
-    <div id="commentEditor"
-         class="comment-editor-body"
-         contenteditable="true"
-         spellcheck="true">
-    </div>
+    <div id="commentEditor" class="comment-editor-body" contenteditable="true" spellcheck="true"></div>
     <div class="comment-modal-actions">
       <button type="button" id="btnCancelComment"
-              style="background:#fff; color:#111; border:1px solid var(--line);">
-        Cancelar
-      </button>
+              style="background:#fff; color:#111; border:1px solid var(--line);">Cancelar</button>
       <button type="button" id="btnSaveComment"
-              style="background:#0b1f5c; border-color:#0b1f5c;">
-        Guardar
-      </button>
+              style="background:#0b1f5c; border-color:#0b1f5c;">Guardar</button>
     </div>
   </div>
 </div>
@@ -173,67 +147,68 @@
                      ? 'border-left:6px solid #168a53;'
                      : 'border-left:6px solid var(--line);'}">
 
-    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-      <h2 style="margin:0;" th:text="${client.fullName}">Cliente</h2>
+    <!-- Cabecera -->
+    <div style="display:flex; align-items:flex-start; justify-content:space-between;
+                gap:12px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <h2 style="margin:0;" th:text="${client.fullName}">Cliente</h2>
 
-      <span th:if="${client.compradorFinal}"
-            style="display:inline-flex; align-items:center; gap:6px;
-                   background:#e8f5e9; border:1px solid #168a53;
-                   border-radius:999px; padding:4px 12px;
-                   font-size:13px; color:#168a53; font-weight:800;
-                   letter-spacing:0.4px; text-transform:uppercase;
-                   box-shadow:0 0 0 3px rgba(22,138,83,.12);">
-        💰 COMPRADOR
-      </span>
+        <span th:if="${client.compradorFinal}"
+              style="display:inline-flex; align-items:center; gap:6px;
+                     background:#e8f5e9; border:1px solid #168a53; border-radius:999px;
+                     padding:4px 12px; font-size:12px; color:#168a53; font-weight:800;
+                     letter-spacing:0.4px; text-transform:uppercase;
+                     box-shadow:0 0 0 3px rgba(22,138,83,.10);">
+          💰 COMPRADOR
+        </span>
 
-      <span th:if="${client.posibleOcupa}"
-            style="display:inline-flex; align-items:center; gap:6px;
-                   background:#ffebee; border:1px solid #b42318;
-                   border-radius:999px; padding:4px 12px;
-                   font-size:12px; color:#b42318; font-weight:800;
-                   letter-spacing:0.4px; text-transform:uppercase;
-                   box-shadow:0 0 0 3px rgba(180,35,24,.12);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-             fill="none" stroke="#b42318" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        POSIBLE OKUPA
-      </span>
+        <span th:if="${client.posibleOcupa}"
+              style="display:inline-flex; align-items:center; gap:6px;
+                     background:#ffebee; border:1px solid #b42318; border-radius:999px;
+                     padding:4px 12px; font-size:12px; color:#b42318; font-weight:800;
+                     letter-spacing:0.4px; text-transform:uppercase;
+                     box-shadow:0 0 0 3px rgba(180,35,24,.10);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="#b42318" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          POSIBLE OKUPA
+        </span>
+      </div>
+
+      <a class="btn btn-secondary" th:href="@{/clientes}"
+         style="font-size:13px; padding:8px 14px; white-space:nowrap;">← Volver</a>
     </div>
 
-    <!-- Nota okupa -->
-    <div th:if="${client.posibleOcupa
-                  and client.generalNotes != null
+    <!-- Banners -->
+    <div th:if="${client.posibleOcupa and client.generalNotes != null
                   and !#strings.isEmpty(client.generalNotes)}"
-         style="margin-top:8px; padding:8px 12px; background:#ffebee;
-                border-left:4px solid #b42318; border-radius:6px;
+         style="margin-top:12px; padding:10px 14px; background:#ffebee;
+                border-left:4px solid #b42318; border-radius:8px;
                 color:#b42318; font-size:13px;">
-      <strong>Nota:</strong> <span th:text="${client.generalNotes}"></span>
+      <strong>⚠ Nota:</strong> <span th:text="${client.generalNotes}"></span>
     </div>
 
-    <!-- ── NUEVO: Motivo de contacto ── -->
     <div th:if="${motivoContacto != null and !#strings.isEmpty(motivoContacto)}"
-         style="margin-top:8px; padding:10px 14px;
-                background:#fff8e1; border-left:4px solid #ffc107;
-                border-radius:6px; font-size:13px; color:#555;">
+         style="margin-top:10px; padding:10px 14px; background:#fff8e1;
+                border-left:4px solid #ffc107; border-radius:8px; font-size:13px; color:#555;">
       <strong style="color:#795500;">⭐ ¿Qué busca?</strong>
       <span th:text="${motivoContacto}" style="margin-left:6px;"></span>
     </div>
 
-    <!-- Nota comprador -->
     <div th:if="${client.compradorFinal}"
-         style="margin-top:8px; padding:8px 12px; background:#e8f5e9;
-                border-left:4px solid #168a53; border-radius:6px;
+         style="margin-top:10px; padding:10px 14px; background:#e8f5e9;
+                border-left:4px solid #168a53; border-radius:8px;
                 color:#168a53; font-size:13px;">
       <strong>💰 Comprador confirmado.</strong> Las interacciones y el formulario están desactivados.
     </div>
 
-    <div class="small" style="margin-top:6px;">Información del cliente</div>
-    <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
+    <hr style="border:none; border-top:1px solid var(--line); margin:16px 0;"/>
 
+    <!-- Datos del cliente -->
     <div class="grid">
       <div>
         <div class="small">Tipo</div>
@@ -250,10 +225,12 @@
       </div>
       <div>
         <div class="small">Teléfonos</div>
-        <div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
           <span th:if="${#lists.isEmpty(client.phones)}">—</span>
-          <span th:each="p,st : ${client.phones}"
-                th:text="${p.phoneNumber} + ${!st.last ? ', ' : ''}">600000000</span>
+          <a th:each="p : ${client.phones}" class="wa-link"
+             th:href="${'https://wa.me/' + #strings.replace(#strings.replace(p.phoneNumber, '+', ''), ' ', '')}"
+             target="_blank"
+             th:text="${p.phoneNumber}">600000000</a>
         </div>
       </div>
       <div>
@@ -265,30 +242,42 @@
         </div>
       </div>
       <div th:if="${!client.posibleOcupa}" style="grid-column:1/-1;">
-        <div class="small">Notas</div>
+        <div class="small">Notas generales</div>
         <div th:text="${client.generalNotes != null and !#strings.isEmpty(client.generalNotes)
                          ? client.generalNotes : '—'}">—</div>
       </div>
     </div>
 
     <div class="actions">
-      <a class="btn btn-secondary" th:href="@{|/clientes/${client.id}#editar|}">Editar</a>
-      <a class="btn btn-secondary" th:href="@{/clientes}">Volver a clientes</a>
+      <a class="btn btn-secondary" th:href="@{|/clientes/${client.id}#editar|}">✏️ Editar</a>
+      <a class="btn btn-secondary" th:href="@{/clientes}">← Volver a clientes</a>
     </div>
   </div>
 
   <!-- ══ INTERACCIONES ══ -->
-  <div class="card" style="margin-top:24px; border-top:3px solid var(--text);">
-    <h2>Interacciones</h2>
-    <div class="small">Histórico de contacto del cliente</div>
-    <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
+  <div class="card" style="margin-top:24px;">
 
-    <table>
+    <div style="display:flex; align-items:flex-end; justify-content:space-between;
+                gap:12px; flex-wrap:wrap; margin-bottom:4px;">
+      <div>
+        <h2 style="margin-bottom:4px;">Interacciones</h2>
+        <div class="small">Histórico de contacto del cliente con los inmuebles.</div>
+      </div>
+    </div>
+
+    <hr style="border:none; border-top:1px solid var(--line); margin:12px 0;"/>
+
+    <p th:if="${#lists.isEmpty(interactions)}"
+       style="color:var(--muted); font-size:13px; margin:0; text-align:center; padding:24px 0;">
+      Aún no hay interacciones registradas.
+    </p>
+
+    <table class="tabla-interacciones" th:if="${!#lists.isEmpty(interactions)}">
       <thead>
         <tr>
           <th>Fecha</th>
           <th>Inmueble</th>
-          <th>NDA</th>
+          <th style="text-align:center;">NDA</th>
           <th>Ticket</th>
           <th>Canal</th>
           <th>Estado</th>
@@ -296,9 +285,6 @@
         </tr>
       </thead>
       <tbody>
-        <tr th:if="${#lists.isEmpty(interactions)}">
-          <td colspan="7" class="small">Aún no hay interacciones registradas.</td>
-        </tr>
         <tr th:each="it : ${interactions}"
             th:style="${client.compradorFinal and it.property.sold
                         ? 'background:#e8f5e9; border-left:3px solid #168a53;'
@@ -308,11 +294,16 @@
                             ? 'background:#fff8f8;'
                             : ''}">
 
-          <td th:text="${#temporals.format(it.contactDate, 'dd/MM/yyyy')}">13/02/2026</td>
+          <!-- FECHA -->
+          <td style="white-space:nowrap; color:var(--muted); font-size:12px;"
+              th:text="${#temporals.format(it.contactDate, 'dd/MM/yyyy')}">13/02/2026</td>
 
           <!-- INMUEBLE -->
           <td>
-            <div><strong th:text="${it.property.propertyCode}">-</strong></div>
+            <a th:href="@{|/inmuebles/${it.property.id}|}"
+               th:text="${it.property.propertyCode}"
+               style="font-weight:800; color:#111; text-decoration:none; font-size:13px;
+                      letter-spacing:0.3px;">INM-001</a>
             <div class="small"
                  th:if="${it.property.propertyType != null and !#strings.isEmpty(it.property.propertyType)}"
                  th:text="${it.property.propertyType}">Tipo</div>
@@ -321,8 +312,15 @@
                  th:text="${it.property.address}">Dirección</div>
             <div class="small"
                  th:if="${it.property.municipality != null and !#strings.isEmpty(it.property.municipality)}"
-                 th:text="${it.property.municipality}">Municipio</div>
-
+                 style="display:flex; align-items:center; gap:4px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
+                   fill="none" stroke="var(--muted)" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span th:text="${it.property.municipality}">Madrid</span>
+            </div>
             <a th:if="${it.property.sold}"
                th:href="${it.property.soldClient != null
                           ? '/clientes/' + it.property.soldClient.id
@@ -330,24 +328,18 @@
                style="margin-top:4px; display:inline-flex; align-items:center; gap:4px;
                       background:#e8f5e9; border:1px solid #168a53; border-radius:999px;
                       padding:2px 8px; font-size:11px; color:#168a53; font-weight:700;
-                      text-decoration:none; transition:box-shadow .15s; white-space:nowrap;"
-               onmouseover="this.style.boxShadow='0 0 0 3px rgba(22,138,83,.2)'"
-               onmouseout="this.style.boxShadow='none'">
+                      text-decoration:none; white-space:nowrap;">
               💰 Comprado
               <span th:if="${it.property.soldClient != null}"
                     th:text="${' · ' + it.property.soldClient.fullName}"></span>
             </a>
-
             <a th:if="${!it.property.sold and it.property.preVendido}"
                th:href="${it.property.preVendidoClient != null
-                          ? '/clientes/' + it.property.preVendidoClient.id
-                          : '#'}"
+                          ? '/clientes/' + it.property.preVendidoClient.id : '#'}"
                style="margin-top:4px; display:inline-flex; align-items:center; gap:4px;
                       background:#fff4e6; border:1px solid #e07a18; border-radius:999px;
                       padding:2px 8px; font-size:11px; color:#a05800; font-weight:700;
-                      text-decoration:none; transition:box-shadow .15s; white-space:nowrap;"
-               onmouseover="this.style.boxShadow='0 0 0 3px rgba(224,122,24,.2)'"
-               onmouseout="this.style.boxShadow='none'">
+                      text-decoration:none; white-space:nowrap;">
               ⏳ Pre vendido
               <span th:if="${it.property.preVendidoClient != null}"
                     th:text="${' · ' + it.property.preVendidoClient.fullName}"></span>
@@ -355,14 +347,15 @@
           </td>
 
           <!-- NDA -->
-          <td style="text-align:center;">
+          <td style="text-align:center; vertical-align:middle;">
             <input type="checkbox" class="nda-toggle"
                    th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
-                   th:checked="${it.ndaRequested}"/>
+                   th:checked="${it.ndaRequested}"
+                   style="accent-color:#168a53; width:16px; height:16px; cursor:pointer;"/>
           </td>
 
           <!-- TICKET -->
-          <td style="min-width:130px;">
+          <td style="min-width:140px;">
             <input type="text" class="ticket-input"
                    th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
                    th:value="${it.ticketCode}"
@@ -372,23 +365,26 @@
               <button type="button" class="ticket-save"
                       th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
                       style="padding:3px 8px; font-size:11px;">Guardar</button>
-              <span class="ticket-feedback small"
-                    style="display:none; color:#4caf50;">✓</span>
+              <span class="ticket-feedback small" style="display:none; color:#168a53;">✓</span>
             </div>
           </td>
 
           <!-- CANAL -->
-          <td th:text="${it.channel}">-</td>
+          <td>
+            <span style="font-size:11px; font-weight:700; color:var(--muted);"
+                  th:text="${it.channel}">-</span>
+          </td>
 
           <!-- ESTADO -->
           <td>
             <select class="status-select"
-                    th:attr="data-client-id=${client.id},data-interaction-id=${it.id}">
+                    th:attr="data-client-id=${client.id},data-interaction-id=${it.id}"
+                    style="margin-bottom:6px;">
               <option th:each="s : ${statuses}"
                       th:value="${s}" th:text="${s}"
                       th:selected="${s == it.status}"></option>
             </select>
-            <span class="badge" style="margin-left:8px;">
+            <span class="badge">
               <span class="dot status-dot" th:attr="data-status=${it.status}"></span>
             </span>
           </td>
@@ -409,10 +405,6 @@
                   style="font-size:13px; color:#333;"
                   onclick="openCommentModal(this)">
             </span>
-            <div style="margin-top:4px;">
-              <span class="comments-feedback small"
-                    style="display:none; color:#4caf50;">✓ Guardado</span>
-            </div>
           </td>
 
         </tr>
@@ -421,7 +413,7 @@
 
     <div th:if="${client.compradorFinal}"
          style="margin-top:12px; padding:10px 14px; background:#e8f5e9;
-                border-left:4px solid #168a53; border-radius:6px;
+                border-left:4px solid #168a53; border-radius:8px;
                 font-size:13px; color:#168a53;">
       <strong>💰 COMPRADOR:</strong> Las interacciones anteriores están desactivadas.
     </div>
@@ -430,35 +422,67 @@
   <!-- ══ NUEVA INTERACCIÓN ══ -->
   <div class="card" style="margin-top:24px;"
        th:style="${client.compradorFinal ? 'opacity:0.4; pointer-events:none;' : ''}">
-    <h2>Nueva interacción</h2>
-    <div class="small" th:if="${client.compradorFinal}" style="color:#168a53; margin-bottom:8px;">
-      Este cliente ya ha comprado un inmueble.
+
+    <div style="display:flex; align-items:flex-end; justify-content:space-between;
+                gap:12px; flex-wrap:wrap; margin-bottom:4px;">
+      <div>
+        <h2 style="margin-bottom:4px;">Nueva interacción</h2>
+        <div class="small" th:if="${!client.compradorFinal}">
+          Añadir un nuevo contacto del cliente con un inmueble.
+        </div>
+        <div class="small" th:if="${client.compradorFinal}" style="color:#168a53;">
+          Este cliente ya ha comprado un inmueble.
+        </div>
+      </div>
     </div>
-    <div class="small" th:if="${!client.compradorFinal}">Añadir un nuevo contacto del cliente</div>
-    <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
+
+    <hr style="border:none; border-top:1px solid var(--line); margin:12px 0;"/>
 
     <form th:action="@{|/clientes/${client.id}/interacciones|}"
           th:object="${newInteraction}" method="post">
-      <div class="grid-3">
-        <div><label>Fecha</label><input type="date" th:field="*{contactDate}"/></div>
-        <div>
-          <label>Canal</label>
-          <select th:field="*{channel}">
-            <option th:each="c : ${channels}" th:value="${c}" th:text="${c}"></option>
-          </select>
+
+      <div class="section-block">
+        <div class="section-block-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="var(--muted)" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8"  y1="2" x2="8"  y2="6"/>
+            <line x1="3"  y1="10" x2="21" y2="10"/>
+          </svg>
+          Datos del contacto
         </div>
-        <div>
-          <label>Estado</label>
-          <select th:field="*{status}">
-            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option>
-          </select>
+        <div class="grid-3">
+          <div><label>Fecha</label><input type="date" th:field="*{contactDate}"/></div>
+          <div>
+            <label>Canal</label>
+            <select th:field="*{channel}">
+              <option th:each="c : ${channels}" th:value="${c}" th:text="${c}"></option>
+            </select>
+          </div>
+          <div>
+            <label>Estado</label>
+            <select th:field="*{status}">
+              <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <!-- COMBOBOX INMUEBLE -->
-      <div style="margin-top:14px;">
-        <label style="font-weight:600;">Seleccionar inmueble del catálogo</label>
-        <div class="small" style="margin-bottom:6px; color:#888;">
+      <div class="section-block">
+        <div class="section-block-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="var(--muted)" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          Inmueble
+        </div>
+
+        <label style="font-weight:600; font-size:13px;">Seleccionar del catálogo</label>
+        <div class="small" style="margin-bottom:8px; color:var(--muted);">
           Disponibles y pre vendidos. Escribe o haz clic para buscar.
         </div>
         <div class="combo-wrapper" id="niComboWrapper">
@@ -482,106 +506,176 @@
                 style="cursor:pointer; font-size:15px; color:#888; margin-left:4px;"
                 title="Limpiar selección">×</span>
         </div>
+
+        <div class="grid-3" style="margin-top:14px;">
+          <div>
+            <label>Código Solvia</label>
+            <input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123"/>
+          </div>
+          <div>
+            <label>Teléfono</label>
+            <input th:field="*{phone}" readonly/>
+          </div>
+          <div>
+            <label>Email</label>
+            <input th:field="*{email}" readonly/>
+          </div>
+        </div>
+        <div class="grid-3" style="margin-top:0;">
+          <div>
+            <label>Municipio</label>
+            <input th:field="*{municipality}" id="niMunicipality" placeholder="Ej: Madrid"/>
+          </div>
+          <div>
+            <label>Tipo inmueble</label>
+            <input th:field="*{propertyType}" id="niPropertyType" placeholder="Ej: Piso"/>
+          </div>
+          <div>
+            <label>Código inm.</label>
+            <input th:field="*{propertyCode}" id="niPropertyCode" placeholder="Ej: 1234"/>
+          </div>
+        </div>
+        <div class="grid" style="margin-top:0;">
+          <div>
+            <label>Dirección</label>
+            <input th:field="*{address}" id="niAddress" placeholder="Ej: Calle ..."/>
+          </div>
+        </div>
       </div>
 
-      <div class="grid-3" style="margin-top:12px;">
-        <div>
-          <label>Código Solvia</label>
-          <input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123"/>
-        </div>
-        <div>
-          <label>Teléfono</label>
-          <input th:field="*{phone}" readonly/>
-        </div>
-        <div>
-          <label>Email</label>
-          <input th:field="*{email}" readonly/>
-        </div>
+      <div style="margin-bottom:20px;">
+        <label style="font-weight:600;">Comentarios</label>
+        <textarea th:field="*{comments}" rows="3"
+                  placeholder="Observaciones sobre esta interacción..."></textarea>
       </div>
-      <div class="grid-3" style="margin-top:0;">
-        <div>
-          <label>Municipio</label>
-          <input th:field="*{municipality}" id="niMunicipality" placeholder="Ej: Madrid"/>
-        </div>
-        <div>
-          <label>Tipo inmueble</label>
-          <input th:field="*{propertyType}" id="niPropertyType" placeholder="Ej: Piso / Chalet"/>
-        </div>
-        <div>
-          <label>Código inm.</label>
-          <input th:field="*{propertyCode}" id="niPropertyCode" placeholder="Ej: 1234"/>
-        </div>
+
+      <div class="actions" style="justify-content:flex-end;">
+        <button type="submit"
+                style="display:inline-flex; align-items:center; gap:7px;
+                       font-size:13px; padding:9px 20px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Guardar interacción
+        </button>
       </div>
-      <div class="grid">
-        <div>
-          <label>Dirección</label>
-          <input th:field="*{address}" id="niAddress" placeholder="Ej: Calle ..."/>
-        </div>
-      </div>
-      <div><label>Comentarios</label><textarea th:field="*{comments}"></textarea></div>
-      <button type="submit">Guardar interacción</button>
     </form>
   </div>
 
   <!-- ══ EDITAR CLIENTE ══ -->
   <div class="card" id="editar" style="margin-top:24px;">
-    <h2>Editar cliente</h2>
-    <div class="small">Modificar datos del cliente</div>
-    <hr style="border:none;border-top:1px solid var(--line); margin:12px 0;"/>
+
+    <div style="margin-bottom:4px;">
+      <h2 style="margin-bottom:4px;">Editar cliente</h2>
+      <div class="small">Modificar los datos del cliente.</div>
+    </div>
+
+    <hr style="border:none; border-top:1px solid var(--line); margin:12px 0;"/>
 
     <form th:action="@{|/clientes/${client.id}/editar|}" th:object="${form}" method="post">
       <input type="hidden" th:field="*{id}"/>
-      <div class="grid">
-        <div>
-          <label>Tipo</label>
-          <select th:field="*{clientType}">
-            <option th:each="t : ${clientTypes}" th:value="${t}" th:text="${t}"></option>
-          </select>
-        </div>
-        <div><label>Nombre</label><input th:field="*{fullName}"/></div>
-      </div>
-      <div class="grid">
-        <div><label>Empresa (opcional)</label><input th:field="*{companyName}" placeholder="Nombre de la empresa..."/></div>
-        <div><label>Código Solvia</label><input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123"/></div>
-      </div>
-      <div class="grid-3">
-        <div>
-          <label>Teléfono 1</label><input th:field="*{phone1}"/>
-          <div class="field-error" th:if="${#fields.hasErrors('phone1')}" th:errors="*{phone1}"></div>
-        </div>
-        <div>
-          <label>Teléfono 2</label><input th:field="*{phone2}"/>
-          <div class="field-error" th:if="${#fields.hasErrors('phone2')}" th:errors="*{phone2}"></div>
-        </div>
-        <div>
-          <label>Teléfono 3</label><input th:field="*{phone3}"/>
-          <div class="field-error" th:if="${#fields.hasErrors('phone3')}" th:errors="*{phone3}"></div>
-        </div>
-      </div>
-      <div class="grid">
-        <div><label>Email 1</label><input th:field="*{email1}"/></div>
-        <div><label>Email 2</label><input th:field="*{email2}"/></div>
-      </div>
-      <div><label>Notas generales</label><textarea th:field="*{generalNotes}"></textarea></div>
 
-      <!-- ── NUEVO: Motivo de contacto ── -->
-      <div style="margin-top:12px;">
-        <label>¿Qué busca? / Motivo de contacto</label>
-        <textarea th:field="*{motivoContacto}"
-                  rows="3"
-                  placeholder="Ej: Busca piso de 3 habitaciones en Madrid, presupuesto 200k..."></textarea>
+      <div class="section-block">
+        <div class="section-block-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="var(--muted)" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Identidad
+        </div>
+        <div class="grid">
+          <div>
+            <label>Tipo</label>
+            <select th:field="*{clientType}">
+              <option th:each="t : ${clientTypes}" th:value="${t}" th:text="${t}"></option>
+            </select>
+          </div>
+          <div><label>Nombre</label><input th:field="*{fullName}"/></div>
+        </div>
+        <div class="grid" style="margin-top:12px;">
+          <div>
+            <label>Empresa <span style="color:var(--muted); font-weight:400;">(opcional)</span></label>
+            <input th:field="*{companyName}" placeholder="Nombre de la empresa..."/>
+          </div>
+          <div><label>Código Solvia</label><input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123"/></div>
+        </div>
       </div>
 
-      <!-- CHECKBOXES ESPECIALES -->
-      <div style="margin-top:14px; padding:14px; border:1px solid var(--line);
-                  border-radius:10px; background:#faf8f4;">
+      <div class="section-block">
+        <div class="section-block-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="var(--muted)" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+          Teléfonos y emails
+        </div>
+        <div class="grid-3">
+          <div>
+            <label>Teléfono 1</label><input th:field="*{phone1}"/>
+            <div class="field-error" th:if="${#fields.hasErrors('phone1')}" th:errors="*{phone1}"></div>
+          </div>
+          <div>
+            <label>Teléfono 2</label><input th:field="*{phone2}"/>
+            <div class="field-error" th:if="${#fields.hasErrors('phone2')}" th:errors="*{phone2}"></div>
+          </div>
+          <div>
+            <label>Teléfono 3</label><input th:field="*{phone3}"/>
+            <div class="field-error" th:if="${#fields.hasErrors('phone3')}" th:errors="*{phone3}"></div>
+          </div>
+        </div>
+        <div class="grid" style="margin-top:12px;">
+          <div><label>Email 1</label><input th:field="*{email1}"/></div>
+          <div><label>Email 2</label><input th:field="*{email2}"/></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-block-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="var(--muted)" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6"/>
+            <line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/>
+            <line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+          Notas y motivo
+        </div>
+        <div><label>Notas generales</label><textarea th:field="*{generalNotes}" rows="3"></textarea></div>
+        <div style="margin-top:12px;">
+          <label>¿Qué busca? / Motivo de contacto</label>
+          <textarea th:field="*{motivoContacto}" rows="3"
+                    placeholder="Ej: Busca piso de 3 habitaciones en Madrid, presupuesto 200k..."></textarea>
+        </div>
+      </div>
+
+      <!-- Checkboxes especiales -->
+      <div style="padding:16px 20px; border:1px solid var(--line);
+                  border-radius:12px; background:#faf8f4; margin-bottom:20px;">
+        <div class="section-block-title" style="margin-bottom:14px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="var(--muted)" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Clasificación especial
+        </div>
         <div style="display:flex; gap:24px; flex-wrap:wrap;">
 
           <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
             <input type="checkbox" th:field="*{posibleOcupa}" id="chkPosibleOcupa"/>
             <span style="display:inline-flex; align-items:center; gap:6px;
                          color:#b42318; font-weight:700; text-transform:uppercase; font-size:13px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                    fill="none" stroke="#b42318" stroke-width="2.5"
                    stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/>
@@ -596,7 +690,7 @@
             <input type="checkbox" th:field="*{preVenda}" id="chkPreVenda"/>
             <span style="display:inline-flex; align-items:center; gap:6px;
                          color:#a05800; font-weight:700; text-transform:uppercase; font-size:13px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                    fill="none" stroke="#e07a18" stroke-width="2.5"
                    stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/>
@@ -613,6 +707,7 @@
               💰 Comprador
             </span>
           </label>
+
         </div>
 
         <!-- Panel Pre Venda -->
@@ -625,7 +720,8 @@
             <span class="small" style="color:#555;">(puedes marcar varios)</span>
           </label>
           <div class="small" style="margin-bottom:10px; color:#555;">
-            Los inmuebles seleccionados se marcarán como <strong style="color:#e07a18;">⏳ pre vendido</strong> en el catálogo.
+            Los inmuebles seleccionados se marcarán como
+            <strong style="color:#e07a18;">⏳ pre vendido</strong> en el catálogo.
           </div>
           <div style="display:flex; flex-direction:column; gap:8px;">
             <label th:each="it : ${interactions}"
@@ -669,7 +765,8 @@
           </label>
           <div class="small" style="margin-bottom:10px; color:#555;">
             Los inmuebles seleccionados se marcarán como <strong>vendido</strong>.
-            El resto de interacciones pasarán a <strong style="color:#b02cff;">DESCARTA</strong>.
+            El resto de interacciones pasarán a
+            <strong style="color:#b02cff;">DESCARTA</strong>.
           </div>
           <div style="display:flex; flex-direction:column; gap:8px;">
             <label th:each="it : ${interactions}"
@@ -699,13 +796,28 @@
         </div>
       </div>
 
-      <button type="submit" style="margin-top:16px;">Guardar</button>
+      <div class="actions" style="justify-content:flex-end;">
+        <a class="btn btn-secondary" th:href="@{|/clientes/${client.id}|}"
+           style="font-size:13px; padding:9px 16px;">Cancelar</a>
+        <button type="submit"
+                style="display:inline-flex; align-items:center; gap:7px;
+                       font-size:13px; padding:9px 20px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Guardar cambios
+        </button>
+      </div>
     </form>
   </div>
 
 </div>
 
-<!-- Catálogo de inmuebles para el combobox -->
+<!-- Catálogo para el combobox -->
 <script th:inline="javascript">
   /*<![CDATA[*/
   const CATALOG = /*[[${catalogProperties}]]*/ [];
@@ -715,13 +827,12 @@
 <script>
 (function () {
 
-  /* ── CSRF ── */
   const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
 
-  /* ══════════════════════════════════════════
-     COMBOBOX — Nueva interacción
-  ══════════════════════════════════════════ */
+  /* ══════════════════════════════
+     COMBOBOX
+  ══════════════════════════════ */
   const comboInput    = document.getElementById('niComboInput');
   const dropdown      = document.getElementById('niComboDropdown');
   const chip          = document.getElementById('niComboChip');
@@ -740,12 +851,11 @@
       address     : p.address       || '',
       municipality: p.municipality  || '',
       preVendido  : p.preVendido    || false,
-      label       : [p.propertyCode, p.propertyType, p.municipality]
-                      .filter(Boolean).join(' · ')
+      label       : [p.propertyCode, p.propertyType, p.municipality].filter(Boolean).join(' · ')
     }));
 
   function escHtml(str) {
-    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   function renderDropdown(q) {
@@ -769,20 +879,15 @@
       div.className   = 'combo-option';
       div.dataset.idx = idx;
       const preTag = item.preVendido
-        ? `<span style="margin-left:6px; font-size:10px; color:#a05800;
-                        background:#fff4e6; border:1px solid #e07a18;
-                        border-radius:999px; padding:1px 6px; font-weight:700;">
+        ? `<span style="margin-left:6px;font-size:10px;color:#a05800;background:#fff4e6;
+                        border:1px solid #e07a18;border-radius:999px;padding:1px 6px;font-weight:700;">
              ⏳ Pre vendido
-           </span>`
-        : '';
+           </span>` : '';
       div.innerHTML = `
         <div class="opt-code">${escHtml(item.code)}${preTag}</div>
         <div class="opt-sub">${escHtml([item.type, item.municipality, item.address].filter(Boolean).join(' · '))}</div>
       `;
-      div.addEventListener('mousedown', function (e) {
-        e.preventDefault();
-        selectItem(item);
-      });
+      div.addEventListener('mousedown', e => { e.preventDefault(); selectItem(item); });
       dropdown.appendChild(div);
     });
   }
@@ -803,10 +908,9 @@
     comboInput.value    = '';
     comboInput.readOnly = false;
     chip.style.display  = 'none';
-    document.getElementById('niPropertyCode').value = '';
-    document.getElementById('niPropertyType').value = '';
-    document.getElementById('niAddress').value      = '';
-    document.getElementById('niMunicipality').value = '';
+    ['niPropertyCode','niPropertyType','niAddress','niMunicipality'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
   }
 
   function openDropdown(q) { renderDropdown(q); dropdown.classList.add('open'); }
@@ -817,46 +921,45 @@
     opts.forEach(o => o.classList.remove('highlighted'));
     if (idx >= 0 && idx < opts.length) {
       opts[idx].classList.add('highlighted');
-      opts[idx].scrollIntoView({ block: 'nearest' });
+      opts[idx].scrollIntoView({ block:'nearest' });
       currentHighlight = idx;
     }
   }
 
-  comboInput.addEventListener('click',  function () { comboInput.readOnly = false; comboInput.value = ''; openDropdown(''); });
-  comboInput.addEventListener('input',  function () { openDropdown(comboInput.value); });
-  comboInput.addEventListener('keydown', function (e) {
+  comboInput.addEventListener('click',   () => { comboInput.readOnly = false; comboInput.value = ''; openDropdown(''); });
+  comboInput.addEventListener('input',   () => openDropdown(comboInput.value));
+  comboInput.addEventListener('keydown', e => {
     const opts = dropdown.querySelectorAll('.combo-option');
-    if      (e.key === 'ArrowDown') { e.preventDefault(); setHighlight(Math.min(currentHighlight + 1, opts.length - 1)); }
-    else if (e.key === 'ArrowUp')   { e.preventDefault(); setHighlight(Math.max(currentHighlight - 1, 0)); }
+    if      (e.key === 'ArrowDown') { e.preventDefault(); setHighlight(Math.min(currentHighlight+1, opts.length-1)); }
+    else if (e.key === 'ArrowUp')   { e.preventDefault(); setHighlight(Math.max(currentHighlight-1, 0)); }
     else if (e.key === 'Enter')     { e.preventDefault(); if (currentHighlight >= 0 && visibleOptions[currentHighlight]) selectItem(visibleOptions[currentHighlight]); }
     else if (e.key === 'Escape')    { closeDropdown(); }
   });
-  comboInput.addEventListener('blur', function () { setTimeout(closeDropdown, 150); });
+  comboInput.addEventListener('blur', () => setTimeout(closeDropdown, 150));
   comboClearBtn.addEventListener('click', clearSelection);
-  document.addEventListener('click', function (e) { if (!wrapper.contains(e.target)) closeDropdown(); });
+  document.addEventListener('click', e => { if (!wrapper.contains(e.target)) closeDropdown(); });
 
-  /* ══════════════════════════════════════════
-     PANEL PRE VENDA / COMPRADOR
-  ══════════════════════════════════════════ */
+  /* ══════════════════════════════
+     PANELES PRE VENDA / COMPRADOR
+  ══════════════════════════════ */
   const chkPreVenda   = document.getElementById('chkPreVenda');
   const panelPreVenda = document.getElementById('panelPreVenda');
   if (chkPreVenda && panelPreVenda) {
-    chkPreVenda.addEventListener('change', function () {
+    chkPreVenda.addEventListener('change', () => {
       panelPreVenda.style.display = chkPreVenda.checked ? 'block' : 'none';
     });
   }
-
   const chkComprador = document.getElementById('chkCompradorFinal');
-  const panel        = document.getElementById('panelInmuebleComprado');
-  if (chkComprador && panel) {
-    chkComprador.addEventListener('change', function () {
-      panel.style.display = chkComprador.checked ? 'block' : 'none';
+  const panelComprador = document.getElementById('panelInmuebleComprado');
+  if (chkComprador && panelComprador) {
+    chkComprador.addEventListener('change', () => {
+      panelComprador.style.display = chkComprador.checked ? 'block' : 'none';
     });
   }
 
-  /* ══════════════════════════════════════════
+  /* ══════════════════════════════
      NDA TOGGLE
-  ══════════════════════════════════════════ */
+  ══════════════════════════════ */
   document.querySelectorAll('.nda-toggle').forEach(cb => {
     cb.addEventListener('change', async function () {
       const clientId      = cb.getAttribute('data-client-id');
@@ -873,17 +976,15 @@
     });
   });
 
-  /* ══════════════════════════════════════════
+  /* ══════════════════════════════
      TICKET SAVE
-  ══════════════════════════════════════════ */
+  ══════════════════════════════ */
   document.querySelectorAll('.ticket-save').forEach(btn => {
     btn.addEventListener('click', async function () {
       const clientId      = btn.getAttribute('data-client-id');
       const interactionId = btn.getAttribute('data-interaction-id');
-      const td            = btn.closest('td');
-      const input         = td?.querySelector('.ticket-input');
-      const feedback      = td?.querySelector('.ticket-feedback');
-      if (!input) return;
+      const input         = btn.closest('td').querySelector('.ticket-input');
+      const feedback      = btn.closest('td').querySelector('.ticket-feedback');
       try {
         const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/ticket`, {
           method: 'POST',
@@ -891,16 +992,49 @@
           body: 'ticketCode=' + encodeURIComponent(input.value)
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        if (feedback) { feedback.style.display = 'inline'; setTimeout(() => { feedback.style.display = 'none'; }, 2000); }
+        if (feedback) {
+          feedback.style.display = 'inline';
+          setTimeout(() => feedback.style.display = 'none', 2000);
+        }
       } catch (e) { alert('No se pudo guardar el ticket.'); }
     });
   });
 
-  /* ══════════════════════════════════════════
-     STATUS DOTS + SELECT
-  ══════════════════════════════════════════ */
-  function statusToClass(v) {
-    const map = {
+  /* ══════════════════════════════
+     STATUS SELECT
+  ══════════════════════════════ */
+  document.querySelectorAll('.status-select').forEach(sel => {
+    sel.addEventListener('change', async function () {
+      const clientId      = sel.getAttribute('data-client-id');
+      const interactionId = sel.getAttribute('data-interaction-id');
+      const dot           = sel.closest('td').querySelector('.status-dot');
+      const statusMap = {
+        'GRIS_SIN_CONTACTO'     : 'gris',
+        'AZUL_VISITA_PROGRAMADA': 'azul-claro',
+        'AZUL_VISITA_REALIZADA' : 'azul-oscuro',
+        'NARANJA_QUIERE_VISITA' : 'naranja',
+        'ROSA_DESCARTA'         : 'rosa',
+        'VERDE_PENSANDO'        : 'verde',
+        'AMARILLO_OFERTA'       : 'amarillo'
+      };
+      try {
+        const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken },
+          body: 'status=' + encodeURIComponent(sel.value)
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        if (dot) {
+          dot.className = 'dot status-dot';
+          const cls = statusMap[sel.value];
+          if (cls) dot.classList.add(cls);
+          dot.setAttribute('data-status', sel.value);
+        }
+      } catch (e) { alert('No se pudo actualizar el estado.'); }
+    });
+    /* Init dots */
+    const dot = sel.closest('td')?.querySelector('.status-dot');
+    const statusMap = {
       'GRIS_SIN_CONTACTO'     : 'gris',
       'AZUL_VISITA_PROGRAMADA': 'azul-claro',
       'AZUL_VISITA_REALIZADA' : 'azul-oscuro',
@@ -909,48 +1043,18 @@
       'VERDE_PENSANDO'        : 'verde',
       'AMARILLO_OFERTA'       : 'amarillo'
     };
-    return map[v] || '';
-  }
-  function paintDot(el, v) {
-    el.classList.remove('gris','azul-claro','azul-oscuro','naranja','rosa','verde','amarillo');
-    const c = statusToClass(v); if (c) el.classList.add(c);
-  }
-  document.querySelectorAll('.status-dot').forEach(dot => paintDot(dot, dot.getAttribute('data-status')));
-
-  document.querySelectorAll('.status-select').forEach(sel => {
-    sel.setAttribute('data-old', sel.value);
-    const dot = sel.closest('td')?.querySelector('.status-dot');
-    if (dot) paintDot(dot, sel.value);
-    sel.addEventListener('change', async function () {
-      const clientId      = sel.getAttribute('data-client-id');
-      const interactionId = sel.getAttribute('data-interaction-id');
-      const value         = sel.value;
-      const oldValue      = sel.getAttribute('data-old') || value;
-      if (dot) paintDot(dot, value);
-      try {
-        const res = await fetch(`/clientes/${clientId}/interacciones/${interactionId}/status`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken },
-          body: 'status=' + encodeURIComponent(value)
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        sel.setAttribute('data-old', value);
-      } catch (e) {
-        if (dot) paintDot(dot, oldValue);
-        sel.value = oldValue;
-        alert('No se pudo actualizar el estado.');
-      }
-    });
+    if (dot) {
+      dot.className = 'dot status-dot';
+      const cls = statusMap[dot.getAttribute('data-status')];
+      if (cls) dot.classList.add(cls);
+    }
   });
 
-})();
-</script>
-
-<!-- Script del modal de comentarios (igual que antes) -->
-<script>
-  const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
-  const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
-
+  /* ══════════════════════════════
+     MODAL COMENTARIOS
+  ══════════════════════════════ */
+  const csrfT  = csrfToken;
+  const csrfH  = csrfHeader;
   let _commentTargetSpan = null;
   let _commentClientId   = null;
   let _commentIid        = null;
@@ -1001,24 +1105,19 @@
   }
 
   document.getElementById('btnCancelComment').addEventListener('click', closeCommentModal);
+  commentBackdrop.addEventListener('click', e => { if (e.target === commentBackdrop) closeCommentModal(); });
 
   commentEditor.addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.altKey) && e.key === 'Enter') {
       e.preventDefault();
       document.execCommand('insertLineBreak');
     }
-    if (e.ctrlKey && e.key === 'h') {
-      e.preventDefault();
-      applyHighlight();
-    }
+    if (e.ctrlKey && e.key === 'h') { e.preventDefault(); applyHighlight(); }
   });
 
-  document.getElementById('btnHighlight').addEventListener('click', function() {
-    commentEditor.focus();
-    applyHighlight();
-  });
+  document.getElementById('btnHighlight').addEventListener('click', () => { commentEditor.focus(); applyHighlight(); });
 
-  document.getElementById('btnClearMark').addEventListener('click', function() {
+  document.getElementById('btnClearMark').addEventListener('click', () => {
     commentEditor.focus();
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed) return;
@@ -1029,7 +1128,7 @@
     sel.removeAllRanges();
   });
 
-  document.getElementById('btnClearAll').addEventListener('click', function() {
+  document.getElementById('btnClearAll').addEventListener('click', () => {
     commentEditor.innerHTML = '';
     commentEditor.focus();
   });
@@ -1042,14 +1141,10 @@
     const markParent = ancestor.nodeType === 3
       ? ancestor.parentElement?.closest('mark')
       : ancestor.closest?.('mark');
-    if (markParent) {
-      markParent.replaceWith(...markParent.childNodes);
-      return;
-    }
+    if (markParent) { markParent.replaceWith(...markParent.childNodes); return; }
     const mark = document.createElement('mark');
-    try {
-      range.surroundContents(mark);
-    } catch(_) {
+    try { range.surroundContents(mark); }
+    catch(_) {
       const fragment = range.extractContents();
       mark.appendChild(fragment);
       range.insertNode(mark);
@@ -1063,10 +1158,7 @@
     try {
       const res = await fetch(`/clientes/${_commentClientId}/interacciones/${_commentIid}/comments`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          [csrfHeader]: csrfToken
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfH]: csrfT },
         body: 'comments=' + encodeURIComponent(html)
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1076,20 +1168,14 @@
           _commentTargetSpan.style.color = '#ccc';
         } else {
           _commentTargetSpan.innerHTML = html;
-          _commentTargetSpan.style.color = '#555';
+          _commentTargetSpan.style.color = '#333';
         }
       }
       closeCommentModal();
-    } catch(err) {
-      alert('Error al guardar el comentario.');
-      console.error(err);
-    }
+    } catch(err) { alert('Error al guardar el comentario.'); console.error(err); }
   });
 
-  commentBackdrop.addEventListener('click', function(e) {
-    if (e.target === this) closeCommentModal();
-  });
+})();
 </script>
-
 </body>
 </html>

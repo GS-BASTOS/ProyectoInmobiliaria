@@ -2,7 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Proveedores')}"></head>
 <style>
-  .tabla-proveedores { width:100%; border-collapse:collapse; font-size:13px; margin-top:16px; }
+  .tabla-proveedores { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
   .tabla-proveedores thead tr { border-bottom:2px solid var(--line); }
   .tabla-proveedores th {
     padding:10px 12px; font-size:11px; font-weight:700; letter-spacing:0.7px;
@@ -27,16 +27,14 @@
     font-size:11px; font-weight:600; color:#999;
   }
 
-  /* ── Toast ── */
   #copyToast {
     position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px);
-    background:#222; color:#fff; font-size:13px; padding:10px 22px;
+    background:#111; color:#fff; font-size:13px; padding:10px 22px;
     border-radius:999px; opacity:0; pointer-events:none;
     transition:opacity .22s, transform .22s; z-index:9999;
   }
   #copyToast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-  /* ── WhatsApp link ── */
   .wa-link {
     display:inline-flex; align-items:center; gap:4px;
     color:#168a53; text-decoration:none; font-size:13px;
@@ -48,8 +46,8 @@
   }
   .wa-link:hover { text-decoration:underline; }
 
-  .copyable { cursor:pointer; }
-  .copyable:hover { text-decoration:underline dotted; }
+  .copyable { cursor:pointer; border-bottom:1px dashed var(--muted); transition:color .15s; }
+  .copyable:hover { color:var(--azul, #0b1f5c); }
 </style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
@@ -60,34 +58,65 @@
 
     <!-- CABECERA -->
     <div style="display:flex; align-items:flex-end; justify-content:space-between;
-                gap:12px; flex-wrap:wrap;">
+                gap:12px; flex-wrap:wrap; margin-bottom:4px;">
       <div>
         <h2 style="margin-bottom:4px;">Proveedores</h2>
         <div class="small">Personas que nos ofrecen inmuebles para gestionar.</div>
       </div>
-      <a class="btn btn-primary" th:href="@{/proveedores/nuevo}">+ Nuevo proveedor</a>
+      <a class="btn btn-primary" th:href="@{/proveedores/nuevo}"
+         style="display:inline-flex; align-items:center; gap:7px;
+                font-size:13px; padding:9px 18px; white-space:nowrap;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo proveedor
+      </a>
     </div>
 
     <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
 
     <!-- FILTROS -->
     <form th:action="@{/proveedores}" method="get"
-          style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px;">
-      <div>
-        <label>Buscar</label>
-        <input type="text" name="q" th:value="${q}"
-               placeholder="Nombre, empresa, teléfono, email..."
-               style="min-width:260px;"/>
+          style="padding:18px 20px; border-radius:14px;
+                 border:1px solid var(--line); background:#faf8f4; margin-bottom:16px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="var(--muted)" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </svg>
+        <span style="font-size:11px; font-weight:700; letter-spacing:1.2px;
+                     text-transform:uppercase; color:var(--muted);">Filtros</span>
       </div>
-      <div class="actions" style="margin-top:0;">
-        <button type="submit">Filtrar</button>
-        <a class="btn btn-secondary" th:href="@{/proveedores}">Limpiar</a>
+      <div style="display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end;">
+        <div>
+          <label>Buscar</label>
+          <input type="text" name="q" th:value="${q}"
+                 placeholder="Nombre, empresa, teléfono, email..." style="margin:0;"/>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <a class="btn btn-secondary" th:href="@{/proveedores}"
+             style="font-size:13px; padding:9px 16px;">Limpiar</a>
+          <button type="submit"
+                  style="display:inline-flex; align-items:center; gap:7px;
+                         font-size:13px; padding:9px 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Filtrar
+          </button>
+        </div>
       </div>
     </form>
 
-    <!-- SIN RESULTADOS -->
+    <!-- Sin resultados -->
     <p th:if="${#lists.isEmpty(suppliers)}"
-       style="color:var(--muted); font-size:13px; margin:0; padding:20px 0; text-align:center;">
+       style="color:var(--muted); font-size:13px; margin:0; padding:32px 0; text-align:center;">
       No hay proveedores con esos filtros.
     </p>
 
@@ -110,7 +139,8 @@
           <td>
             <a th:href="@{|/proveedores/${s.id}|}"
                th:text="${s.fullName}"
-               style="font-weight:600; text-decoration:none; color:inherit;"></a>
+               style="font-weight:700; text-decoration:none; color:var(--text);
+                      font-size:13px; letter-spacing:0.2px;"></a>
             <div th:if="${s.companyName != null and !#strings.isEmpty(s.companyName)}"
                  style="font-size:11px; color:#888; margin-top:2px;"
                  th:text="${s.companyName}"></div>
@@ -118,8 +148,8 @@
 
           <!-- TELÉFONOS -->
           <td>
-            <span th:if="${#lists.isEmpty(s.phones)}" style="color:#ccc;">—</span>
-            <div th:each="p : ${s.phones}">
+            <span th:if="${#lists.isEmpty(s.phones)}" style="color:#ccc; font-size:13px;">—</span>
+            <div th:each="p : ${s.phones}" style="margin-bottom:2px;">
               <a class="wa-link"
                  th:href="${'https://wa.me/' + #strings.replace(#strings.replace(p.phoneNumber,'+',''),' ','')}"
                  target="_blank"
@@ -130,11 +160,12 @@
 
           <!-- EMAILS -->
           <td>
-            <span th:if="${#lists.isEmpty(s.emails)}" style="color:#ccc;">—</span>
-            <div th:each="e : ${s.emails}">
+            <span th:if="${#lists.isEmpty(s.emails)}" style="color:#ccc; font-size:13px;">—</span>
+            <div th:each="e : ${s.emails}" style="margin-bottom:2px;">
               <span class="copyable"
                     th:attr="data-copy=${e.email}"
-                    th:text="${e.email}"></span>
+                    th:text="${e.email}"
+                    style="font-size:12px;"></span>
             </div>
           </td>
 
@@ -154,9 +185,9 @@
           </td>
 
           <!-- ACCIÓN -->
-          <td style="white-space:nowrap;">
+          <td style="vertical-align:middle;">
             <a class="btn btn-secondary" th:href="@{|/proveedores/${s.id}|}"
-               style="font-size:12px; padding:6px 12px;">Ver ficha</a>
+               style="font-size:12px; padding:6px 12px; white-space:nowrap;">Ver ficha →</a>
           </td>
 
         </tr>

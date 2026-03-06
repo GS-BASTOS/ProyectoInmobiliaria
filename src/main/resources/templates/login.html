@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Login · BBDD</title>
+  <title>Acceso · Solvia</title>
   <link rel="stylesheet" th:href="@{/css/app.css}"/>
   <style>
     body {
@@ -11,69 +11,159 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(160deg, #ffffff 0%, #f4f1ea 100%);
+      background: linear-gradient(160deg, #f4f1ea 0%, #e8e4db 100%);
     }
+
+    .login-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      padding: 20px;
+    }
+
+    .login-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0b1f5c;
+      letter-spacing: -0.3px;
+      margin-bottom: 28px;
+      text-decoration: none;
+    }
+
     .login-card {
       background: #fff;
       border: 1px solid var(--line);
       border-radius: 20px;
-      padding: 48px 40px 36px;
+      padding: 36px 36px 28px;
       width: 100%;
       max-width: 380px;
-      box-shadow: 0 16px 48px rgba(0,0,0,.10);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      box-shadow: 0 16px 56px rgba(0,0,0,.10);
     }
-    .login-card img {
-      max-width: 180px;
-      margin-bottom: 6px;
+
+    .login-card h2 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 800;
     }
-    .login-card .db-label {
+
+    .login-card .login-sub {
       font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
-    .login-card form { width: 100%; }
-    .login-card label { margin: 0 0 5px; color: var(--muted); font-size: 13px; }
-    .login-card input { margin-bottom: 14px; }
-    .login-card button { width: 100%; margin-top: 6px; font-size: 15px; padding: 12px; }
-    .login-error {
-      background: #fff5f5;
-      border: 1px solid rgba(180,35,24,.3);
-      color: #b42318;
+
+    .login-card label {
+      margin: 0 0 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .login-card input {
+      margin-bottom: 14px;
+    }
+
+    .login-card button[type=submit] {
+      width: 100%;
+      margin-top: 4px;
+      font-size: 15px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .login-alert {
       border-radius: 10px;
       padding: 10px 14px;
       font-size: 13px;
-      margin-bottom: 14px;
-      width: 100%;
+      margin-bottom: 16px;
       text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .login-alert.error {
+      background: #fff5f5;
+      border: 1px solid rgba(180,35,24,.3);
+      color: #b42318;
+    }
+
+    .login-alert.success {
+      background: #f0fff4;
+      border: 1px solid rgba(22,138,83,.3);
+      color: #168a53;
     }
   </style>
 </head>
 <body>
-  <div class="login-card">
-    <img th:src="@{/images/logo.png}" alt="Logo"/>
-    <div class="db-label">BBDD</div>
+  <div class="login-wrap">
 
-    <div class="login-error" th:if="${param.error}">
-      Usuario o contraseña incorrectos.
-    </div>
-    <div class="login-error" style="background:#f0fff4; border-color:#168a53; color:#168a53;"
-         th:if="${param.logout}">
-      Sesión cerrada correctamente.
+    <!-- Brand -->
+    <a class="login-brand" th:href="@{/login}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"
+           fill="none" stroke="#0b1f5c" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+        <polyline points="9 21 9 12 15 12 15 21"/>
+      </svg>
+      Solvia Store
+    </a>
+
+    <div class="login-card">
+      <h2>Iniciar sesión</h2>
+      <div class="login-sub">Accede con tus credenciales de equipo.</div>
+
+      <!-- Error -->
+      <div class="login-alert error" th:if="${param.error}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        Usuario o contraseña incorrectos.
+      </div>
+
+      <!-- Logout ok -->
+      <div class="login-alert success" th:if="${param.logout}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Sesión cerrada correctamente.
+      </div>
+
+      <form method="post" th:action="@{/login}">
+        <label>Usuario</label>
+        <input type="text" name="username"
+               autocomplete="username" autofocus required
+               placeholder="Tu usuario..."/>
+        <label>Contraseña</label>
+        <input type="password" name="password"
+               autocomplete="current-password" required
+               placeholder="••••••••"/>
+        <button type="submit">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          Entrar
+        </button>
+      </form>
     </div>
 
-    <form method="post" th:action="@{/login}">
-      <label>Usuario</label>
-      <input type="text" name="username" autocomplete="username" autofocus required/>
-      <label>Contraseña</label>
-      <input type="password" name="password" autocomplete="current-password" required/>
-      <button type="submit">Entrar</button>
-    </form>
   </div>
 </body>
 </html>

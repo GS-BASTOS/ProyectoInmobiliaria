@@ -2,283 +2,166 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Interesados')}"></head>
 <style>
+  /* ── Copyable ── */
   .copyable {
     cursor: pointer;
     border-bottom: 1px dashed var(--muted);
     transition: color .15s;
   }
-  .copyable:hover { color: var(--azul); }
+  .copyable:hover { color: var(--azul, #0b1f5c); }
 
-  .nda-ticket-cell {
-    display: flex;
-    flex-direction: column;
-    min-width: 52px;
-  }
-  .nda-ticket-half {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px 6px;
-    flex: 1;
-  }
-  .nda-ticket-half:first-child {
-    border-bottom: 1px solid var(--line);
-  }
-
+  /* ── Toast ── */
   #copyToast {
-    position: fixed;
-    bottom: 28px;
-    left: 50%;
+    position: fixed; bottom: 28px; left: 50%;
     transform: translateX(-50%) translateY(20px);
-    background: #111;
-    color: #fff;
-    padding: 8px 18px;
-    border-radius: 999px;
-    font-size: 13px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .2s, transform .2s;
-    z-index: 9999;
+    background: #111; color: #fff;
+    padding: 8px 18px; border-radius: 999px;
+    font-size: 13px; opacity: 0; pointer-events: none;
+    transition: opacity .2s, transform .2s; z-index: 9999;
   }
-  #copyToast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+  #copyToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  .filter-grid-search {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-
-  .tabla-interesados {
-    margin-top: 14px;
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .tabla-interesados thead tr {
-    border-bottom: 2px solid var(--line);
-  }
+  /* ── Tabla ── */
+  .tabla-interesados { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
+  .tabla-interesados thead tr { border-bottom:2px solid var(--line); }
   .tabla-interesados th {
-    padding: 10px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.7px;
-    text-transform: uppercase;
-    color: var(--muted);
-    white-space: nowrap;
-    text-align: left;
-    background: transparent;
+    padding:10px 12px; font-size:11px; font-weight:700;
+    letter-spacing:0.7px; text-transform:uppercase;
+    color:var(--muted); white-space:nowrap; text-align:left;
   }
   .tabla-interesados td {
-    padding: 10px 12px;
-    vertical-align: top;
-    border-bottom: 1px solid var(--line);
+    padding:10px 12px; vertical-align:top;
+    border-bottom:1px solid var(--line);
   }
-  .tabla-interesados tbody tr:last-child td { border-bottom: none; }
-  .tabla-interesados tbody tr:hover { background: #fafafa; }
+  .tabla-interesados tbody tr:last-child td { border-bottom:none; }
+  .tabla-interesados tbody tr:hover { background:#fafafa; }
 
+  /* ── Row colors ── */
+  .row-okupa           { background:#fff5f5 !important; border-left:3px solid #b42318; }
+  .row-comprador       { background:#f0faf4 !important; border-left:3px solid #168a53; }
+  .row-comprador-other { opacity:0.45; }
+
+  /* ── Chips ── */
   .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    border-radius: 999px;
-    padding: 2px 8px;
-    font-size: 11px;
-    font-weight: 700;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: box-shadow .18s ease, transform .18s ease;
+    display:inline-flex; align-items:center; gap:4px;
+    border-radius:999px; padding:2px 8px;
+    font-size:11px; font-weight:700;
+    text-decoration:none; white-space:nowrap;
+    transition:box-shadow .18s, transform .18s;
   }
-  .chip:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,.12);
-    transform: translateY(-1px);
-  }
-  .chip-green  { background: #e8f5e9; border: 1px solid #168a53; color: #168a53; }
-  .chip-orange { background: #fff4e6; border: 1px solid #e07a18; color: #a05800; }
-  .chip-red    { background: #ffebee; border: 1px solid #b42318; color: #b42318; }
+  .chip:hover { box-shadow:0 2px 8px rgba(0,0,0,.12); transform:translateY(-1px); }
+  .chip-green  { background:#e8f5e9; border:1px solid #168a53; color:#168a53; }
+  .chip-orange { background:#fff4e6; border:1px solid #e07a18; color:#a05800; }
+  .chip-red    { background:#ffebee; border:1px solid #b42318; color:#b42318; }
 
-  .row-okupa           { background: #fff5f5 !important; border-left: 3px solid #b42318; }
-  .row-comprador       { background: #f0faf4 !important; border-left: 3px solid #168a53; }
-  .row-comprador-other { opacity: 0.45; }
-
-  .prop-code {
-    font-size: 13px;
-    font-weight: 800;
-    color: #111;
-    text-decoration: none;
-    letter-spacing: 0.3px;
-  }
+  /* ── Property card ── */
+  .prop-code      { font-size:13px; font-weight:800; color:#111; text-decoration:none; letter-spacing:0.3px; }
   .prop-type-badge {
-    font-size: 11px;
-    background: #f0f0f0;
-    color: #333;
-    border-radius: 4px;
-    padding: 1px 7px;
-    font-weight: 600;
-    border: 1px solid #e0e0e0;
+    font-size:11px; background:#f0f0f0; color:#333;
+    border-radius:4px; padding:1px 7px; font-weight:600; border:1px solid #e0e0e0;
   }
-  .prop-row {
-    display: flex;
-    align-items: baseline;
-    gap: 5px;
-    margin-bottom: 3px;
-    flex-wrap: wrap;
-  }
-  .prop-key {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    color: #111;
-    flex-shrink: 0;
-  }
-  .prop-val {
-    font-size: 12px;
-    color: #111;
-    font-weight: 500;
-  }
-  .prop-mun {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 6px;
-  }
-  .prop-mun-text {
-    font-size: 12px;
-    color: #111;
-    font-weight: 600;
-  }
+  .prop-row       { display:flex; align-items:baseline; gap:5px; margin-bottom:3px; flex-wrap:wrap; }
+  .prop-key       { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:#111; flex-shrink:0; }
+  .prop-val       { font-size:12px; color:#111; font-weight:500; }
+  .prop-mun       { display:flex; align-items:center; gap:4px; margin-bottom:6px; }
+  .prop-mun-text  { font-size:12px; color:#111; font-weight:600; }
 
   /* ── WhatsApp link ── */
   .wa-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    color: #168a53;
-    text-decoration: none;
-    font-size: 13px;
+    display:inline-flex; align-items:center; gap:4px;
+    color:#168a53; text-decoration:none; font-size:13px;
   }
   .wa-link::before {
-    content: ''; display: inline-block; width: 13px; height: 13px; flex-shrink: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23168a53'%3E%3Cpath d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-size: contain;
+    content:''; display:inline-block; width:13px; height:13px; flex-shrink:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23168a53'%3E%3Cpath d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-size:contain;
   }
-  .wa-link:hover { text-decoration: underline; }
+  .wa-link:hover { text-decoration:underline; }
 
-  /* ── Modal visita ── */
+  /* ── NDA/Ticket cell ── */
+  .nda-ticket-cell    { display:flex; flex-direction:column; min-width:52px; }
+  .nda-ticket-half    { display:flex; align-items:center; justify-content:center; padding:5px 6px; flex:1; }
+  .nda-ticket-half:first-child { border-bottom:1px solid var(--line); }
+
+  /* ── Filter pills ── */
+  .filter-pill {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:5px 12px; border-radius:999px;
+    font-size:12px; font-weight:600;
+    cursor:pointer; user-select:none;
+    transition:box-shadow .15s, transform .15s;
+  }
+  .filter-pill:hover { box-shadow:0 2px 6px rgba(0,0,0,.10); }
+  .filter-pill.active {
+    box-shadow:0 0 0 2px currentColor;
+    transform:scale(1.03);
+  }
+
+  /* ── Comentarios ── */
+  .comment-display {
+    cursor:pointer; white-space:pre-wrap;
+    line-height:1.5; display:block;
+    padding:2px 4px; border-radius:4px;
+  }
+  .comment-display:hover { background:#f5f5f5; }
+  .comment-display mark {
+    background:#ffcccc; color:#b42318;
+    border-radius:2px; padding:0 1px;
+  }
+
+  /* ── Modal ── */
   .modal-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.38);
-    z-index: 2000;
-    align-items: center;
-    justify-content: center;
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,.40); z-index:2000;
+    align-items:center; justify-content:center;
   }
-  .modal-backdrop.open { display: flex; }
+  .modal-backdrop.open { display:flex; }
   .modal-box {
-    background: #fff;
-    border-radius: 16px;
-    padding: 28px;
-    width: 100%;
-    max-width: 460px;
-    box-shadow: 0 16px 48px rgba(0,0,0,.18);
+    background:#fff; border-radius:16px; padding:28px;
+    width:100%; max-width:460px;
+    box-shadow:0 20px 56px rgba(0,0,0,.18);
   }
-  .modal-box h3 { margin: 0 0 18px; font-size: 17px; }
+  .modal-box h3 { margin:0 0 16px; font-size:17px; }
   .modal-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    justify-content: flex-end;
+    display:flex; gap:10px; margin-top:20px; justify-content:flex-end;
   }
 
-  /* ── Modal comentarios ── */
-  #commentModalBackdrop { z-index: 2100; }
+  /* ── Comment editor ── */
+  #commentModalBackdrop { z-index:2100; }
   .comment-editor-toolbar {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    padding: 8px 10px;
-    background: #f5f5f5;
-    border: 1px solid #e0e0e0;
-    border-bottom: none;
-    border-radius: 10px 10px 0 0;
+    display:flex; gap:6px; align-items:center;
+    padding:8px 10px; background:#f5f5f5;
+    border:1px solid #e0e0e0; border-bottom:none;
+    border-radius:10px 10px 0 0;
   }
   .toolbar-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 28px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: #fff;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 700;
-    color: #333;
-    transition: background .15s, border-color .15s;
-    user-select: none;
+    display:inline-flex; align-items:center; justify-content:center;
+    width:30px; height:28px; border:1px solid #ddd;
+    border-radius:6px; background:#fff; cursor:pointer;
+    font-size:13px; font-weight:700; color:#333;
+    transition:background .15s, border-color .15s; user-select:none;
   }
-  .toolbar-btn:hover { background: #e8e8e8; border-color: #bbb; }
-  .toolbar-sep {
-    width: 1px;
-    height: 20px;
-    background: #ddd;
-    margin: 0 2px;
-  }
+  .toolbar-btn:hover { background:#e8e8e8; border-color:#bbb; }
+  .toolbar-sep { width:1px; height:20px; background:#ddd; margin:0 2px; }
   .comment-editor-body {
-    min-height: 120px;
-    max-height: 320px;
-    overflow-y: auto;
-    padding: 10px 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 0 0 10px 10px;
-    font-size: 13px;
-    line-height: 1.55;
-    color: #333;
-    outline: none;
-    white-space: pre-wrap;
+    min-height:120px; max-height:320px; overflow-y:auto;
+    padding:10px 12px; border:1px solid #e0e0e0;
+    border-radius:0 0 10px 10px; font-size:13px;
+    line-height:1.55; color:#333; outline:none; white-space:pre-wrap;
   }
   .comment-editor-body mark {
-    background: #ffcccc;
-    color: #b42318;
-    border-radius: 2px;
-    padding: 0 1px;
+    background:#ffcccc; color:#b42318;
+    border-radius:2px; padding:0 1px;
   }
-  .comment-display {
-    cursor: pointer;
-    white-space: pre-wrap;
-    line-height: 1.5;
-    display: block;
-    padding: 2px 4px;
-    border-radius: 4px;
-  }
-  .comment-display:hover { background: #f5f5f5; }
-  .comment-display mark {
-    background: #ffcccc;
-    color: #b42318;
-    border-radius: 2px;
-    padding: 0 1px;
-  }
-  .hint-text {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 6px;
-  }
+  .hint-text { font-size:11px; color:var(--muted); margin-top:6px; }
 
-  @media (max-width: 640px) {
-    .filter-grid-search { grid-template-columns: 1fr; }
+  @media (max-width:640px) {
+    .tabla-interesados { display:block; overflow-x:auto; }
   }
 </style>
 <body>
 
-<!-- ▼ CSRF meta tags — necesarios para el fetch del modal ▼ -->
+<!-- CSRF meta tags para fetch() -->
 <meta name="_csrf"        th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
@@ -289,7 +172,7 @@
 <!-- ══ MODAL COMENTARIOS ══ -->
 <div class="modal-backdrop" id="commentModalBackdrop">
   <div class="modal-box" style="max-width:520px;">
-    <h3 style="margin:0 0 4px;">✏️ Editar comentario</h3>
+    <h3>✏️ Editar comentario</h3>
     <p class="hint-text" style="margin:0 0 14px;">
       Selecciona texto y pulsa <strong>🔴</strong> para marcarlo en rojo.
       Usa <kbd>Ctrl+Enter</kbd> o <kbd>Alt+Enter</kbd> para saltar de línea.
@@ -301,11 +184,8 @@
       <button type="button" class="toolbar-btn" id="btnClearAll"
               style="font-size:11px; width:auto; padding:0 8px;">Limpiar todo</button>
     </div>
-    <div id="commentEditor"
-         class="comment-editor-body"
-         contenteditable="true"
-         spellcheck="true">
-    </div>
+    <div id="commentEditor" class="comment-editor-body"
+         contenteditable="true" spellcheck="true"></div>
     <div class="modal-actions">
       <button type="button" id="btnCancelComment"
               style="background:#fff; color:#111; border:1px solid var(--line);">
@@ -322,31 +202,43 @@
 <!-- ══ MODAL PROGRAMAR VISITA ══ -->
 <div class="modal-backdrop" id="visitModalBackdrop">
   <div class="modal-box">
-    <h3>📅 Programar visita</h3>
+    <h3 style="display:flex; align-items:center; gap:8px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+           fill="none" stroke="#0b1f5c" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      Programar visita
+    </h3>
+
     <form method="post" th:action="@{/visitas/crear}">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
       <input type="hidden" name="interactionId" id="visitModalInteractionId"/>
 
-      <div style="margin-bottom:12px;">
-        <label>Cliente</label>
-        <input type="text" id="visitModalClientName" readonly
-               style="background:#f5f5f5; color:#555; cursor:default;"/>
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <label>Inmueble</label>
-        <input type="text" id="visitModalPropertyCode" readonly
-               style="background:#f5f5f5; color:#555; cursor:default;"/>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+        <div>
+          <label>Cliente</label>
+          <input type="text" id="visitModalClientName" readonly
+                 style="background:#f5f5f5; color:#555; cursor:default; margin:0;"/>
+        </div>
+        <div>
+          <label>Inmueble</label>
+          <input type="text" id="visitModalPropertyCode" readonly
+                 style="background:#f5f5f5; color:#555; cursor:default; margin:0;"/>
+        </div>
       </div>
 
       <div style="margin-bottom:12px;">
         <label>Fecha y hora <span style="color:#b42318;">*</span></label>
-        <input type="datetime-local" name="visitAt" id="visitModalAt" required/>
+        <input type="datetime-local" name="visitAt" id="visitModalAt" required style="margin:0;"/>
       </div>
 
-      <div style="margin-bottom:12px;">
+      <div style="margin-bottom:4px;">
         <label>Notas (opcional)</label>
         <textarea name="notes" rows="3"
-                  placeholder="Observaciones sobre la visita..."></textarea>
+                  placeholder="Observaciones sobre la visita..." style="margin:0;"></textarea>
       </div>
 
       <div class="modal-actions">
@@ -354,7 +246,16 @@
                 style="background:#fff; color:#111; border:1px solid var(--line);">
           Cancelar
         </button>
-        <button type="submit" style="background:#0b1f5c; border-color:#0b1f5c;">
+        <button type="submit"
+                style="background:#0b1f5c; border-color:#0b1f5c;
+                       display:inline-flex; align-items:center; gap:6px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
           Guardar visita
         </button>
       </div>
@@ -367,33 +268,33 @@
 
     <!-- ══ CABECERA ══ -->
     <div style="display:flex; align-items:flex-end; justify-content:space-between;
-                gap:12px; flex-wrap:wrap;">
+                gap:12px; flex-wrap:wrap; margin-bottom:4px;">
       <div>
         <h2 style="margin-bottom:4px;">Histórico de interesados</h2>
-        <div class="small">Selecciona emails y pulsa copiar para pegarlos directamente en tu correo.</div>
+        <div class="small">Selecciona emails y pulsa copiar para pegarlos en tu correo.</div>
       </div>
-      <!-- ✦ NUEVO: botón crear cliente interesado -->
-      <div class="actions" style="margin-top:0;">
-        <a class="btn btn-primary" th:href="@{/agregar}"
-           style="display:inline-flex; align-items:center; gap:7px; font-size:13px; padding:9px 18px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          Nuevo cliente
-        </a>
-      </div>
+      <a class="btn btn-primary" th:href="@{/agregar}"
+         style="display:inline-flex; align-items:center; gap:7px;
+                font-size:13px; padding:9px 18px; white-space:nowrap;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo cliente
+      </a>
     </div>
 
     <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
 
     <!-- ══ FILTROS ══ -->
-    <form class="filters" th:action="@{/interesados}" method="get"
-          style="padding:18px 20px; border-radius:14px; border:1px solid var(--line); background:#faf8f4;">
+    <form th:action="@{/interesados}" method="get"
+          style="padding:18px 20px; border-radius:14px;
+                 border:1px solid var(--line); background:#faf8f4; margin-bottom:16px;">
 
       <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
              fill="none" stroke="var(--muted)" stroke-width="2.5"
              stroke-linecap="round" stroke-linejoin="round">
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
@@ -402,15 +303,18 @@
                      text-transform:uppercase; color:var(--muted);">Filtros</span>
       </div>
 
-      <!-- ESTADOS -->
+      <!-- ESTADOS (pills) -->
       <div style="margin-bottom:14px;">
-        <span class="filter-label">
+        <span style="font-size:11px; font-weight:700; text-transform:uppercase;
+                     letter-spacing:0.8px; color:var(--muted); display:block; margin-bottom:8px;">
           Estado
-          <span style="font-weight:400; text-transform:none; letter-spacing:0;">(puedes marcar varios)</span>
+          <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted);">
+            (puedes marcar varios)
+          </span>
         </span>
         <div style="display:flex; flex-wrap:wrap; gap:8px;">
 
-          <label style="margin:0; cursor:pointer; display:inline;">
+          <label style="margin:0; cursor:pointer;">
             <input type="checkbox" name="statuses" value="GRIS_SIN_CONTACTO" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'GRIS_SIN_CONTACTO')}"/>
             <span class="filter-pill" style="border:1.5px solid #d0d0d0; background:#f5f5f5; color:#555;">
@@ -419,7 +323,7 @@
             </span>
           </label>
 
-          <label style="margin:0; cursor:pointer; display:inline;">
+          <label style="margin:0; cursor:pointer;">
             <input type="checkbox" name="statuses" value="AZUL_VISITA_PROGRAMADA" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'AZUL_VISITA_PROGRAMADA')}"/>
             <span class="filter-pill" style="border:1.5px solid #b3c4ff; background:#eef1ff; color:#0b1f5c;">
@@ -428,7 +332,7 @@
             </span>
           </label>
 
-          <label style="margin:0; cursor:pointer; display:inline;">
+          <label style="margin:0; cursor:pointer;">
             <input type="checkbox" name="statuses" value="AZUL_VISITA_REALIZADA" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'AZUL_VISITA_REALIZADA')}"/>
             <span class="filter-pill" style="border:1.5px solid #b3d9ff; background:#e8f4ff; color:#1565c0;">
@@ -437,7 +341,7 @@
             </span>
           </label>
 
-          <label style="margin:0; cursor:pointer; display:inline;">
+          <label style="margin:0; cursor:pointer;">
             <input type="checkbox" name="statuses" value="NARANJA_QUIERE_VISITA" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'NARANJA_QUIERE_VISITA')}"/>
             <span class="filter-pill" style="border:1.5px solid #f5c18a; background:#fff4e6; color:#a05800;">
@@ -446,7 +350,7 @@
             </span>
           </label>
 
-          <label style="margin:0; cursor:pointer; display:inline;">
+          <label style="margin:0; cursor:pointer;">
             <input type="checkbox" name="statuses" value="ROSA_DESCARTA" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'ROSA_DESCARTA')}"/>
             <span class="filter-pill" style="border:1.5px solid #d9a8ff; background:#f7eeff; color:#6a0fa0;">
@@ -455,7 +359,7 @@
             </span>
           </label>
 
-          <label style="margin:0; cursor:pointer; display:inline;">
+          <label style="margin:0; cursor:pointer;">
             <input type="checkbox" name="statuses" value="VERDE_PENSANDO" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'VERDE_PENSANDO')}"/>
             <span class="filter-pill" style="border:1.5px solid #a5d6a7; background:#e8f5e9; color:#1b5e20;">
@@ -464,7 +368,7 @@
             </span>
           </label>
 
-          <label style="margin:0; cursor:pointer; display:inline;">
+          <label style="margin:0; cursor:pointer;">
             <input type="checkbox" name="statuses" value="AMARILLO_OFERTA" style="display:none;"
                    th:checked="${#lists.contains(selectedStatuses, 'AMARILLO_OFERTA')}"/>
             <span class="filter-pill" style="border:1.5px solid #ffe082; background:#fffde7; color:#795500;">
@@ -479,11 +383,12 @@
       <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
 
       <!-- CANAL + FECHAS + NDA -->
-      <div style="display:grid; grid-template-columns:1.2fr 1fr 1fr auto; gap:10px;
-                  align-items:end; margin-bottom:12px;">
+      <div style="display:grid; grid-template-columns:1.2fr 1fr 1fr auto;
+                  gap:10px; align-items:end; margin-bottom:14px;">
 
-        <div style="display:flex; flex-direction:column;">
-          <span class="filter-label">Canal</span>
+        <div>
+          <label style="font-size:11px; font-weight:700; text-transform:uppercase;
+                        letter-spacing:0.7px; color:var(--muted);">Canal</label>
           <select name="channel" style="margin:0;">
             <option value="" th:selected="${selectedChannel == null}">Todos</option>
             <option th:each="c : ${channels}" th:value="${c}" th:text="${c}"
@@ -491,18 +396,21 @@
           </select>
         </div>
 
-        <div style="display:flex; flex-direction:column;">
-          <span class="filter-label">Desde</span>
+        <div>
+          <label style="font-size:11px; font-weight:700; text-transform:uppercase;
+                        letter-spacing:0.7px; color:var(--muted);">Desde</label>
           <input type="date" name="from" id="inputFrom" th:value="${from}" style="margin:0;"/>
         </div>
 
-        <div style="display:flex; flex-direction:column;">
-          <span class="filter-label">Hasta</span>
+        <div>
+          <label style="font-size:11px; font-weight:700; text-transform:uppercase;
+                        letter-spacing:0.7px; color:var(--muted);">Hasta</label>
           <input type="date" name="to" id="inputTo" th:value="${to}" style="margin:0;"/>
         </div>
 
-        <div style="display:flex; flex-direction:column;">
-          <span class="filter-label">NDA</span>
+        <div>
+          <label style="font-size:11px; font-weight:700; text-transform:uppercase;
+                        letter-spacing:0.7px; color:var(--muted);">NDA</label>
           <div id="ndaFilterLabel"
                onclick="document.getElementById('ndaFilterCb').click()"
                style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;
@@ -513,7 +421,7 @@
             <input type="checkbox" name="ndaOnly" value="true" id="ndaFilterCb"
                    th:checked="${ndaOnly != null and ndaOnly}"
                    onclick="event.stopPropagation()"/>
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                  fill="none" stroke="currentColor" stroke-width="2.5"
                  stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -522,13 +430,13 @@
             Solo NDA
           </div>
         </div>
-
       </div>
 
       <!-- BÚSQUEDA -->
-      <div style="margin-bottom:12px;">
-        <span class="filter-label">Buscar</span>
-        <div class="filter-grid-search">
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11px; font-weight:700; text-transform:uppercase;
+                      letter-spacing:0.7px; color:var(--muted);">Buscar</label>
+        <div style="display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center;">
           <select name="searchField" style="width:auto; min-width:170px; margin:0;">
             <option value="ALL"           th:selected="${searchField == 'ALL' or searchField == null}">Todos los campos</option>
             <option value="CLIENT"        th:selected="${searchField == 'CLIENT'}">Cliente / Empresa</option>
@@ -537,36 +445,54 @@
             <option value="CHANNEL"       th:selected="${searchField == 'CHANNEL'}">Canal</option>
             <option value="COMMENTS"      th:selected="${searchField == 'COMMENTS'}">Comentarios</option>
           </select>
-          <input type="text" name="q" placeholder="Escribe para buscar..." th:value="${q}" style="margin:0;"/>
+          <input type="text" name="q" placeholder="Escribe para buscar..."
+                 th:value="${q}" style="margin:0;"/>
         </div>
       </div>
 
-      <!-- ✦ ACCIONES — ahora incluye el botón copiar emails -->
-      <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end; flex-wrap:wrap;">
-        <a class="btn btn-secondary" th:href="@{/interesados}" style="font-size:13px; padding:9px 16px;">Limpiar</a>
+      <!-- ACCIONES FILTROS -->
+      <div style="display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button type="button" id="copyEmailsBtn" disabled
+                  style="font-size:13px; padding:9px 16px;
+                         display:inline-flex; align-items:center; gap:7px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copiar emails (<span id="emailsCountInline">0</span>)
+          </button>
+          <a href="javascript:void(0)" class="btn btn-secondary" id="clearEmailsBtn"
+             style="display:none; font-size:13px; padding:9px 16px;">Limpiar sel.</a>
+        </div>
 
-        <!-- Copiar emails — movido aquí desde la cabecera -->
-        <button type="button" id="copyEmailsBtn" disabled
-                style="font-size:13px; padding:9px 16px;">
-          Copiar emails (<span id="emailsCountInline">0</span>)
-        </button>
-        <a href="javascript:void(0)" class="btn btn-secondary" id="clearEmailsBtn"
-           style="display:none; font-size:13px; padding:9px 16px;">Limpiar sel.</a>
-
-        <button type="submit" style="display:inline-flex; align-items:center; gap:7px;
-                                     font-size:13px; padding:9px 20px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-          </svg>
-          Filtrar
-        </button>
+        <div style="display:flex; gap:8px;">
+          <a class="btn btn-secondary" th:href="@{/interesados}"
+             style="font-size:13px; padding:9px 16px;">Limpiar</a>
+          <button type="submit"
+                  style="display:inline-flex; align-items:center; gap:7px;
+                         font-size:13px; padding:9px 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Filtrar
+          </button>
+        </div>
       </div>
     </form>
 
+    <!-- Sin resultados -->
+    <p th:if="${#lists.isEmpty(items)}"
+       style="color:var(--muted); font-size:13px; padding:32px 0; text-align:center; margin:0;">
+      No hay resultados para los filtros seleccionados.
+    </p>
+
     <!-- ══ TABLA ══ -->
-    <table class="tabla-interesados">
+    <table class="tabla-interesados" th:if="${!#lists.isEmpty(items)}">
       <thead>
         <tr>
           <th style="width:36px; text-align:center;">Est.</th>
@@ -582,8 +508,9 @@
                    onclick="document.getElementById('selectAllEmails').click()">
                 <input type="checkbox" id="selectAllEmails" style="margin:0; cursor:pointer;"
                        onclick="event.stopPropagation()"/>
-                <span id="selectAllText" style="font-size:11px; font-weight:500;
-                                                text-transform:none; letter-spacing:0; color:var(--text);">
+                <span id="selectAllText"
+                      style="font-size:11px; font-weight:500; text-transform:none;
+                             letter-spacing:0; color:var(--text);">
                   Seleccionar todos
                 </span>
               </div>
@@ -603,12 +530,6 @@
         </tr>
       </thead>
       <tbody>
-        <tr th:if="${#lists.isEmpty(items)}">
-          <td colspan="10" style="text-align:center; padding:32px; color:var(--muted); font-size:13px;">
-            No hay resultados para los filtros seleccionados.
-          </td>
-        </tr>
-
         <tr th:each="it : ${items}"
             th:attr="data-excluido=${it.client.posibleOcupa or it.client.compradorFinal} ? 'true' : null"
             th:classappend="${it.client.posibleOcupa
@@ -620,7 +541,7 @@
                                   : ''}">
 
           <!-- ESTADO -->
-          <td style="text-align:center; padding-top:13px;">
+          <td style="text-align:center; padding-top:13px; vertical-align:top;">
             <span class="dot-status status-dot"
                   th:attr="data-status=${it.status}"
                   th:title="${it.status}"></span>
@@ -628,9 +549,7 @@
 
           <!-- FECHA -->
           <td style="white-space:nowrap; color:var(--muted); font-size:12px;"
-              th:text="${#temporals.format(it.contactDate, 'dd/MM/yyyy')}">
-            13/02/2026
-          </td>
+              th:text="${#temporals.format(it.contactDate, 'dd/MM/yyyy')}">—</td>
 
           <!-- CLIENTE -->
           <td>
@@ -645,11 +564,9 @@
             </a>
             <div th:if="${it.client.companyName != null and !#strings.isEmpty(it.client.companyName)}"
                  style="font-size:11px; color:#888; margin-top:2px;"
-                 th:text="${it.client.companyName}">
-            </div>
+                 th:text="${it.client.companyName}"></div>
             <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
-              <span th:if="${it.client.posibleOcupa}"
-                    class="chip chip-red"
+              <span th:if="${it.client.posibleOcupa}" class="chip chip-red"
                     style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.3px;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2.5"
@@ -660,15 +577,14 @@
                 </svg>
                 OKUPA
               </span>
-              <span th:if="${it.client.compradorFinal}"
-                    class="chip chip-green"
+              <span th:if="${it.client.compradorFinal}" class="chip chip-green"
                     style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.3px;">
                 💰 COMPRADOR
               </span>
             </div>
           </td>
 
-          <!-- ✦ TELÉFONOS — ahora con enlace WhatsApp -->
+          <!-- TELÉFONOS -->
           <td>
             <span th:if="${phonesByClientId.get(it.client.id) == null}" style="color:#ccc;">—</span>
             <div th:each="p : ${phonesByClientId.get(it.client.id)}" style="margin-bottom:3px;">
@@ -686,10 +602,8 @@
             <span th:if="${emailsByClientId.get(it.client.id) == null}" style="color:#ccc;">—</span>
             <div th:each="e : ${emailsByClientId.get(it.client.id)}"
                  style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
-              <input type="checkbox" class="email-item"
-                     th:attr="data-email=${e.email}"/>
-              <span class="copyable"
-                    th:attr="data-copy=${e.email}"
+              <input type="checkbox" class="email-item" th:attr="data-email=${e.email}"/>
+              <span class="copyable" th:attr="data-copy=${e.email}"
                     th:text="${e.email}"
                     style="font-size:12px; color:#333;">
                 email@demo.com
@@ -699,8 +613,7 @@
 
           <!-- INMUEBLE -->
           <td th:style="${it.client.compradorFinal and it.property.sold
-                          ? 'background:#edf7f1; border-radius:8px;'
-                          : ''}">
+                          ? 'background:#edf7f1; border-radius:8px;' : ''}">
             <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px; flex-wrap:wrap;">
               <a th:href="@{|/inmuebles/${it.property.id}|}"
                  th:text="${it.property.propertyCode}"
@@ -796,8 +709,7 @@
                      th:attr="data-copy=${it.ticketCode}"
                      style="cursor:pointer; flex-shrink:0;">
                   <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
-                  <line x1="9" y1="9" x2="15" y2="15"/>
-                  <line x1="15" y1="9" x2="9" y2="15"/>
+                  <line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>
                 </svg>
                 <span th:if="${it.ticketCode == null or #strings.isEmpty(it.ticketCode)}"
                       style="color:#ddd; font-size:11px;">—</span>
@@ -805,9 +717,10 @@
             </div>
           </td>
 
-          <!-- BOTÓN CREAR VISITA -->
+          <!-- VISITA -->
           <td style="text-align:center; vertical-align:middle; padding:6px;">
-            <button type="button"
+            <button th:if="${!it.client.posibleOcupa}"
+                    type="button"
                     th:attr="data-interaction-id=${it.id},
                              data-client-name=${it.client.fullName},
                              data-property-code=${it.property.propertyCode}"
@@ -816,9 +729,26 @@
                     style="background:#eef1ff; color:#0b1f5c; border:1.5px solid #b3c4ff;
                            font-size:11px; padding:5px 8px; border-radius:8px;
                            cursor:pointer; white-space:nowrap; font-weight:700;
+                           display:inline-flex; align-items:center; gap:4px;
                            transition:background .15s;">
-              📅 Visita
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              Visita
             </button>
+            <span th:if="${it.client.posibleOcupa}"
+                  title="No se puede programar visita a un posible Okupa"
+                  style="display:inline-flex; align-items:center; gap:4px;
+                         background:#fff0f0; color:#b42318; border:1.5px solid #f5c0bb;
+                         font-size:11px; padding:5px 8px; border-radius:8px;
+                         white-space:nowrap; font-weight:700; cursor:not-allowed; opacity:0.7;">
+              🚫 Visita
+            </span>
           </td>
 
         </tr>
@@ -829,154 +759,149 @@
 </div>
 
 <script>
-  /* ── CSRF ── */
+(function () {
   const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
 
-  (function () {
+  /* ── Fecha "hasta" por defecto = hoy ── */
+  const inputTo = document.getElementById('inputTo');
+  if (inputTo && !inputTo.value) {
+    inputTo.value = new Date().toISOString().split('T')[0];
+  }
 
-    const inputTo = document.getElementById('inputTo');
-    if (inputTo && !inputTo.value) {
-      inputTo.value = new Date().toISOString().split('T')[0];
+  /* ── NDA filter highlight ── */
+  const ndaCb    = document.getElementById('ndaFilterCb');
+  const ndaLabel = document.getElementById('ndaFilterLabel');
+  function syncNdaLabel() {
+    ndaLabel.style.borderColor = ndaCb.checked ? '#168a53' : 'var(--line)';
+    ndaLabel.style.background  = ndaCb.checked ? '#e8f5e9' : '#fff';
+    ndaLabel.style.color       = ndaCb.checked ? '#168a53' : 'inherit';
+  }
+  syncNdaLabel();
+  ndaCb.addEventListener('change', syncNdaLabel);
+
+  /* ── Pastillas de estado ── */
+  document.querySelectorAll('.filter-pill').forEach(pill => {
+    const cb = pill.previousElementSibling;
+    function sync() { cb.checked ? pill.classList.add('active') : pill.classList.remove('active'); }
+    sync();
+    cb.addEventListener('change', sync);
+  });
+
+  /* ── Toast ── */
+  const toast = document.getElementById('copyToast');
+  let toastTimer;
+  function showToast(msg) {
+    toast.textContent = msg + ' ✓';
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+  }
+
+  /* ── Copiar al click ── */
+  document.addEventListener('click', async function (e) {
+    if (e.target.closest('.comment-display')) return;
+    if (e.target.closest('.wa-link')) return;
+    const el = e.target.closest('.copyable');
+    if (!el) return;
+    const text = el.getAttribute('data-copy') || el.textContent.trim();
+    try { await navigator.clipboard.writeText(text); }
+    catch (_) {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
     }
+    showToast('Copiado: ' + text);
+  });
 
-    /* ── NDA filter highlight ── */
-    const ndaCb    = document.getElementById('ndaFilterCb');
-    const ndaLabel = document.getElementById('ndaFilterLabel');
-    function syncNdaLabel() {
-      ndaLabel.style.borderColor = ndaCb.checked ? '#168a53' : 'var(--line)';
-      ndaLabel.style.background  = ndaCb.checked ? '#e8f5e9' : '#fff';
-      ndaLabel.style.color       = ndaCb.checked ? '#168a53' : 'inherit';
-    }
-    syncNdaLabel();
-    ndaCb.addEventListener('change', syncNdaLabel);
+  /* ── Email copy ── */
+  const copyBtn      = document.getElementById('copyEmailsBtn');
+  const clearBtn     = document.getElementById('clearEmailsBtn');
+  const counter      = document.getElementById('emailsCountInline');
+  const selectAllCb  = document.getElementById('selectAllEmails');
+  const selectAllTxt = document.getElementById('selectAllText');
 
-    /* ── Pastillas de estado ── */
-    document.querySelectorAll('.filter-pill').forEach(pill => {
-      const cb = pill.previousElementSibling;
-      function sync() {
-        cb.checked ? pill.classList.add('active') : pill.classList.remove('active');
-      }
-      sync();
-      cb.addEventListener('change', sync);
+  function normalize(e) { return (e || '').trim().toLowerCase(); }
+  function getSelectedEmails() {
+    const set = new Set();
+    document.querySelectorAll('.email-item:checked').forEach(cb => {
+      const e = normalize(cb.getAttribute('data-email'));
+      if (e) set.add(e);
     });
-
-    /* ── Toast ── */
-    const toast = document.getElementById('copyToast');
-    let toastTimer;
-    function showToast(msg) {
-      toast.textContent = msg + ' ✓';
-      toast.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+    return Array.from(set).sort();
+  }
+  function getAllEmailItems()         { return Array.from(document.querySelectorAll('.email-item')); }
+  function getSelectableEmailItems() {
+    return getAllEmailItems().filter(cb => cb.closest('tr[data-excluido]') === null);
+  }
+  function syncSelectAll() {
+    const sel    = getSelectableEmailItems();
+    const marked = sel.filter(cb => cb.checked);
+    if (!sel.length || !marked.length) {
+      selectAllCb.checked = false; selectAllCb.indeterminate = false;
+      selectAllTxt.textContent = 'Seleccionar todos';
+    } else if (marked.length === sel.length) {
+      selectAllCb.checked = true; selectAllCb.indeterminate = false;
+      selectAllTxt.textContent = 'Deseleccionar todos';
+    } else {
+      selectAllCb.checked = false; selectAllCb.indeterminate = true;
+      selectAllTxt.textContent = `Seleccionar todos (${marked.length}/${sel.length})`;
     }
+  }
+  function renderState() {
+    const list = getSelectedEmails();
+    counter.textContent    = String(list.length);
+    copyBtn.disabled       = list.length === 0;
+    clearBtn.style.display = list.length === 0 ? 'none' : 'inline-flex';
+    syncSelectAll();
+    return list;
+  }
+  function clearSelection() { getAllEmailItems().forEach(cb => cb.checked = false); renderState(); }
 
-    /* ── Copiar al click ── */
-    document.addEventListener('click', async function (e) {
-      if (e.target.closest('.comment-display')) return;
-      if (e.target.closest('.wa-link')) return;
-      const el = e.target.closest('.copyable');
-      if (!el) return;
-      const text = el.getAttribute('data-copy') || el.textContent.trim();
-      try { await navigator.clipboard.writeText(text); }
-      catch (_) {
-        const ta = document.createElement('textarea');
-        ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
-        document.body.appendChild(ta); ta.select();
-        document.execCommand('copy'); document.body.removeChild(ta);
-      }
-      showToast('Copiado: ' + text);
-    });
-
-    /* ── Email copy ── */
-    const copyBtn      = document.getElementById('copyEmailsBtn');
-    const clearBtn     = document.getElementById('clearEmailsBtn');
-    const counter      = document.getElementById('emailsCountInline');
-    const selectAllCb  = document.getElementById('selectAllEmails');
-    const selectAllTxt = document.getElementById('selectAllText');
-
-    function normalize(e) { return (e || '').trim().toLowerCase(); }
-    function getSelectedEmails() {
-      const set = new Set();
-      document.querySelectorAll('.email-item:checked').forEach(cb => {
-        const e = normalize(cb.getAttribute('data-email'));
-        if (e) set.add(e);
-      });
-      return Array.from(set).sort();
-    }
-    function getAllEmailItems()         { return Array.from(document.querySelectorAll('.email-item')); }
-    function getSelectableEmailItems() {
-      return getAllEmailItems().filter(cb => cb.closest('tr[data-excluido]') === null);
-    }
-    function syncSelectAll() {
-      const sel    = getSelectableEmailItems();
-      const marked = sel.filter(cb => cb.checked);
-      if (!sel.length || !marked.length) {
-        selectAllCb.checked = false; selectAllCb.indeterminate = false;
-        selectAllTxt.textContent = 'Seleccionar todos';
-      } else if (marked.length === sel.length) {
-        selectAllCb.checked = true; selectAllCb.indeterminate = false;
-        selectAllTxt.textContent = 'Deseleccionar todos';
-      } else {
-        selectAllCb.checked = false; selectAllCb.indeterminate = true;
-        selectAllTxt.textContent = `Seleccionar todos (${marked.length}/${sel.length})`;
-      }
-    }
-    function renderState() {
-      const list = getSelectedEmails();
-      counter.textContent    = String(list.length);
-      copyBtn.disabled       = list.length === 0;
-      clearBtn.style.display = list.length === 0 ? 'none' : 'inline-flex';
-      syncSelectAll();
-      return list;
-    }
-    function clearSelection() { getAllEmailItems().forEach(cb => cb.checked = false); renderState(); }
-
-    selectAllCb.addEventListener('change', () => {
-      getSelectableEmailItems().forEach(cb => cb.checked = selectAllCb.checked);
-      renderState();
-    });
-    document.addEventListener('change', ev => {
-      if (ev.target?.classList.contains('email-item')) renderState();
-    });
-    copyBtn.addEventListener('click', async () => {
-      const list = renderState();
-      if (!list.length) return;
-      const text = list.join('; ');
-      try { await navigator.clipboard.writeText(text); }
-      catch (_) {
-        const ta = document.createElement('textarea');
-        ta.value = text; ta.setAttribute('readonly','');
-        ta.style.cssText = 'position:fixed;left:-9999px';
-        document.body.appendChild(ta); ta.select();
-        document.execCommand('copy'); document.body.removeChild(ta);
-      }
-      clearSelection();
-    });
-    clearBtn.addEventListener('click', clearSelection);
+  selectAllCb.addEventListener('change', () => {
+    getSelectableEmailItems().forEach(cb => cb.checked = selectAllCb.checked);
     renderState();
+  });
+  document.addEventListener('change', ev => {
+    if (ev.target?.classList.contains('email-item')) renderState();
+  });
+  copyBtn.addEventListener('click', async () => {
+    const list = renderState();
+    if (!list.length) return;
+    const text = list.join('; ');
+    try { await navigator.clipboard.writeText(text); }
+    catch (_) {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly','');
+      ta.style.cssText = 'position:fixed;left:-9999px';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+    }
+    clearSelection();
+    showToast('Emails copiados');
+  });
+  clearBtn.addEventListener('click', clearSelection);
+  renderState();
 
-    /* ── Dots de estado ── */
-    const statusMap = {
-      'GRIS_SIN_CONTACTO'     : 'gris',
-      'AZUL_VISITA_PROGRAMADA': 'azul-claro',
-      'AZUL_VISITA_REALIZADA' : 'azul-oscuro',
-      'NARANJA_QUIERE_VISITA' : 'naranja',
-      'ROSA_DESCARTA'         : 'rosa',
-      'VERDE_PENSANDO'        : 'verde',
-      'AMARILLO_OFERTA'       : 'amarillo'
-    };
-    document.querySelectorAll('.status-dot').forEach(dot => {
-      const cls = statusMap[dot.getAttribute('data-status')];
-      dot.classList.remove(...Object.values(statusMap));
-      if (cls) dot.classList.add(cls);
-    });
+  /* ── Dots de estado ── */
+  const statusMap = {
+    'GRIS_SIN_CONTACTO'     : 'gris',
+    'AZUL_VISITA_PROGRAMADA': 'azul-claro',
+    'AZUL_VISITA_REALIZADA' : 'azul-oscuro',
+    'NARANJA_QUIERE_VISITA' : 'naranja',
+    'ROSA_DESCARTA'         : 'rosa',
+    'VERDE_PENSANDO'        : 'verde',
+    'AMARILLO_OFERTA'       : 'amarillo'
+  };
+  document.querySelectorAll('.status-dot').forEach(dot => {
+    const cls = statusMap[dot.getAttribute('data-status')];
+    if (cls) dot.classList.add(cls);
+  });
 
-  })();
-
-  /* ════════════════════════════════════════════
+  /* ══════════════════════════════════════
      MODAL COMENTARIOS
-  ════════════════════════════════════════════ */
+  ══════════════════════════════════════ */
   let _commentTargetSpan = null;
   let _commentClientId   = null;
   let _commentIid        = null;
@@ -1002,7 +927,7 @@
     return div.innerHTML;
   }
 
-  function openCommentModal(span) {
+  window.openCommentModal = function(span) {
     _commentTargetSpan = span;
     _commentClientId   = span.getAttribute('data-cid');
     _commentIid        = span.getAttribute('data-iid');
@@ -1019,7 +944,7 @@
       sel.removeAllRanges();
       sel.addRange(range);
     }, 80);
-  }
+  };
 
   function closeCommentModal() {
     commentBackdrop.classList.remove('open');
@@ -1027,22 +952,32 @@
   }
 
   document.getElementById('btnCancelComment').addEventListener('click', closeCommentModal);
+  commentBackdrop.addEventListener('click', e => { if (e.target === commentBackdrop) closeCommentModal(); });
 
   commentEditor.addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.altKey) && e.key === 'Enter') {
-      e.preventDefault();
-      document.execCommand('insertLineBreak');
+      e.preventDefault(); document.execCommand('insertLineBreak');
     }
-    if (e.ctrlKey && e.key === 'h') {
-      e.preventDefault();
-      applyHighlight();
-    }
+    if (e.ctrlKey && e.key.toLowerCase() === 'h') { e.preventDefault(); applyHighlight(); }
   });
 
-  document.getElementById('btnHighlight').addEventListener('click', function() {
+  function applyHighlight() {
     commentEditor.focus();
-    applyHighlight();
-  });
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    const range = sel.getRangeAt(0);
+    const ancestor = range.commonAncestorContainer;
+    const markParent = ancestor.nodeType === 3
+      ? ancestor.parentElement?.closest('mark')
+      : ancestor.closest?.('mark');
+    if (markParent) { markParent.replaceWith(...markParent.childNodes); return; }
+    const mark = document.createElement('mark');
+    try { range.surroundContents(mark); }
+    catch(_) { const f = range.extractContents(); mark.appendChild(f); range.insertNode(mark); }
+    sel.removeAllRanges();
+  }
+
+  document.getElementById('btnHighlight').addEventListener('click', applyHighlight);
 
   document.getElementById('btnClearMark').addEventListener('click', function() {
     commentEditor.focus();
@@ -1055,35 +990,10 @@
     sel.removeAllRanges();
   });
 
-  document.getElementById('btnClearAll').addEventListener('click', function() {
-    commentEditor.innerHTML = '';
-    commentEditor.focus();
+  document.getElementById('btnClearAll').addEventListener('click', () => {
+    commentEditor.innerHTML = ''; commentEditor.focus();
   });
 
-  function applyHighlight() {
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) return;
-    const range = sel.getRangeAt(0);
-    const ancestor = range.commonAncestorContainer;
-    const markParent = ancestor.nodeType === 3
-      ? ancestor.parentElement?.closest('mark')
-      : ancestor.closest?.('mark');
-    if (markParent) {
-      markParent.replaceWith(...markParent.childNodes);
-      return;
-    }
-    const mark = document.createElement('mark');
-    try {
-      range.surroundContents(mark);
-    } catch(_) {
-      const fragment = range.extractContents();
-      mark.appendChild(fragment);
-      range.insertNode(mark);
-    }
-    sel.removeAllRanges();
-  }
-
-  /* ── Guardar con CSRF ── */
   document.getElementById('btnSaveComment').addEventListener('click', async function() {
     if (!_commentIid || !_commentClientId) return;
     const html = sanitizeHtml(commentEditor.innerHTML);
@@ -1097,7 +1007,6 @@
         body: 'comments=' + encodeURIComponent(html)
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-
       if (_commentTargetSpan) {
         if (!html || html.trim() === '' || html.trim() === '<br>') {
           _commentTargetSpan.innerHTML = '— <span style="font-size:10px; color:#bbb;">(editar)</span>';
@@ -1114,23 +1023,23 @@
     }
   });
 
-  commentBackdrop.addEventListener('click', function(e) {
-    if (e.target === this) closeCommentModal();
-  });
-
-  /* ── Modal visita ── */
-  function openVisitModal(btn) {
+  /* ══════════════════════════════════════
+     MODAL VISITA
+  ══════════════════════════════════════ */
+  window.openVisitModal = function(btn) {
     document.getElementById('visitModalInteractionId').value = btn.getAttribute('data-interaction-id');
     document.getElementById('visitModalClientName').value    = btn.getAttribute('data-client-name');
     document.getElementById('visitModalPropertyCode').value  = btn.getAttribute('data-property-code');
     document.getElementById('visitModalBackdrop').classList.add('open');
-  }
-  function closeVisitModal() {
+  };
+  window.closeVisitModal = function() {
     document.getElementById('visitModalBackdrop').classList.remove('open');
-  }
+  };
   document.getElementById('visitModalBackdrop').addEventListener('click', function(e) {
     if (e.target === this) closeVisitModal();
   });
+
+})();
 </script>
 </body>
 </html>
