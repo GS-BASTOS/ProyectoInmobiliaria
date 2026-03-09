@@ -46,7 +46,6 @@ public class VisitController {
         List<Visit> visits = visitRepository.findByStatusOrderByDateDescTimeAsc(VisitStatus.PROGRAMADA);
         enrichModel(model, visits);
 
-        // DTO simple para el buscador JS — evita LazyInitializationException
         List<Map<String, Object>> propertiesDto = propertyRepository
                 .findAllByOrderByPropertyCodeAsc()
                 .stream()
@@ -101,13 +100,14 @@ public class VisitController {
     // ── POST /visitas/crear ──────────────────────────────────
     @PostMapping("/visitas/crear")
     public String create(@RequestParam("interactionId") Long interactionId,
-                         @RequestParam("visitAt") String visitAt,
+                         @RequestParam("visitDate")     String visitDate,
+                         @RequestParam("visitTime")     String visitTime,
                          @RequestParam(value = "notes", required = false) String notes) {
 
         ClientPropertyInteraction interaction = interactionRepository.findById(interactionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        LocalDateTime dateTime = LocalDateTime.parse(visitAt);
+        LocalDateTime dateTime = LocalDateTime.parse(visitDate + "T" + visitTime);
 
         Visit visit = new Visit();
         visit.setClient(interaction.getClient());
@@ -127,7 +127,8 @@ public class VisitController {
     @PostMapping("/visitas/crear-directo")
     public String createDirect(@RequestParam("clientId")   Long clientId,
                                @RequestParam("propertyId") Long propertyId,
-                               @RequestParam("visitAt")    String visitAt,
+                               @RequestParam("visitDate")  String visitDate,
+                               @RequestParam("visitTime")  String visitTime,
                                @RequestParam(value = "notes", required = false) String notes) {
 
         Client client = clientRepository.findById(clientId)
@@ -135,10 +136,12 @@ public class VisitController {
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
+        LocalDateTime dateTime = LocalDateTime.parse(visitDate + "T" + visitTime);
+
         Visit visit = new Visit();
         visit.setClient(client);
         visit.setProperty(property);
-        visit.setVisitAt(LocalDateTime.parse(visitAt));
+        visit.setVisitAt(dateTime);
         visit.setStatus(VisitStatus.PROGRAMADA);
         visit.setNotes(notes == null ? "" : notes.trim());
         visitRepository.save(visit);
