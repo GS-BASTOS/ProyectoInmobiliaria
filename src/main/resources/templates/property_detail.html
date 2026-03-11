@@ -106,6 +106,37 @@
     text-transform:uppercase; color:var(--muted); margin-bottom:14px;
     display:flex; align-items:center; gap:6px;
   }
+
+  /* ── Toggle publicar ── */
+  .publish-toggle-wrap {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 14px;
+    padding: 18px 20px; border-radius: 14px;
+    border: 1px solid var(--line); background: #faf8f4;
+    margin-bottom: 16px;
+  }
+  .publish-toggle-wrap.is-published {
+    background: #f0fdf4; border-color: #86efac;
+  }
+  .toggle-switch {
+    position: relative; display: inline-block;
+    width: 48px; height: 26px; flex-shrink: 0;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: #ddd; border-radius: 999px;
+    transition: background .2s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute;
+    height: 20px; width: 20px; left: 3px; bottom: 3px;
+    background: #fff; border-radius: 50%;
+    transition: transform .2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .toggle-switch input:checked + .toggle-slider { background: #168a53; }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(22px); }
 </style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
@@ -144,12 +175,6 @@
                 style="display:inline-flex; align-items:center; gap:5px;
                        background:#e8f5e9; border:1px solid #4caf50; border-radius:999px;
                        padding:4px 12px; font-size:12px; color:#2e7d32; font-weight:700;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
-              <polyline points="9 21 9 12 15 12 15 21"/>
-            </svg>
             Vendido
           </span>
 
@@ -157,8 +182,6 @@
                 style="display:inline-flex; align-items:center; gap:5px;
                        background:#f1f8e9; border:1px solid #8bc34a; border-radius:999px;
                        padding:4px 12px; font-size:12px; color:#558b2f; font-weight:700;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
-                 fill="#558b2f" stroke="none"><circle cx="12" cy="12" r="12"/></svg>
             Disponible
           </span>
 
@@ -173,13 +196,6 @@
                 style="display:inline-flex; align-items:center; gap:5px;
                        background:#ffebee; border:1px solid #b42318; border-radius:999px;
                        padding:4px 12px; font-size:12px; color:#b42318; font-weight:700;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
             Ocupado / Okupa
           </span>
 
@@ -187,13 +203,15 @@
                 style="display:inline-flex; align-items:center; gap:5px;
                        background:#fff8e1; border:1px solid #ffa000; border-radius:999px;
                        padding:4px 12px; font-size:12px; color:#e65100; font-weight:600;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-                 fill="none" stroke="#e65100" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
             Alarma activa
+          </span>
+
+          <!-- Badge publicado en web -->
+          <span th:if="${property.publicado}"
+                style="display:inline-flex; align-items:center; gap:5px;
+                       background:#e8f5e9; border:1px solid #168a53; border-radius:999px;
+                       padding:4px 12px; font-size:12px; color:#168a53; font-weight:700;">
+            🌐 En web pública
           </span>
         </div>
 
@@ -245,6 +263,12 @@
                          ? property.province : '—'}">—</div>
       </div>
       <div>
+        <div class="small">Precio</div>
+        <div th:text="${property.precio != null
+                         ? #numbers.formatInteger(property.precio, 3, 'POINT') + ' €'
+                         : 'Sin precio'}">—</div>
+      </div>
+      <div>
         <div class="small">Notas internas</div>
         <div th:text="${property.notes != null and !#strings.isEmpty(property.notes)
                          ? property.notes : '—'}">—</div>
@@ -268,15 +292,8 @@
          style="margin-top:14px; padding:14px 16px; background:#fff8e1;
                 border-left:4px solid #ffa000; border-radius:8px;">
       <div style="font-size:11px; font-weight:700; text-transform:uppercase;
-                  letter-spacing:0.8px; color:#e65100; margin-bottom:8px;
-                  display:flex; align-items:center; gap:6px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-             fill="none" stroke="#e65100" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        Clave de alarma
+                  letter-spacing:0.8px; color:#e65100; margin-bottom:8px;">
+        🔒 Clave de alarma
       </div>
       <div style="font-size:28px; font-weight:800; letter-spacing:8px;
                   color:#e65100; font-family:monospace;"
@@ -287,22 +304,111 @@
     <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
       <a class="btn btn-secondary" th:href="@{|/inmuebles/${property.id}#editar|}"
          style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:9px 16px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-        Editar datos
+        ✏️ Editar datos
       </a>
       <a class="btn btn-secondary" th:href="@{/inmuebles}"
          style="font-size:13px; padding:9px 16px;">← Volver</a>
     </div>
   </div>
 
+  <!-- ══ PUBLICAR EN WEB PÚBLICA ══ -->
+  <div class="card" style="margin-top:24px;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10
+                 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+      <h2 style="margin:0;">Publicación en web pública</h2>
+    </div>
+    <div class="small" style="margin-bottom:16px;">
+      Controla si este inmueble aparece en el catálogo público de <strong>Solvia Store Bilbao</strong>.
+    </div>
+
+    <hr style="border:none; border-top:1px solid var(--line); margin:0 0 16px;"/>
+
+    <!-- Toggle publicar -->
+    <div class="publish-toggle-wrap" id="publishWrap"
+         th:classappend="${property.publicado} ? 'is-published' : ''">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <label class="toggle-switch">
+          <input type="checkbox" id="togglePublicar"
+                 th:checked="${property.publicado}"/>
+          <span class="toggle-slider"></span>
+        </label>
+        <div>
+          <div style="font-weight:700; font-size:14px;" id="publishLabel"
+               th:text="${property.publicado} ? '🌐 Publicado en web' : '🔒 No publicado'">
+          </div>
+          <div class="small" id="publishSub"
+               th:text="${property.publicado}
+                 ? 'Visible para cualquier visitante del catálogo público.'
+                 : 'Solo visible para el equipo interno.'">
+          </div>
+        </div>
+      </div>
+      <div id="publishStatus"
+           style="font-size:12px; color:var(--muted); font-style:italic;"></div>
+    </div>
+
+    <!-- Precio (opcional) -->
+    <div style="padding:16px 20px; border-radius:14px;
+                border:1px solid var(--line); background:#faf8f4;">
+      <div class="section-block-title" style="margin-bottom:10px;">
+        💶 Precio público (opcional)
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <form th:action="@{|/inmuebles/${property.id}/actualizar|}" method="post"
+              style="display:flex; align-items:center; gap:8px; margin:0;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <!-- Campos ocultos para no perder los demás datos -->
+          <input type="hidden" name="province"     th:value="${property.province}"/>
+          <input type="hidden" name="address"      th:value="${property.address}"/>
+          <input type="hidden" name="municipality" th:value="${property.municipality}"/>
+          <input type="hidden" name="propertyType" th:value="${property.propertyType}"/>
+          <input type="hidden" name="description"  th:value="${property.description}"/>
+          <input type="hidden" name="occupied"     th:value="${property.occupied}"/>
+          <input type="hidden" name="hasAlarm"     th:value="${property.hasAlarm}"/>
+          <input type="hidden" name="alarmCode"    th:value="${property.alarmCode}"/>
+          <input type="hidden" name="notes"        th:value="${property.notes}"/>
+
+          <input type="number" name="precio"
+                 th:value="${property.precio}"
+                 placeholder="Sin precio (se ocultará)"
+                 min="0" step="1000"
+                 style="width:220px; margin:0;"/>
+          <span style="font-size:14px; font-weight:700; color:var(--muted);">€</span>
+          <button type="submit"
+                  style="font-size:13px; padding:9px 16px;
+                         display:inline-flex; align-items:center; gap:6px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Guardar precio
+          </button>
+          <button th:if="${property.precio != null}" type="submit"
+                  onclick="this.form.querySelector('[name=precio]').value = ''"
+                  style="font-size:12px; padding:9px 14px;
+                         background:#fff; border:1px solid var(--line); color:#b42318;">
+            Quitar precio
+          </button>
+        </form>
+        <div class="small" style="color:var(--muted);">
+          Si no pones precio, en la web pública aparecerá <em>"Consultar precio"</em>.
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ FOTOS, VÍDEOS Y DOCUMENTOS ══ -->
   <div class="card" style="margin-top:24px;">
-
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
            fill="none" stroke="currentColor" stroke-width="2"
@@ -361,55 +467,36 @@
     <div th:if="${#lists.isEmpty(mediaList)}"
          style="margin-top:16px; padding:32px; text-align:center;
                 border:1px dashed var(--line); border-radius:10px; color:#ccc;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
-           fill="none" stroke="#ddd" stroke-width="1.5"
-           stroke-linecap="round" stroke-linejoin="round"
-           style="display:block; margin:0 auto 8px;">
-        <rect x="3" y="3" width="18" height="18" rx="2"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <polyline points="21 15 16 10 5 21"/>
-      </svg>
       <span class="small">Sin archivos multimedia todavía.</span>
     </div>
 
-    <!-- ── Grid archivos ── -->
+    <!-- Grid archivos -->
     <div class="media-grid" th:if="${!#lists.isEmpty(mediaList)}">
       <div class="media-item" th:each="m : ${mediaList}">
 
-        <!-- IMAGEN → lightbox -->
         <img th:if="${m.mediaType == 'IMAGE'}"
              th:src="${m.cloudinaryUrl}"
              th:alt="${m.originalName}"
              class="lightbox-trigger"
              th:attr="data-src=${m.cloudinaryUrl}"/>
 
-        <!-- VÍDEO → player inline -->
         <video th:if="${m.mediaType == 'VIDEO'}" controls preload="metadata">
           <source th:src="${m.cloudinaryUrl}"/>
         </video>
 
-        <!-- PDF → descarga con nombre original (URL construida en Java, sin espacios) -->
         <a th:if="${m.mediaType == 'PDF'}"
-           th:href="${m.downloadUrl}"
-           target="_blank"
-           class="media-pdf-thumb">
+           th:href="${m.downloadUrl}" target="_blank" class="media-pdf-thumb">
           <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24"
                fill="none" stroke="#b42318" stroke-width="1.5"
                stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
           </svg>
           <span style="font-size:12px; font-weight:600; color:#b42318;">Abrir PDF</span>
         </a>
 
-        <!-- DOCUMENTO → descarga con nombre original (URL construida en Java, sin espacios) -->
         <a th:if="${m.mediaType == 'DOCUMENT'}"
-           th:href="${m.downloadUrl}"
-           target="_blank"
-           class="media-pdf-thumb">
+           th:href="${m.downloadUrl}" target="_blank" class="media-pdf-thumb">
           <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24"
                fill="none" stroke="#1565c0" stroke-width="1.5"
                stroke-linecap="round" stroke-linejoin="round">
@@ -421,7 +508,6 @@
 
         <div class="media-label" th:text="${m.originalName}">archivo.jpg</div>
 
-        <!-- Botón eliminar -->
         <form th:action="@{|/inmuebles/${property.id}/media/${m.id}/eliminar|}" method="post"
               onsubmit="return confirm('¿Eliminar este archivo de la ficha?')">
           <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
@@ -440,7 +526,6 @@
 
   <!-- ══ EDITAR DATOS ══ -->
   <div class="card" id="editar" style="margin-top:24px;">
-
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
            fill="none" stroke="currentColor" stroke-width="2"
@@ -456,17 +541,11 @@
 
     <form th:action="@{|/inmuebles/${property.id}/actualizar|}" method="post">
       <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <!-- Precio oculto para no machacarlo al editar otros campos -->
+      <input type="hidden" name="precio" th:value="${property.precio}"/>
 
       <div class="section-block">
-        <div class="section-block-title">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-               fill="none" stroke="var(--muted)" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
-            <polyline points="9 21 9 12 15 12 15 21"/>
-          </svg>
-          Datos básicos
-        </div>
+        <div class="section-block-title">🏠 Datos básicos</div>
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px;">
           <div>
             <label>Código inmueble</label>
@@ -482,7 +561,7 @@
           <div>
             <label>Municipio</label>
             <input name="municipality" th:value="${property.municipality}"
-                   placeholder="Madrid"/>
+                   placeholder="Bilbao"/>
           </div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -494,25 +573,13 @@
           <div>
             <label>Provincia</label>
             <input name="province" th:value="${property.province}"
-                   placeholder="Madrid"/>
+                   placeholder="Bizkaia"/>
           </div>
         </div>
       </div>
 
       <div class="section-block">
-        <div class="section-block-title">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-               fill="none" stroke="var(--muted)" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <line x1="8" y1="6" x2="21" y2="6"/>
-            <line x1="8" y1="12" x2="21" y2="12"/>
-            <line x1="8" y1="18" x2="21" y2="18"/>
-            <line x1="3" y1="6" x2="3.01" y2="6"/>
-            <line x1="3" y1="12" x2="3.01" y2="12"/>
-            <line x1="3" y1="18" x2="3.01" y2="18"/>
-          </svg>
-          Descripción y notas
-        </div>
+        <div class="section-block-title">📋 Descripción y notas</div>
         <div style="margin-bottom:12px;">
           <label>Descripción / comentarios</label>
           <textarea name="description" rows="4"
@@ -526,64 +593,31 @@
         </div>
       </div>
 
-      <!-- Estado especial -->
       <div class="section-block">
-        <div class="section-block-title">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-               fill="none" stroke="var(--muted)" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-          Estado especial
-        </div>
-
+        <div class="section-block-title">🛡️ Estado especial</div>
         <div style="display:flex; gap:28px; flex-wrap:wrap;">
           <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
             <input type="checkbox" name="occupied" value="true"
                    th:checked="${property.occupied}"/>
-            <span style="display:inline-flex; align-items:center; gap:6px;
-                         color:#b42318; font-weight:600; font-size:13px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                   fill="none" stroke="#b42318" stroke-width="2.5"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
+            <span style="color:#b42318; font-weight:600; font-size:13px;">
               Ocupado / Posible Okupa
             </span>
           </label>
-
           <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
             <input type="checkbox" name="hasAlarm" value="true"
                    id="chkHasAlarm" th:checked="${property.hasAlarm}"/>
-            <span style="display:inline-flex; align-items:center; gap:6px;
-                         color:#e65100; font-weight:600; font-size:13px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                   fill="none" stroke="#e65100" stroke-width="2.5"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-              </svg>
+            <span style="color:#e65100; font-weight:600; font-size:13px;">
               Tiene alarma
             </span>
           </label>
         </div>
 
-        <!-- Panel clave alarma -->
         <div id="panelAlarmCode"
              th:style="${property.hasAlarm} ? 'display:block;' : 'display:none;'"
              style="margin-top:16px; padding:14px 16px; background:#fff8e1;
                     border:1px solid #ffa000; border-radius:10px;">
-          <label style="display:flex; align-items:center; gap:6px;
-                        font-weight:700; color:#e65100; margin-bottom:8px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-                 fill="none" stroke="#e65100" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            Clave de alarma
+          <label style="font-weight:700; color:#e65100; margin-bottom:8px; display:block;">
+            🔒 Clave de alarma
           </label>
           <input name="alarmCode" id="alarmCodeInput"
                  th:value="${property.alarmCode}"
@@ -599,14 +633,7 @@
         <button type="submit"
                 style="display:inline-flex; align-items:center; gap:7px;
                        font-size:13px; padding:9px 20px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-            <polyline points="17 21 17 13 7 13 7 21"/>
-            <polyline points="7 3 7 8 15 8"/>
-          </svg>
-          Guardar cambios
+          💾 Guardar cambios
         </button>
       </div>
     </form>
@@ -616,7 +643,45 @@
 
 <script>
 (function () {
-  // Alarma toggle
+  const CSRF_TOKEN  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+  const CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || '';
+
+  // ── Toggle publicar (fetch sin recargar) ──────────────
+  const togglePublicar = document.getElementById('togglePublicar');
+  const publishWrap    = document.getElementById('publishWrap');
+  const publishLabel   = document.getElementById('publishLabel');
+  const publishSub     = document.getElementById('publishSub');
+  const publishStatus  = document.getElementById('publishStatus');
+
+  if (togglePublicar) {
+    togglePublicar.addEventListener('change', async function () {
+      publishStatus.textContent = 'Guardando...';
+      try {
+        const res  = await fetch(window.location.pathname + '/publicar', {
+          method: 'POST',
+          headers: { [CSRF_HEADER]: CSRF_TOKEN }
+        });
+        const data = await res.json();
+
+        if (data.publicado) {
+          publishWrap.classList.add('is-published');
+          publishLabel.textContent = '🌐 Publicado en web';
+          publishSub.textContent   = 'Visible para cualquier visitante del catálogo público.';
+        } else {
+          publishWrap.classList.remove('is-published');
+          publishLabel.textContent = '🔒 No publicado';
+          publishSub.textContent   = 'Solo visible para el equipo interno.';
+        }
+        publishStatus.textContent = '✓ ' + data.mensaje;
+        setTimeout(() => publishStatus.textContent = '', 2500);
+      } catch (e) {
+        publishStatus.textContent = 'Error al guardar';
+        togglePublicar.checked = !togglePublicar.checked; // revertir
+      }
+    });
+  }
+
+  // ── Alarma toggle ──────────────────────────────────────
   const chkAlarm   = document.getElementById('chkHasAlarm');
   const panelAlarm = document.getElementById('panelAlarmCode');
   if (chkAlarm && panelAlarm) {
@@ -625,7 +690,7 @@
     });
   }
 
-  // Upload zone
+  // ── Upload zone ────────────────────────────────────────
   const uploadZone = document.getElementById('uploadZone');
   const fileInput  = document.getElementById('fileInput');
   const uploadBtn  = document.getElementById('uploadBtn');
@@ -655,7 +720,7 @@
     });
   }
 
-  // Lightbox
+  // ── Lightbox ───────────────────────────────────────────
   const lightbox      = document.getElementById('lightbox');
   const lightboxImg   = document.getElementById('lightboxImg');
   const lightboxClose = document.getElementById('lightboxClose');

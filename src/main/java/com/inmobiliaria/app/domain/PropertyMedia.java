@@ -18,70 +18,45 @@ public class PropertyMedia {
     private String originalName;
 
     @Column(name = "media_type", length = 20)
-    private String mediaType; // "IMAGE" | "VIDEO" | "PDF" | "DOCUMENT"
+    private String mediaType; // IMAGE, VIDEO, PDF, DOCUMENT
+
+    @Column(name = "content_type", length = 80)
+    private String contentType;
 
     @Column(name = "cloudinary_url", length = 512)
     private String cloudinaryUrl;
 
-    @Column(name = "cloudinary_id", length = 255)
-    private String cloudinaryId;
+    @Column(name = "cloudinary_public_id", length = 255)
+    private String cloudinaryPublicId;
 
-    // ── Getters & Setters ──────────────────────────────────
+    @Column(name = "download_url", length = 512)
+    private String downloadUrl;
 
-    public Long getId()                        { return id; }
-    public void setId(Long id)                 { this.id = id; }
+    // ── Getters & Setters ────────────────────────────────
 
-    public Property getProperty()              { return property; }
-    public void setProperty(Property p)        { this.property = p; }
+    public Long getId()                           { return id; }
+    public void setId(Long id)                    { this.id = id; }
 
-    public String getOriginalName()            { return originalName; }
-    public void setOriginalName(String v)      { this.originalName = v; }
+    public Property getProperty()                 { return property; }
+    public void setProperty(Property property)    { this.property = property; }
 
-    public String getMediaType()               { return mediaType; }
-    public void setMediaType(String v)         { this.mediaType = v; }
+    public String getOriginalName()               { return originalName; }
+    public void setOriginalName(String originalName) { this.originalName = originalName; }
 
-    public String getCloudinaryUrl()           { return cloudinaryUrl; }
-    public void setCloudinaryUrl(String v)     { this.cloudinaryUrl = v; }
+    public String getMediaType()                  { return mediaType; }
+    public void setMediaType(String mediaType)    { this.mediaType = mediaType; }
 
-    public String getCloudinaryId()            { return cloudinaryId; }
-    public void setCloudinaryId(String v)      { this.cloudinaryId = v; }
+    public String getContentType()                { return contentType; }
+    public void setContentType(String contentType){ this.contentType = contentType; }
 
-    // ── URL de descarga con nombre original ───────────────
-    // Inserta fl_attachment:<nombre> en la URL de Cloudinary
-    // para que el navegador descargue el archivo con su nombre real.
-    @Transient
-    public String getDownloadUrl() {
-        if (cloudinaryUrl == null) return "#";
-        String name = (originalName != null ? originalName : "archivo");
+    public String getCloudinaryUrl()              { return cloudinaryUrl; }
+    public void setCloudinaryUrl(String cloudinaryUrl) { this.cloudinaryUrl = cloudinaryUrl; }
 
-        // 1. Eliminar acentos
-        name = java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFD)
-                                   .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-
-        // 2. Limpiar caracteres problemáticos
-        name = name.replace(" ",  "_")
-                   .replace(",",  "")
-                   .replace(";",  "")
-                   .replace("(",  "")
-                   .replace(")",  "")
-                   .replace("&",  "")
-                   .replace("?",  "")
-                   .replace("#",  "")
-                   .replace("[",  "")
-                   .replace("]",  "")
-                   .replace("'",  "")
-                   .replace("\"", "")
-                   .replace("/",  "-");
-
-        // 3. ── CLAVE: quitar la extensión del nombre para fl_attachment ──
-        //    Cloudinary confunde "archivo.pdf" con una transformación
-        int dot = name.lastIndexOf('.');
-        if (dot > 0) {
-            name = name.substring(0, dot);
-        }
-
-        return cloudinaryUrl.replace("/upload/", "/upload/fl_attachment:" + name + "/");
+    public String getCloudinaryPublicId()         { return cloudinaryPublicId; }
+    public void setCloudinaryPublicId(String cloudinaryPublicId) {
+        this.cloudinaryPublicId = cloudinaryPublicId;
     }
 
-
+    public String getDownloadUrl()                { return downloadUrl; }
+    public void setDownloadUrl(String downloadUrl){ this.downloadUrl = downloadUrl; }
 }

@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Solvia Store Bilbao · Inmobiliaria País Vasco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #ffffff;
+      --bg2:       #f7f5f0;
+      --bg3:       #ede9e1;
+      --dark:      #1a1f2e;
+      --dark2:     #252c40;
+      --dark3:     #2e3650;
+      --beige:     #f2ede4;
+      --beige2:    #e8e1d4;
+      --beige3:    #d8cfc0;
+      --blue:      #6aabdc;
+      --blue2:     #4d95cc;
+      --blue3:     #3580b8;
+      --blue-lt:   #ddeef9;
+      --blue-bg:   #eef6fc;
+      --text:      #1a1f2e;
+      --text2:     #4a5068;
+      --text3:     #8a90a8;
+      --text-inv:  #f2ede4;
+      --text-inv2: #a8b0c8;
+      --border:    #ddd8ce;
+      --border2:   #cec8bc;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    a    { text-decoration: none; color: inherit; }
+
+    /* ══ NAV ══ */
+    .pub-nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(26,31,46,.97); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(106,171,220,.15);
+      padding: 0 5%; display: flex; align-items: center;
+      justify-content: space-between; height: 64px;
+    }
+    .pub-nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 17px; font-weight: 800; color: var(--text-inv);
+    }
+    .pub-nav-brand svg { stroke: var(--blue); }
+    .pub-nav-links { display: flex; align-items: center; gap: 28px; }
+    .pub-nav-links a { font-size: 13px; font-weight: 500; color: var(--text-inv2); transition: color .15s; }
+    .pub-nav-links a:hover { color: var(--text-inv); }
+    .pub-nav-cta {
+      background: var(--blue) !important; color: #fff !important;
+      font-weight: 700 !important; font-size: 13px !important;
+      padding: 8px 18px; border-radius: 8px; transition: background .15s !important;
+    }
+    .pub-nav-cta:hover { background: var(--blue2) !important; }
+
+    /* ══ HERO ══ */
+    .hero {
+      min-height: 92vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 80px 5% 60px;
+      position: relative; overflow: hidden;
+      background: var(--dark);
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(106,171,220,.18) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 40% at 85% 85%,  rgba(106,171,220,.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-size: clamp(42px, 7vw, 80px); font-weight: 900;
+      line-height: 1.05; letter-spacing: -2.5px;
+      margin-bottom: 24px; max-width: 820px; color: var(--text-inv);
+    }
+    .hero h1 span { color: var(--blue); }
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 20px); color: var(--text-inv2);
+      max-width: 580px; margin-bottom: 44px; line-height: 1.7;
+    }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+    .btn-primary-pub {
+      background: var(--blue); color: #fff;
+      font-size: 15px; font-weight: 700; padding: 14px 32px; border-radius: 10px;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: background .15s, transform .1s;
+    }
+    .btn-primary-pub:hover { background: var(--blue2); transform: translateY(-2px); }
+    .btn-secondary-inv {
+      background: transparent; color: var(--text-inv2);
+      font-size: 15px; font-weight: 600; padding: 14px 28px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.18);
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: border-color .15s, color .15s, transform .1s;
+    }
+    .btn-secondary-inv:hover { border-color: var(--blue); color: var(--blue); transform: translateY(-2px); }
+    .btn-secondary-pub {
+      background: transparent; color: var(--text2);
+      font-size: 15px; font-weight: 600; padding: 14px 28px; border-radius: 10px;
+      border: 1px solid var(--border2);
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: border-color .15s, color .15s, transform .1s;
+    }
+    .btn-secondary-pub:hover { border-color: var(--blue2); color: var(--blue2); transform: translateY(-2px); }
+
+    .hero-stats { display: flex; gap: 48px; margin-top: 64px; flex-wrap: wrap; justify-content: center; }
+    .hero-stat-num { font-size: 36px; font-weight: 900; letter-spacing: -1px; color: var(--blue); }
+    .hero-stat-label {
+      font-size: 12px; color: var(--text-inv2); text-transform: uppercase;
+      letter-spacing: 1px; font-weight: 600; margin-top: 2px;
+    }
+    .hero-stat-divider { width: 1px; background: rgba(255,255,255,.1); }
+
+    /* ══ SECCIONES ══ */
+    section { padding: 96px 5%; }
+    .section-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--blue2); margin-bottom: 14px;
+    }
+    .section-eyebrow.inv { color: var(--blue); }
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px); font-weight: 800;
+      letter-spacing: -1px; line-height: 1.15; margin-bottom: 16px;
+    }
+    .section-title.inv { color: var(--text-inv); }
+    .section-sub { font-size: 16px; color: var(--text2); max-width: 540px; line-height: 1.7; }
+    .section-sub.inv { color: var(--text-inv2); }
+
+    /* ══ DESTACADOS ══ */
+    .destacados-section { background: var(--dark2); }
+    .destacados-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 20px; flex-wrap: wrap; margin-bottom: 48px;
+    }
+    .prop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .prop-card {
+      background: var(--dark3); border: 1px solid rgba(106,171,220,.18);
+      border-radius: 16px; overflow: hidden;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+      display: flex; flex-direction: column;
+    }
+    .prop-card:hover {
+      transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.35);
+      border-color: rgba(106,171,220,.45);
+    }
+    .prop-card-img { width: 100%; height: 200px; object-fit: cover; display: block; }
+    .prop-card-img-placeholder {
+      width: 100%; height: 200px; background: rgba(255,255,255,.04);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .prop-card-body { padding: 18px 20px; flex: 1; display: flex; flex-direction: column; }
+    .prop-card-type {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--blue); margin-bottom: 6px;
+    }
+    .prop-card-code { font-size: 18px; font-weight: 800; color: var(--text-inv); margin-bottom: 6px; }
+    .prop-card-location {
+      font-size: 13px; color: var(--text-inv2);
+      display: flex; align-items: center; gap: 5px; margin-bottom: 14px;
+    }
+    .prop-card-price {
+      font-size: 22px; font-weight: 900; color: var(--blue);
+      margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(106,171,220,.18);
+    }
+    .prop-card-price.no-price { font-size: 14px; color: var(--text-inv2); font-weight: 500; }
+    .prop-card-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 14px; font-size: 13px; font-weight: 600;
+      color: var(--blue); transition: gap .15s;
+    }
+    .prop-card-link:hover { gap: 10px; }
+
+    /* ══ QUIÉNES SOMOS ══ */
+    .about-section { background: var(--beige); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .about-features { display: flex; flex-direction: column; gap: 24px; margin-top: 40px; }
+    .about-feature { display: flex; gap: 16px; align-items: flex-start; }
+    .about-feature-icon {
+      width: 42px; height: 42px; border-radius: 10px;
+      background: var(--blue-lt); border: 1px solid rgba(106,171,220,.3);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .about-feature-text h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+    .about-feature-text p  { font-size: 13px; color: var(--text2); line-height: 1.6; }
+    .about-visual {
+      background: var(--dark); border: 1px solid rgba(106,171,220,.2);
+      border-radius: 20px; padding: 40px; display: flex; flex-direction: column; gap: 20px;
+    }
+    .about-visual-label {
+      font-size: 13px; color: var(--text-inv2); margin-bottom: 8px;
+      font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .about-visual-stat {
+      padding: 20px 24px; background: var(--dark2);
+      border: 1px solid rgba(106,171,220,.15); border-radius: 12px;
+    }
+    .about-visual-stat-num { font-size: 32px; font-weight: 900; letter-spacing: -1px; color: var(--blue); }
+    .about-visual-stat-label {
+      font-size: 12px; color: var(--text-inv2); text-transform: uppercase;
+      letter-spacing: 1px; font-weight: 600; margin-top: 4px;
+    }
+
+    /* ══ DÓNDE ESTAMOS ══ */
+    .location-section { background: var(--bg); }
+    .location-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 48px; align-items: start; margin-top: 48px;
+    }
+    .location-info { display: flex; flex-direction: column; gap: 16px; }
+    .location-item {
+      display: flex; gap: 14px; align-items: flex-start;
+      padding: 18px 20px; background: var(--bg2);
+      border: 1px solid var(--border2); border-radius: 12px;
+    }
+    .location-item-icon {
+      width: 38px; height: 38px; border-radius: 8px;
+      background: var(--blue-lt); border: 1px solid rgba(106,171,220,.3);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .location-item h4 {
+      font-size: 13px; font-weight: 700; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;
+    }
+    .location-item p       { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.5; }
+    .location-item p small { font-size: 12px; font-weight: 500; color: var(--text3); display: block; margin-top: 2px; }
+    .location-map { border-radius: 16px; overflow: hidden; border: 1px solid var(--border2); height: 400px; }
+    .location-map iframe { width: 100%; height: 100%; border: none; display: block; }
+
+    /* ══ CONTACTO ══ */
+    .contact-section { background: var(--dark); text-align: center; }
+    .contact-cards { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 48px; }
+    .contact-card {
+      background: var(--dark2); border: 1px solid rgba(106,171,220,.18);
+      border-radius: 16px; padding: 32px 36px;
+      min-width: 220px; flex: 1; max-width: 280px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+    }
+    .contact-card:hover {
+      border-color: var(--blue); transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(106,171,220,.15);
+    }
+    .contact-card-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: rgba(106,171,220,.12); border: 1px solid rgba(106,171,220,.25);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .contact-card h3 {
+      font-size: 13px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-inv2);
+    }
+    .contact-card p { font-size: 17px; font-weight: 700; color: var(--text-inv); }
+
+    /* ══ FORMULARIO CONTACTO ══ */
+    .contact-form-wrap {
+      max-width: 620px; margin: 48px auto 0;
+      background: var(--dark2); border: 1px solid rgba(106,171,220,.2);
+      border-radius: 20px; padding: 40px 44px; text-align: left;
+    }
+    .contact-form-wrap h3 { font-size: 18px; font-weight: 800; margin-bottom: 6px; color: var(--text-inv); }
+    .contact-form-wrap > p { font-size: 14px; color: var(--text-inv2); margin-bottom: 28px; line-height: 1.6; }
+    .cf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .cf-field { display: flex; flex-direction: column; gap: 5px; }
+    .cf-field.full { grid-column: 1 / -1; }
+    .cf-field label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-inv2);
+    }
+    .cf-field input,
+    .cf-field textarea,
+    .cf-field select {
+      background: var(--dark3); border: 1px solid rgba(106,171,220,.2);
+      border-radius: 8px; color: var(--text-inv); font-size: 13px;
+      padding: 10px 12px; font-family: inherit; outline: none; transition: border-color .2s;
+    }
+    .cf-field input::placeholder,
+    .cf-field textarea::placeholder { color: var(--text-inv2); opacity: .6; }
+    .cf-field input:focus,
+    .cf-field textarea:focus,
+    .cf-field select:focus { border-color: var(--blue); }
+    .cf-field select option { background: var(--dark3); }
+    .cf-field textarea { resize: vertical; min-height: 100px; }
+    .cf-submit {
+      width: 100%; margin-top: 20px;
+      background: var(--blue); color: #fff;
+      font-size: 14px; font-weight: 700; padding: 14px;
+      border: none; border-radius: 10px; cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background .15s, transform .1s;
+    }
+    .cf-submit:hover { background: var(--blue2); transform: translateY(-1px); }
+    .cf-alert-ok {
+      margin-bottom: 20px; padding: 12px 16px; border-radius: 8px;
+      background: rgba(106,171,220,.12); border: 1px solid rgba(106,171,220,.3);
+      color: var(--blue); font-size: 13px; display: flex; align-items: center; gap: 8px;
+    }
+    .cf-alert-err {
+      margin-bottom: 20px; padding: 12px 16px; border-radius: 8px;
+      background: rgba(180,35,24,.12); border: 1px solid rgba(180,35,24,.3);
+      color: #f87171; font-size: 13px; display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ══ FOOTER ══ */
+    .pub-footer {
+      background: var(--dark); border-top: 1px solid rgba(106,171,220,.12);
+      padding: 32px 5%; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    }
+    .pub-footer-brand { font-size: 15px; font-weight: 800; color: var(--text-inv); }
+    .pub-footer p     { font-size: 12px; color: var(--text-inv2); }
+    .pub-footer-login {
+      font-size: 12px; color: var(--text-inv2);
+      display: flex; align-items: center; gap: 6px; transition: color .15s;
+    }
+    .pub-footer-login:hover { color: var(--blue); }
+
+    /* ══ TOAST COPY EMAIL ══ */
+    .copy-toast {
+      position: fixed; bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--dark2); border: 1px solid rgba(106,171,220,.35);
+      color: var(--text-inv); font-size: 13px; font-weight: 600;
+      padding: 10px 20px; border-radius: 999px;
+      display: flex; align-items: center; gap: 8px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      z-index: 9999;
+    }
+    .copy-toast.show {
+      opacity: 1; transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      .about-grid        { grid-template-columns: 1fr; }
+      .location-grid     { grid-template-columns: 1fr; }
+      .pub-nav-links     { display: none; }
+      .hero-stats        { gap: 28px; }
+      .cf-grid           { grid-template-columns: 1fr; }
+      .contact-form-wrap { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav class="pub-nav">
+  <a class="pub-nav-brand" href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+         fill="none" stroke="var(--blue)" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+      <polyline points="9 21 9 12 15 12 15 21"/>
+    </svg>
+    Solvia Store Bilbao
+  </a>
+  <div class="pub-nav-links">
+    <a href="#nosotros">Quiénes somos</a>
+    <a href="#donde">Dónde estamos</a>
+    <a href="/catalogo">Inmuebles</a>
+    <a href="#contacto">Contacto</a>
+    <a href="/catalogo" class="pub-nav-cta">Ver catálogo →</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <h1>Tu próximo hogar<br/>en el <span>País Vasco</span></h1>
+  <p class="hero-sub">
+    Franquicia oficial Solvia en Bilbao. Gestionamos la compraventa de inmuebles
+    en toda Euskadi con transparencia, agilidad y conocimiento del mercado local.
+  </p>
+  <div class="hero-actions">
+    <a href="/catalogo" class="btn-primary-pub">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+        <polyline points="9 21 9 12 15 12 15 21"/>
+      </svg>
+      Ver inmuebles disponibles
+    </a>
+    <a href="#contacto" class="btn-secondary-inv">Contactar →</a>
+  </div>
+  <div class="hero-stats">
+    <div style="text-align:center;">
+      <div class="hero-stat-num">+50</div>
+      <div class="hero-stat-label">Inmuebles gestionados</div>
+    </div>
+    <div class="hero-stat-divider"></div>
+    <div style="text-align:center;">
+      <div class="hero-stat-num">Euskadi</div>
+      <div class="hero-stat-label">Álava · Bizkaia · Gipuzkoa</div>
+    </div>
+    <div class="hero-stat-divider"></div>
+    <div style="text-align:center;">
+      <div class="hero-stat-num">Solvia</div>
+      <div class="hero-stat-label">Red oficial de franquicias</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ INMUEBLES DESTACADOS ══ -->
+<section class="destacados-section"
+         th:if="${destacados != null and !#lists.isEmpty(destacados)}">
+  <div class="destacados-header">
+    <div>
+      <div class="section-eyebrow inv">Catálogo</div>
+      <h2 class="section-title inv">Inmuebles destacados</h2>
+      <p class="section-sub inv">Una selección de nuestras propiedades disponibles en el País Vasco.</p>
+    </div>
+    <a href="/catalogo" class="btn-secondary-inv" style="white-space:nowrap;">Ver todos →</a>
+  </div>
+  <div class="prop-grid">
+    <a th:each="p : ${destacados}" th:href="@{|/catalogo/${p.id}|}" class="prop-card">
+      <img th:if="${p.portadaUrl != null}"
+           th:src="${p.portadaUrl}" th:alt="${p.propertyCode}" class="prop-card-img"/>
+      <div th:if="${p.portadaUrl == null}" class="prop-card-img-placeholder">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+             fill="none" stroke="rgba(106,171,220,.25)" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </div>
+      <div class="prop-card-body">
+        <div class="prop-card-type"
+             th:text="${p.propertyType != null ? p.propertyType : 'Inmueble'}">Piso</div>
+        <div class="prop-card-code" th:text="${p.propertyCode}">Código</div>
+        <div class="prop-card-location">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span th:text="${(p.municipality != null ? p.municipality : '') +
+                           (p.province != null ? ' · ' + p.province : '')}">Bilbao</span>
+        </div>
+        <div th:if="${p.precio != null}" class="prop-card-price"
+             th:text="${#numbers.formatInteger(p.precio, 3, 'POINT') + ' €'}">150.000 €</div>
+        <div th:if="${p.precio == null}" class="prop-card-price no-price">Consultar precio</div>
+        <span class="prop-card-link">
+          Ver ficha
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- ══ QUIÉNES SOMOS ══ -->
+<section id="nosotros" class="about-section">
+  <div class="about-grid">
+    <div>
+      <div class="section-eyebrow">Quiénes somos</div>
+      <h2 class="section-title">Franquicia Solvia<br/>en el País Vasco</h2>
+      <p class="section-sub">
+        Somos <strong>Solvia Store Bilbao</strong>, franquicia oficial de la red Solvia
+        con sede en el corazón de Bilbao. Atendemos toda Euskadi —
+        Bizkaia, Gipuzkoa y Álava — con un equipo local comprometido
+        y el respaldo de una de las mayores redes inmobiliarias de España.
+      </p>
+      <div class="about-features">
+        <div class="about-feature">
+          <div class="about-feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                 fill="none" stroke="var(--blue2)" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div class="about-feature-text">
+            <h4>Gestión profesional</h4>
+            <p>Nos encargamos de todo el proceso de compraventa, de principio a fin.</p>
+          </div>
+        </div>
+        <div class="about-feature">
+          <div class="about-feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                 fill="none" stroke="var(--blue2)" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div class="about-feature-text">
+            <h4>Respuesta rápida</h4>
+            <p>Atendemos consultas con agilidad para no hacerte esperar.</p>
+          </div>
+        </div>
+        <div class="about-feature">
+          <div class="about-feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                 fill="none" stroke="var(--blue2)" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <div class="about-feature-text">
+            <h4>Cobertura en toda Euskadi</h4>
+            <p>Desde Bilbao atendemos inmuebles en Bizkaia, Gipuzkoa y Álava.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="about-visual">
+      <div class="about-visual-label">Nuestra actividad</div>
+      <div class="about-visual-stat">
+        <div class="about-visual-stat-num">Bilbao</div>
+        <div class="about-visual-stat-label">Sede · C/ Gral. Eguía 29, 48013</div>
+      </div>
+      <div class="about-visual-stat">
+        <div class="about-visual-stat-num">Euskadi</div>
+        <div class="about-visual-stat-label">Bizkaia · Gipuzkoa · Álava</div>
+      </div>
+      <div class="about-visual-stat">
+        <div class="about-visual-stat-num">Solvia</div>
+        <div class="about-visual-stat-label">Franquicia oficial</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ DÓNDE ESTAMOS ══ -->
+<section id="donde" class="location-section">
+  <div style="max-width:600px;">
+    <div class="section-eyebrow">Ubicación</div>
+    <h2 class="section-title">Dónde estamos</h2>
+    <p class="section-sub">
+      Nuestra oficina está en pleno Bilbao, fácil de encontrar y con acceso directo
+      desde la Avda. del Ferrocarril.
+    </p>
+  </div>
+  <div class="location-grid">
+    <div class="location-info">
+
+      <!-- Dirección -->
+      <a href="https://maps.google.com/?q=Calle+General+Eguía+29+Bilbao"
+         target="_blank" rel="noopener" class="location-item"
+         style="text-decoration:none; transition:border-color .15s;"
+         onmouseover="this.style.borderColor='var(--blue)'"
+         onmouseout="this.style.borderColor='var(--border2)'">
+        <div class="location-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+               fill="none" stroke="var(--blue2)" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+        <div>
+          <h4>Dirección</h4>
+          <p>
+            C/ General Eguía 29, 48013 Bilbao
+            <small>Esquina Avda. del Ferrocarril · Bizkaia</small>
+          </p>
+        </div>
+      </a>
+
+      <!-- Teléfono -->
+      <a href="tel:+34618097990" class="location-item"
+         style="text-decoration:none; transition:border-color .15s;"
+         onmouseover="this.style.borderColor='var(--blue)'"
+         onmouseout="this.style.borderColor='var(--border2)'">
+        <div class="location-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+               fill="none" stroke="var(--blue2)" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07
+                     A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.4
+                     2 2 0 0 1 3.64 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81
+                     2 2 0 0 1-.45 2.11L8.09 9.91A16 16 0 0 0 14 15.91l1.27-1.27
+                     a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7
+                     2 2 0 0 1 1.72 2z"/>
+          </svg>
+        </div>
+        <div><h4>Teléfono</h4><p>+34 618 097 990</p></div>
+      </a>
+
+      <!-- Email (con copia al portapapeles) -->
+      <a href="mailto:g.correa.bastos@gmail.com"
+         class="location-item copy-email"
+         data-email="g.correa.bastos@gmail.com"
+         style="text-decoration:none; transition:border-color .15s; cursor:pointer;"
+         onmouseover="this.style.borderColor='var(--blue)'"
+         onmouseout="this.style.borderColor='var(--border2)'">
+        <div class="location-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+               fill="none" stroke="var(--blue2)" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2
+                     H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <div><h4>Email</h4><p>g.correa.bastos@gmail.com</p></div>
+      </a>
+
+      <!-- Horario -->
+      <div class="location-item">
+        <div class="location-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+               fill="none" stroke="var(--blue2)" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div>
+          <h4>Horario de atención</h4>
+          <p>
+            Lun – Vie: 10:00 – 14:00 | 16:00 – 20:00
+            <small>Mañana y tarde · Cerrado fines de semana</small>
+          </p>
+        </div>
+      </div>
+
+      <!-- Cobertura -->
+      <div class="location-item">
+        <div class="location-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+               fill="none" stroke="var(--blue2)" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10
+                     15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </div>
+        <div>
+          <h4>Zona de actuación</h4>
+          <p>
+            Todo el País Vasco
+            <small>Bizkaia · Gipuzkoa · Álava</small>
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Mapa -->
+    <div class="location-map">
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2906.123!2d-2.9220!3d43.2580!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd4e4e9b9e9e9e9e%3A0x1!2sCalle+General+Egu%C3%ADa+29%2C+48013+Bilbao!5e0!3m2!1ses!2ses!4v1710000000000"
+        allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTACTO ══ -->
+<section id="contacto" class="contact-section">
+  <div class="section-eyebrow inv">Contacto</div>
+  <h2 class="section-title inv">¿Hablamos?</h2>
+  <p class="section-sub inv" style="margin:0 auto;">
+    Estamos disponibles para resolver tus dudas y acompañarte en todo el proceso.
+  </p>
+
+  <div class="contact-cards">
+    <a href="tel:+34618097990" class="contact-card">
+      <div class="contact-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+             fill="none" stroke="var(--blue)" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07
+                   A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.4
+                   2 2 0 0 1 3.64 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81
+                   2 2 0 0 1-.45 2.11L8.09 9.91A16 16 0 0 0 14 15.91l1.27-1.27
+                   a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7
+                   2 2 0 0 1 1.72 2z"/>
+        </svg>
+      </div>
+      <h3>Teléfono</h3>
+      <p>+34 618 097 990</p>
+    </a>
+
+    <!-- Email card (con copia al portapapeles) -->
+    <a href="mailto:g.correa.bastos@gmail.com"
+       class="contact-card copy-email"
+       data-email="g.correa.bastos@gmail.com"
+       style="cursor:pointer;">
+      <div class="contact-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+             fill="none" stroke="var(--blue)" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2
+                   H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+      </div>
+      <h3>Email</h3>
+      <p>g.correa.bastos@gmail.com</p>
+    </a>
+
+    <div class="contact-card" style="cursor:default;">
+      <div class="contact-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+             fill="none" stroke="var(--blue)" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <h3>Horario</h3>
+      <p style="font-size:14px; text-align:center; line-height:1.6;">
+        10:00–14:00<br/>16:00–20:00
+      </p>
+    </div>
+
+    <a href="/catalogo" class="contact-card">
+      <div class="contact-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+             fill="none" stroke="var(--blue)" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+          <polyline points="9 21 9 12 15 12 15 21"/>
+        </svg>
+      </div>
+      <h3>Catálogo</h3>
+      <p>Ver inmuebles →</p>
+    </a>
+  </div>
+
+  <!-- Formulario -->
+  <div class="contact-form-wrap">
+    <h3>Envíanos un mensaje</h3>
+    <p>¿Tienes alguna consulta, quieres vender tu inmueble o simplemente quieres saber más? Escríbenos.</p>
+
+    <div class="cf-alert-ok" th:if="${param.enviado != null}">
+      ✅ Mensaje enviado correctamente. Te contactaremos pronto.
+    </div>
+    <div class="cf-alert-err" th:if="${param.error != null}">
+      ❌ Error al enviar el mensaje. Inténtalo de nuevo.
+    </div>
+
+    <form th:action="@{/contacto}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <div class="cf-grid">
+        <div class="cf-field">
+          <label>Nombre *</label>
+          <input type="text" name="nombre" required placeholder="Tu nombre completo"/>
+        </div>
+        <div class="cf-field">
+          <label>Teléfono *</label>
+          <input type="tel" name="telefono" required placeholder="600 000 000"/>
+        </div>
+        <div class="cf-field">
+          <label>Email</label>
+          <input type="email" name="email" placeholder="tu@email.com"/>
+        </div>
+        <div class="cf-field">
+          <label>Motivo</label>
+          <select name="motivo">
+            <option value="consulta">Consulta general</option>
+            <option value="vender">Quiero vender mi inmueble</option>
+            <option value="comprar">Quiero comprar</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="cf-field full">
+          <label>Mensaje</label>
+          <textarea name="mensaje" placeholder="Cuéntanos en qué podemos ayudarte..."></textarea>
+        </div>
+      </div>
+      <button type="submit" class="cf-submit">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+        Enviar mensaje
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer class="pub-footer">
+  <div class="pub-footer-brand">Solvia Store Bilbao</div>
+  <p>© 2026 Solvia Store Bilbao · C/ General Eguía 29, 48013 Bilbao · Todos los derechos reservados</p>
+  <a href="/login" class="pub-footer-login">
+    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+    Acceso equipo
+  </a>
+</footer>
+
+<!-- ══ SCRIPT COPY EMAIL ══ -->
+<script>
+(function () {
+  /* Crear toast */
+  const toast = document.createElement('div');
+  toast.className = 'copy-toast';
+  toast.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+         fill="none" stroke="var(--blue)" stroke-width="2.5"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    Email copiado al portapapeles`;
+  document.body.appendChild(toast);
+
+  let timer;
+  function showToast() {
+    clearTimeout(timer);
+    toast.classList.add('show');
+    timer = setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  function copyEmail(email) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(email).then(showToast).catch(fallback);
+    } else {
+      fallback();
+    }
+    function fallback() {
+      const tmp = document.createElement('input');
+      tmp.value = email;
+      document.body.appendChild(tmp);
+      tmp.select();
+      document.execCommand('copy');
+      document.body.removeChild(tmp);
+      showToast();
+    }
+  }
+
+  /* Interceptar todos los .copy-email */
+  document.querySelectorAll('.copy-email').forEach(el => {
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      const email = this.dataset.email || this.href.replace('mailto:', '');
+      copyEmail(email);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

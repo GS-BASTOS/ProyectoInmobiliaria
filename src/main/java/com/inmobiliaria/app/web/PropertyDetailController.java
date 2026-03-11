@@ -8,6 +8,7 @@ import com.inmobiliaria.app.repo.ClientPropertyInteractionRepository;
 import com.inmobiliaria.app.repo.PropertyMediaRepository;
 import com.inmobiliaria.app.repo.PropertyRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +22,10 @@ import java.util.Map;
 @Controller
 public class PropertyDetailController {
 
-    private final PropertyRepository propertyRepository;
-    private final PropertyMediaRepository mediaRepository;
+    private final PropertyRepository                  propertyRepository;
+    private final PropertyMediaRepository             mediaRepository;
     private final ClientPropertyInteractionRepository interactionRepository;
-    private final Cloudinary cloudinary;
+    private final Cloudinary                          cloudinary;
 
     public PropertyDetailController(PropertyRepository propertyRepository,
                                     PropertyMediaRepository mediaRepository,
@@ -62,7 +63,8 @@ public class PropertyDetailController {
                          @RequestParam(defaultValue = "false") boolean occupied,
                          @RequestParam(defaultValue = "false") boolean hasAlarm,
                          @RequestParam(required = false) String alarmCode,
-                         @RequestParam(required = false) String notes) {
+                         @RequestParam(required = false) String notes,
+                         @RequestParam(required = false) Integer precio) {
 
         Property p = propertyRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -76,9 +78,26 @@ public class PropertyDetailController {
         p.setHasAlarm(hasAlarm);
         p.setAlarmCode(hasAlarm ? t(alarmCode) : "");
         p.setNotes(t(notes));
+        p.setPrecio(precio);
         propertyRepository.save(p);
 
         return "redirect:/inmuebles/" + id;
+    }
+
+    // ── POST /inmuebles/{id}/publicar ── (toggle AJAX) ───────
+    @PostMapping("/inmuebles/{id}/publicar")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> togglePublicar(@PathVariable Long id) {
+        Property p = propertyRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        p.setPublicado(!p.isPublicado());
+        propertyRepository.save(p);
+
+        return ResponseEntity.ok(Map.of(
+            "publicado", p.isPublicado(),
+            "mensaje",   p.isPublicado() ? "Publicado en web" : "Despublicado"
+        ));
     }
 
     // ── POST /inmuebles/{id}/media ───────────────────────────
@@ -93,9 +112,10 @@ public class PropertyDetailController {
             if (file.isEmpty()) continue;
 
             String contentType  = file.getContentType() != null ? file.getContentType() : "";
-            String originalName = file.getOriginalFilename() != null ? file.getOriginalFilename() : "file";
+            String originalName = file.getOriginalFilename() != null
+                                  ? file.getOriginalFilename() : "file";
 
-            // ── Determinar resource_type para Cloudinary ──
+            // ── Determinar resource_type para Cloudinary ──────
             String resourceType;
             if (contentType.startsWith("video/")) {
                 resourceType = "video";
@@ -107,24 +127,22 @@ public class PropertyDetailController {
                 resourceType = "image";
             }
 
-            // ── Determinar mediaType interno ──
+            // ── Determinar mediaType interno ──────────────────
             String mediaType;
-            if (resourceType.equals("video"))               mediaType = "VIDEO";
-            else if (contentType.equals("application/pdf")) mediaType = "PDF";
-            else if (resourceType.equals("raw"))            mediaType = "DOCUMENT";
-            else                                            mediaType = "IMAGE";
+            if      (resourceType.equals("video"))               mediaType = "VIDEO";
+            else if (contentType.equals("application/pdf"))      mediaType = "PDF";
+            else if (resourceType.equals("raw"))                 mediaType = "DOCUMENT";
+            else                                                  mediaType = "IMAGE";
 
-            // ── Parámetros de subida ──
-            Map uploadParams;
+            // ── Params de subida ──────────────────────────────
+            Map<String, Object> uploadParams;
             if (resourceType.equals("raw")) {
-                String extension = "";
-                int dotIndex = originalName.lastIndexOf('.');
-                if (dotIndex > 0) {
-                    extension = originalName.substring(dotIndex); // ej: ".pdf"
-                }
+                String ext = "";
+                int dot = originalName.lastIndexOf('.');
+                if (dot > 0) ext = originalName.substring(dot);
                 uploadParams = ObjectUtils.asMap(
                     "resource_type", "raw",
-                    "public_id",     "inmobiliaria/" + id + "/" + System.currentTimeMillis() + extension,
+                    "public_id",     "inmobiliaria/" + id + "/" + System.currentTimeMillis() + ext,
                     "use_filename",  false,
                     "access_mode",   "public"
                 );
@@ -135,15 +153,15 @@ public class PropertyDetailController {
                 );
             }
 
-            // ── Subir a Cloudinary ──
-            Map result = cloudinary.uploader().upload(file.getBytes(), uploadParams);
+            Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), uploadParams);
 
             PropertyMedia media = new PropertyMedia();
             media.setProperty(property);
             media.setOriginalName(originalName);
             media.setMediaType(mediaType);
+            media.setContentType(contentType);
             media.setCloudinaryUrl((String) result.get("secure_url"));
-            media.setCloudinaryId((String) result.get("public_id"));
+            media.setCloudinaryPublicId((String) result.get("public_id"));
             mediaRepository.save(media);
         }
 
@@ -151,16 +169,27 @@ public class PropertyDetailController {
     }
 
     // ── POST /inmuebles/{id}/media/{mediaId}/eliminar ────────
-    // Solo borra el registro de BD — el archivo en Cloudinary se conserva
     @PostMapping("/inmuebles/{id}/media/{mediaId}/eliminar")
     public String deleteMedia(@PathVariable Long id,
-                              @PathVariable Long mediaId) {
+                              @PathVariable Long mediaId) throws IOException {
+
         PropertyMedia media = mediaRepository.findById(mediaId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (media.getCloudinaryPublicId() != null && !media.getCloudinaryPublicId().isBlank()) {
+            String resourceType = "VIDEO".equals(media.getMediaType()) ? "video"
+                                : "IMAGE".equals(media.getMediaType()) ? "image"
+                                : "raw";
+            cloudinary.uploader().destroy(
+                media.getCloudinaryPublicId(),
+                ObjectUtils.asMap("resource_type", resourceType)
+            );
+        }
+
         mediaRepository.delete(media);
         return "redirect:/inmuebles/" + id;
     }
 
-    // ── Helpers ─────────────────────────────────────────────
+    // ── Helper ────────────────────────────────────────────────
     private static String t(String s) { return s == null ? "" : s.trim(); }
 }

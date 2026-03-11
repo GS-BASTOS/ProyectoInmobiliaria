@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Catálogo · Solvia Store Bilbao</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #ffffff;
+      --bg2:       #f7f5f0;
+      --bg3:       #ede9e1;
+      --dark:      #1a1f2e;
+      --dark2:     #252c40;
+      --dark3:     #2e3650;
+      --beige:     #f2ede4;
+      --beige2:    #e8e1d4;
+      --beige3:    #d8cfc0;
+      --blue:      #6aabdc;
+      --blue2:     #4d95cc;
+      --blue3:     #3580b8;
+      --blue-lt:   #ddeef9;
+      --text:      #1a1f2e;
+      --text2:     #4a5068;
+      --text3:     #8a90a8;
+      --text-inv:  #f2ede4;
+      --text-inv2: #a8b0c8;
+      --border:    #ddd8ce;
+      --border2:   #cec8bc;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+    a    { text-decoration: none; color: inherit; }
+
+    /* ══ NAV ══ */
+    .pub-nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(26,31,46,.97); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(106,171,220,.15);
+      padding: 0 5%; display: flex; align-items: center;
+      justify-content: space-between; height: 64px;
+    }
+    .pub-nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 17px; font-weight: 800; color: var(--text-inv);
+    }
+    .pub-nav-links { display: flex; align-items: center; gap: 28px; }
+    .pub-nav-links a {
+      font-size: 13px; font-weight: 500; color: var(--text-inv2); transition: color .15s;
+    }
+    .pub-nav-links a:hover,
+    .pub-nav-links a.active { color: var(--text-inv); }
+    .pub-nav-cta {
+      background: var(--blue) !important; color: #fff !important;
+      font-weight: 700 !important; font-size: 13px !important;
+      padding: 8px 18px; border-radius: 8px; transition: background .15s !important;
+    }
+    .pub-nav-cta:hover { background: var(--blue2) !important; }
+
+    /* ══ HERO CATÁLOGO (oscuro) ══ */
+    .cat-hero {
+      padding: 64px 5% 48px;
+      background: var(--dark);
+      border-bottom: 1px solid rgba(106,171,220,.12);
+      position: relative; overflow: hidden;
+    }
+    .cat-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 0% 50%,
+                  rgba(106,171,220,.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cat-hero-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--blue); margin-bottom: 12px;
+    }
+    .cat-hero h1 {
+      font-size: clamp(32px, 5vw, 52px); font-weight: 900;
+      letter-spacing: -1.5px; margin-bottom: 12px; color: var(--text-inv);
+    }
+    .cat-hero h1 span { color: var(--blue); }
+    .cat-hero p { font-size: 16px; color: var(--text-inv2); max-width: 500px; }
+
+    /* ══ FILTROS ══ */
+    .cat-filters {
+      padding: 18px 5%;
+      background: var(--dark2);
+      border-bottom: 1px solid rgba(106,171,220,.12);
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .filter-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-inv2); margin-right: 4px;
+    }
+    .filter-pill {
+      padding: 6px 16px; border-radius: 999px; font-size: 12px; font-weight: 600;
+      border: 1px solid rgba(106,171,220,.25);
+      background: transparent; color: var(--text-inv2);
+      cursor: pointer; transition: all .15s; text-decoration: none;
+    }
+    .filter-pill:hover { border-color: var(--blue); color: var(--blue); }
+    .filter-pill.active {
+      background: var(--blue); color: #fff; border-color: var(--blue);
+    }
+
+    /* ══ BODY ══ */
+    .cat-body { padding: 48px 5%; background: var(--bg2); min-height: 60vh; }
+    .cat-count { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+    .cat-count strong { color: var(--text2); }
+    .cat-count .tipo-tag { color: var(--blue2); }
+
+    /* ══ GRID ══ */
+    .prop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .prop-card {
+      background: var(--dark3); border: 1px solid rgba(106,171,220,.18);
+      border-radius: 16px; overflow: hidden;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+      display: flex; flex-direction: column;
+    }
+    .prop-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0,0,0,.3);
+      border-color: rgba(106,171,220,.45);
+    }
+    .prop-card-img { width: 100%; height: 210px; object-fit: cover; display: block; }
+    .prop-card-img-placeholder {
+      width: 100%; height: 210px; background: rgba(255,255,255,.04);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .prop-card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+    .prop-card-type {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--blue); margin-bottom: 6px;
+    }
+    .prop-card-code {
+      font-size: 20px; font-weight: 800; color: var(--text-inv);
+      margin-bottom: 6px; letter-spacing: -0.5px;
+    }
+    .prop-card-location {
+      font-size: 13px; color: var(--text-inv2);
+      display: flex; align-items: center; gap: 5px; margin-bottom: 16px;
+    }
+    .prop-card-price {
+      font-size: 24px; font-weight: 900; color: var(--blue);
+      margin-top: auto; padding-top: 16px;
+      border-top: 1px solid rgba(106,171,220,.18);
+    }
+    .prop-card-price.no-price { font-size: 14px; color: var(--text-inv2); font-weight: 500; }
+    .prop-card-cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 14px; font-size: 13px; font-weight: 600;
+      color: var(--blue); transition: gap .15s;
+    }
+    .prop-card-cta:hover { gap: 10px; }
+
+    /* ══ EMPTY STATE ══ */
+    .cat-empty { text-align: center; padding: 80px 20px; color: var(--text3); }
+    .cat-empty h2 { font-size: 22px; font-weight: 700; color: var(--text2); margin-bottom: 10px; }
+    .cat-empty p  { font-size: 14px; }
+
+    /* ══ FOOTER ══ */
+    .pub-footer {
+      background: var(--dark); border-top: 1px solid rgba(106,171,220,.12);
+      padding: 32px 5%; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    }
+    .pub-footer-brand { font-size: 15px; font-weight: 800; color: var(--text-inv); }
+    .pub-footer p     { font-size: 12px; color: var(--text-inv2); }
+    .pub-footer-login {
+      font-size: 12px; color: var(--text-inv2);
+      display: flex; align-items: center; gap: 6px; transition: color .15s;
+    }
+    .pub-footer-login:hover { color: var(--blue); }
+
+    @media (max-width: 640px) { .pub-nav-links { display: none; } }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav class="pub-nav">
+  <a class="pub-nav-brand" href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+         fill="none" stroke="var(--blue)" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+      <polyline points="9 21 9 12 15 12 15 21"/>
+    </svg>
+    Solvia Store Bilbao
+  </a>
+  <div class="pub-nav-links">
+    <a href="/#nosotros">Quiénes somos</a>
+    <a href="/#donde">Dónde estamos</a>
+    <a href="/catalogo" class="active">Inmuebles</a>
+    <a href="/#contacto">Contacto</a>
+    <a href="/" class="pub-nav-cta">← Inicio</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<div class="cat-hero">
+  <div class="cat-hero-eyebrow">Catálogo</div>
+  <h1>Inmuebles <span>disponibles</span></h1>
+  <p>Encuentra tu próxima propiedad en Bilbao y Bizkaia.</p>
+</div>
+
+<!-- ══ FILTROS ══ -->
+<div class="cat-filters" th:if="${!#lists.isEmpty(tipos)}">
+  <span class="filter-label">Tipo:</span>
+  <a href="/catalogo"
+     th:classappend="${tipoActivo == null} ? ' active' : ''"
+     class="filter-pill">Todos</a>
+  <a th:each="t : ${tipos}"
+     th:href="@{/catalogo(tipo=${t})}"
+     th:text="${t}"
+     th:classappend="${tipoActivo == t} ? ' active' : ''"
+     class="filter-pill">Piso</a>
+</div>
+
+<!-- ══ BODY ══ -->
+<div class="cat-body">
+
+  <div class="cat-count" th:if="${!#lists.isEmpty(propiedades)}">
+    <strong th:text="${#lists.size(propiedades)}">0</strong>
+    <span th:text="${#lists.size(propiedades) == 1
+                     ? ' inmueble encontrado' : ' inmuebles encontrados'}">
+      inmuebles encontrados
+    </span>
+    <span th:if="${tipoActivo != null}"
+          class="tipo-tag"
+          th:text="' · Tipo: ' + ${tipoActivo}"></span>
+  </div>
+
+  <div class="prop-grid" th:if="${!#lists.isEmpty(propiedades)}">
+    <a th:each="p : ${propiedades}"
+       th:href="@{|/catalogo/${p.id}|}"
+       class="prop-card">
+      <img th:if="${p.portadaUrl != null}"
+           th:src="${p.portadaUrl}" th:alt="${p.propertyCode}" class="prop-card-img"/>
+      <div th:if="${p.portadaUrl == null}" class="prop-card-img-placeholder">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+             fill="none" stroke="rgba(106,171,220,.25)" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </div>
+      <div class="prop-card-body">
+        <div class="prop-card-type"
+             th:text="${p.propertyType != null ? p.propertyType : 'Inmueble'}">Piso</div>
+        <div class="prop-card-code" th:text="${p.propertyCode}">Código</div>
+        <div class="prop-card-location">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span th:text="${(p.municipality != null ? p.municipality : 'Bilbao') +
+                           (p.province != null ? ' · ' + p.province : '')}">Bilbao</span>
+        </div>
+        <div th:if="${p.precio != null}" class="prop-card-price"
+             th:text="${#numbers.formatInteger(p.precio, 3, 'POINT') + ' €'}">150.000 €</div>
+        <div th:if="${p.precio == null}" class="prop-card-price no-price">Consultar precio</div>
+        <span class="prop-card-cta">
+          Ver ficha
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </span>
+      </div>
+    </a>
+  </div>
+
+  <div class="cat-empty" th:if="${#lists.isEmpty(propiedades)}">
+    <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24"
+         fill="none" stroke="var(--border2)" stroke-width="1.5"
+         stroke-linecap="round" stroke-linejoin="round"
+         style="display:block;margin:0 auto 20px;">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+      <polyline points="9 21 9 12 15 12 15 21"/>
+    </svg>
+    <h2>No hay inmuebles disponibles</h2>
+    <p th:if="${tipoActivo != null}">
+      No hay inmuebles del tipo
+      <strong style="color:var(--text2);" th:text="${tipoActivo}"></strong>.
+      <a href="/catalogo" style="color:var(--blue2); margin-left:6px;">Ver todos →</a>
+    </p>
+    <p th:if="${tipoActivo == null}">En este momento no tenemos propiedades publicadas. Vuelve pronto.</p>
+  </div>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer class="pub-footer">
+  <div class="pub-footer-brand">Solvia Store Bilbao</div>
+  <p>© 2026 Solvia Store Bilbao · Todos los derechos reservados</p>
+  <a href="/login" class="pub-footer-login">
+    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+    Acceso equipo
+  </a>
+</footer>
+
+</body>
+</html>

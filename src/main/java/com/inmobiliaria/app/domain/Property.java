@@ -46,6 +46,16 @@ public class Property {
     @Column(name = "description", length = 1000)
     private String description;
 
+    @Column(name = "publicado", nullable = false)
+    private boolean publicado = false;
+
+    @Column(name = "precio")
+    private Integer precio;
+
+    // ── TRANSIENT: solo para vistas, no se persiste ────────
+    @Transient
+    private String portadaUrl;
+
     // ── Cliente que marcó pre-vendido ──────────────────────
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pre_vendido_client_id")
@@ -95,6 +105,15 @@ public class Property {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public boolean isPublicado() { return publicado; }
+    public void setPublicado(boolean publicado) { this.publicado = publicado; }
+
+    public Integer getPrecio() { return precio; }
+    public void setPrecio(Integer precio) { this.precio = precio; }
+
+    public String getPortadaUrl() { return portadaUrl; }
+    public void setPortadaUrl(String portadaUrl) { this.portadaUrl = portadaUrl; }
 
     public Client getPreVendidoClient() { return preVendidoClient; }
     public void setPreVendidoClient(Client preVendidoClient) { this.preVendidoClient = preVendidoClient; }
