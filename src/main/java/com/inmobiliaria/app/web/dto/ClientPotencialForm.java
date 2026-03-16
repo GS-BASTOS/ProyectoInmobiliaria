@@ -41,6 +41,8 @@ public class ClientPotencialForm {
     @Size(max = 500)
     private String motivoContacto;
 
+    private Boolean noMolestar = false;
+
     // ── Getters / Setters ────────────────────────────────
 
     public ClientType getClientType() { return clientType; }
@@ -72,4 +74,7 @@ public class ClientPotencialForm {
 
     public String getMotivoContacto() { return motivoContacto; }
     public void setMotivoContacto(String motivoContacto) { this.motivoContacto = motivoContacto; }
+
+    public Boolean getNoMolestar() { return noMolestar; }
+    public void setNoMolestar(Boolean noMolestar) { this.noMolestar = noMolestar; }
 }

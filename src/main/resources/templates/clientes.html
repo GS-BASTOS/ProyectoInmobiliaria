@@ -42,7 +42,6 @@
   tr[data-excluido] .email-item  { opacity:0.35; cursor:not-allowed; pointer-events:none; }
   tr[data-excluido] .check-label { opacity:0.4;  cursor:not-allowed; }
 
-  /* No Molestar: teléfonos y emails tachados visualmente */
   tr.row-no-molestar .wa-link  { opacity:0.4; text-decoration:line-through; pointer-events:none; }
   tr.row-no-molestar .email-item { opacity:0.2; cursor:not-allowed; pointer-events:none; }
   tr.row-no-molestar .check-label { opacity:0.3; cursor:not-allowed; }
@@ -116,9 +115,9 @@
       <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px;
                   align-items:end; flex-wrap:wrap;">
         <div style="display:flex; flex-direction:column;">
-          <span class="filter-label">Nombre / Empresa</span>
+          <span class="filter-label">Nombre / Complemento del nombre</span>
           <input type="text" name="q" th:value="${q}"
-                 placeholder="Nombre, empresa..." style="margin:0;"/>
+                 placeholder="Nombre, complemento..." style="margin:0;"/>
         </div>
         <div style="display:flex; flex-direction:column;">
           <span class="filter-label">Teléfono</span>
@@ -238,7 +237,6 @@
                            padding:2px 8px; font-size:11px; color:#168a53; font-weight:800;">
                 💰 COMPRADOR
               </span>
-              <!-- ── NO MOLESTAR badge ── -->
               <span th:if="${c.noMolestar}"
                     style="display:inline-flex; align-items:center; gap:4px;
                            background:#f3e5f5; border:1px solid #7b1fa2; border-radius:999px;
@@ -333,7 +331,6 @@
     if (e.target.closest('.wa-link')) return;
     const el = e.target.closest('.copyable');
     if (!el) return;
-    /* Bloquear copia si la fila es no-molestar */
     if (el.closest('tr[data-no-molestar]')) return;
     const text = el.getAttribute('data-copy') || el.textContent.trim();
     try { await navigator.clipboard.writeText(text); }
@@ -356,7 +353,7 @@
   function getSelectableEmailItems() {
     return getEmailItems().filter(cb =>
       cb.closest('tr[data-excluido]') === null &&
-      cb.closest('tr[data-no-molestar]') === null   /* ← excluir no-molestar del "seleccionar todos" */
+      cb.closest('tr[data-no-molestar]') === null
     );
   }
   function getSelectedEmails() {

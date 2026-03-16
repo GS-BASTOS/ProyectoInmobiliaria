@@ -238,7 +238,7 @@
         <div th:text="${client.companyName}">—</div>
       </div>
       <div>
-        <div class="small">Código Solvia</div>
+        <div class="small">ID Solvia</div>
         <div th:text="${client.solviaCode != null and !#strings.isEmpty(client.solviaCode)
                          ? client.solviaCode : '—'}">—</div>
       </div>
@@ -508,7 +508,7 @@
         </div>
         <div class="combo-wrapper" id="niComboWrapper">
           <input type="text" id="niComboInput" class="combo-input"
-                 placeholder="🔍  Buscar por código, municipio, tipo..."
+                 placeholder="🔍  Buscar por Macro, municipio, tipo..."
                  autocomplete="off" readonly/>
           <div class="combo-dropdown" id="niComboDropdown"></div>
         </div>
@@ -530,7 +530,7 @@
 
         <div class="grid-3" style="margin-top:14px;">
           <div>
-            <label>Código Solvia</label>
+            <label>ID Solvia</label>
             <input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123"/>
           </div>
           <div>
@@ -552,7 +552,7 @@
             <input th:field="*{propertyType}" id="niPropertyType" placeholder="Ej: Piso"/>
           </div>
           <div>
-            <label>Código inm.</label>
+            <label>Macro Inmueble</label>
             <input th:field="*{propertyCode}" id="niPropertyCode" placeholder="Ej: 1234"/>
           </div>
         </div>
@@ -624,7 +624,7 @@
             <label>Empresa <span style="color:var(--muted); font-weight:400;">(opcional)</span></label>
             <input th:field="*{companyName}" placeholder="Nombre de la empresa..."/>
           </div>
-          <div><label>Código Solvia</label><input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123"/></div>
+          <div><label>ID Solvia</label><input th:field="*{solviaCode}" placeholder="Ej: SOLVIA-123"/></div>
         </div>
       </div>
 

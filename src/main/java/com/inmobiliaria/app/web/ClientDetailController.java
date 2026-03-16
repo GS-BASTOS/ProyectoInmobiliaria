@@ -18,6 +18,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,6 +64,7 @@ public class ClientDetailController {
                 visitRepository.findByClient_IdOrderByVisitAtDescIdDesc(client.getId()));
         model.addAttribute("catalogProperties", buildCatalog());
         model.addAttribute("motivoContacto", client.getMotivoContacto());
+        model.addAttribute("selectedStatuses", Collections.emptyList());   // ← FIX
         return "client_detail";
     }
 
@@ -162,7 +164,7 @@ public class ClientDetailController {
         client.setSolviaCode(t(form.getSolviaCode()));
         client.setPosibleOcupa(form.isPosibleOcupa());
         client.setCompradorFinal(form.isCompradorFinal());
-        client.setNoMolestar(form.isNoMolestar());                   // ← NO MOLESTAR
+        client.setNoMolestar(form.isNoMolestar());
         client.setMotivoContacto(t(form.getMotivoContacto()));
 
         List<ClientPropertyInteraction> interactions =
@@ -321,7 +323,7 @@ public class ClientDetailController {
         form.setSolviaCode(client.getSolviaCode());
         form.setPosibleOcupa(client.isPosibleOcupa());
         form.setCompradorFinal(client.isCompradorFinal());
-        form.setNoMolestar(client.isNoMolestar());                   // ← NO MOLESTAR
+        form.setNoMolestar(client.isNoMolestar());
         form.setMotivoContacto(client.getMotivoContacto());
         form.setPhone1(client.getPhones().stream()
                 .filter(p -> p.getPosition() == 1)
@@ -400,6 +402,7 @@ public class ClientDetailController {
                 visitRepository.findByClient_IdOrderByVisitAtDescIdDesc(client.getId()));
         model.addAttribute("catalogProperties", buildCatalog());
         model.addAttribute("motivoContacto", client.getMotivoContacto());
+        model.addAttribute("selectedStatuses", Collections.emptyList());   // ← FIX
     }
 
     private void upsertPhone(Client client, int position, String number) {
