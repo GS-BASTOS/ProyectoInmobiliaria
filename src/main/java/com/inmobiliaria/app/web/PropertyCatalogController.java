@@ -74,24 +74,23 @@ public class PropertyCatalogController {
 
         model.addAttribute("properties", all);
         model.addAttribute("interestCountById", buildInterestMap(all));
-        model.addAttribute("form", new Property());
         model.addAttribute("q", q);
         model.addAttribute("soldFilter", soldFilter);
         return "property_catalog";
     }
 
-    // ── POST /inmuebles ──────────────────────────────────────
-    @PostMapping("/inmuebles")
-    public String create(@Valid @ModelAttribute("form") Property form,
-                         BindingResult br, Model model) {
-        if (br.hasErrors()) {
-            List<Property> all = propertyRepository.findAllByOrderByPropertyCodeAsc();
-            model.addAttribute("properties", all);
-            model.addAttribute("interestCountById", buildInterestMap(all));
-            model.addAttribute("q", null);
-            model.addAttribute("soldFilter", "ALL");
-            return "property_catalog";
-        }
+    // ── GET /inmuebles/nuevo ─────────────────────────────────
+    @GetMapping("/inmuebles/nuevo")
+    public String newForm(Model model) {
+        model.addAttribute("form", new Property());
+        return "property_new";
+    }
+
+    // ── POST /inmuebles/nuevo ────────────────────────────────
+    @PostMapping("/inmuebles/nuevo")
+    public String newCreate(@Valid @ModelAttribute("form") Property form,
+                            BindingResult br) {
+        if (br.hasErrors()) return "property_new";
         propertyRepository.save(form);
         return "redirect:/inmuebles";
     }

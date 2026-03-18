@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Nuevo inmueble')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<div class="container">
+  <div class="card" style="max-width:680px; margin:0 auto;">
+
+    <!-- ══ CABECERA ══ -->
+    <div style="display:flex; align-items:flex-end; justify-content:space-between;
+                gap:12px; flex-wrap:wrap; margin-bottom:4px;">
+      <div>
+        <h2 style="margin-bottom:4px;">Nuevo inmueble</h2>
+        <div class="small">Rellena los datos del nuevo inmueble.</div>
+      </div>
+      <a class="btn btn-secondary" th:href="@{/inmuebles}"
+         style="font-size:13px; padding:9px 16px; white-space:nowrap;">
+        ← Volver al catálogo
+      </a>
+    </div>
+
+    <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
+
+    <!-- ══ FORMULARIO ══ -->
+    <form th:action="@{/inmuebles/nuevo}" th:object="${form}" method="post">
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+        <div>
+          <label>Macro *</label>
+          <input th:field="*{propertyCode}" placeholder="Ej: MACRO-001" autofocus/>
+          <div class="field-error" th:if="${#fields.hasErrors('propertyCode')}"
+               th:errors="*{propertyCode}"></div>
+        </div>
+        <div>
+          <label>Tipo</label>
+          <input th:field="*{propertyType}" placeholder="Ej: Piso, Chalet, Local..."/>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+        <div>
+          <label>Municipio</label>
+          <input th:field="*{municipality}" placeholder="Ej: Madrid"/>
+        </div>
+        <div>
+          <label>Dirección</label>
+          <input th:field="*{address}" placeholder="Ej: Calle Gran Vía 1"/>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label>Notas internas</label>
+        <textarea th:field="*{notes}" rows="3"
+                  placeholder="Observaciones internas del equipo..."
+                  style="width:100%; resize:vertical;"></textarea>
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <a class="btn btn-secondary" th:href="@{/inmuebles}"
+           style="font-size:13px; padding:10px 20px;">Cancelar</a>
+        <button type="submit"
+                style="display:inline-flex; align-items:center; gap:7px;
+                       font-size:13px; padding:10px 22px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Guardar inmueble
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+</body>
+</html>

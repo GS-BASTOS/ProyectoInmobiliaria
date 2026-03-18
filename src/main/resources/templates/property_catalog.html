@@ -10,9 +10,7 @@
     padding:10px 12px; font-size:11px; font-weight:700; letter-spacing:0.7px;
     text-transform:uppercase; color:var(--muted); white-space:nowrap; text-align:left;
   }
-  .tabla-inmuebles td {
-    padding:10px 12px; vertical-align:top; border-bottom:1px solid var(--line);
-  }
+  .tabla-inmuebles td { padding:10px 12px; vertical-align:top; border-bottom:1px solid var(--line); }
   .tabla-inmuebles tbody tr:last-child td { border-bottom:none; }
   .tabla-inmuebles tbody tr:hover { background:#fafafa; }
 
@@ -25,17 +23,6 @@
   .badge-prevendido { background:#fff4e6; border:1px solid #e07a18; color:#a05800; }
   .badge-disponible { background:#f1f8e9; border:1px solid #8bc34a; color:#558b2f; }
 
-  .section-block {
-    padding:18px 20px; border-radius:14px;
-    border:1px solid var(--line); background:#faf8f4; margin-bottom:20px;
-  }
-  .section-block-title {
-    font-size:11px; font-weight:700; letter-spacing:1.2px;
-    text-transform:uppercase; color:var(--muted); margin-bottom:14px;
-    display:flex; align-items:center; gap:6px;
-  }
-
-  /* ── Modal confirmación eliminar ── */
   #deleteModalBackdrop {
     display:none; position:fixed; inset:0;
     background:rgba(0,0,0,.45); z-index:3000;
@@ -52,14 +39,10 @@
     from { opacity:0; transform:translateY(12px); }
     to   { opacity:1; transform:translateY(0); }
   }
-  #deleteModalBox h3 {
-    margin:0 0 8px; font-size:17px; display:flex; align-items:center; gap:8px;
-  }
-  #deleteModalBox p { font-size:13px; color:#555; margin:0 0 6px; line-height:1.5; }
+  #deleteModalBox h3 { margin:0 0 8px; font-size:17px; display:flex; align-items:center; gap:8px; }
+  #deleteModalBox p  { font-size:13px; color:#555; margin:0 0 6px; line-height:1.5; }
   #deleteModalWarning {
-    display:none;
-    margin:12px 0 0;
-    padding:10px 13px;
+    display:none; margin:12px 0 0; padding:10px 13px;
     background:#fff5f5; border:1px solid #f5c0bb; border-radius:10px;
     font-size:12px; color:#b42318; line-height:1.5;
   }
@@ -74,8 +57,7 @@
   <div id="deleteModalBox">
     <h3>
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-           fill="none" stroke="#b42318" stroke-width="2.5"
-           stroke-linecap="round" stroke-linejoin="round">
+           fill="none" stroke="#b42318" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="3 6 5 6 21 6"/>
         <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
         <path d="M10 11v6"/><path d="M14 11v6"/>
@@ -90,17 +72,14 @@
     </div>
     <div class="modal-actions">
       <button type="button" id="btnCancelDelete"
-              style="background:#fff; color:#111; border:1px solid var(--line);">
-        Cancelar
-      </button>
+              style="background:#fff; color:#111; border:1px solid var(--line);">Cancelar</button>
       <form id="deleteModalForm" method="post" style="margin:0;">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
         <button type="submit"
                 style="background:#b42318; border-color:#b42318;
                        display:inline-flex; align-items:center; gap:6px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
+               fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"/>
             <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
           </svg>
@@ -124,27 +103,42 @@
         </h2>
         <div class="small">Gestiona el inventario de propiedades del equipo.</div>
       </div>
+      <!-- ══ BOTÓN NUEVO INMUEBLE ══ -->
+      <a th:href="@{/inmuebles/nuevo}"
+         th:if="${editing == null or !editing}"
+         style="display:inline-flex; align-items:center; gap:7px;
+                font-size:13px; padding:9px 20px;
+                background:#111; color:#fff;
+                border:1px solid #111; border-radius:10px; text-decoration:none;
+                font-weight:600; cursor:pointer; white-space:nowrap;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo inmueble
+      </a>
     </div>
 
     <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
 
-    <!-- ══ FORMULARIO AÑADIR / EDITAR ══ -->
-    <div class="section-block">
-      <div class="section-block-title">
+    <!-- ══ FORMULARIO EDITAR (solo visible en modo edición) ══ -->
+    <div class="section-block" th:if="${editing != null and editing}">
+      <div class="section-block-title"
+           style="font-size:11px; font-weight:700; letter-spacing:1.2px;
+                  text-transform:uppercase; color:var(--muted); margin-bottom:14px;
+                  display:flex; align-items:center; gap:6px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
              fill="none" stroke="var(--muted)" stroke-width="2.5"
              stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
         </svg>
-        <span th:text="${editing != null and editing ? 'Editando inmueble' : 'Añadir nuevo inmueble'}">
-          Añadir nuevo inmueble
-        </span>
+        Editando inmueble
       </div>
 
-      <form th:action="${editing != null and editing
-                          ? '/inmuebles/' + form.id + '/editar'
-                          : '/inmuebles'}"
+      <form th:action="${'/inmuebles/' + form.id + '/editar'}"
             th:object="${form}" method="post">
 
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px;">
@@ -185,10 +179,9 @@
               <polyline points="17 21 17 13 7 13 7 21"/>
               <polyline points="7 3 7 8 15 8"/>
             </svg>
-            <span th:text="${editing != null and editing ? 'Actualizar' : 'Añadir inmueble'}">Guardar</span>
+            Actualizar
           </button>
           <a class="btn btn-secondary" th:href="@{/inmuebles}"
-             th:if="${editing != null and editing}"
              style="font-size:13px; padding:9px 16px;">Cancelar</a>
         </div>
       </form>
@@ -230,8 +223,7 @@
         <a class="btn btn-secondary" th:href="@{/inmuebles}"
            style="font-size:13px; padding:9px 16px;">Limpiar</a>
         <button type="submit"
-                style="display:inline-flex; align-items:center; gap:7px;
-                       font-size:13px; padding:9px 20px;">
+                style="display:inline-flex; align-items:center; gap:7px; font-size:13px; padding:9px 20px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round">
@@ -244,8 +236,7 @@
 
     <!-- SIN RESULTADOS -->
     <p th:if="${#lists.isEmpty(properties)}"
-       style="color:var(--muted); font-size:13px; padding:32px 0;
-              text-align:center; margin:0;">
+       style="color:var(--muted); font-size:13px; padding:32px 0; text-align:center; margin:0;">
       No hay inmuebles con esos filtros.
     </p>
 
@@ -267,20 +258,17 @@
         <tr th:each="p : ${properties}"
             th:style="${p.sold ? 'opacity:0.55;' : p.preVendido ? 'opacity:0.82;' : ''}">
 
-          <!-- ESTADO -->
           <td style="text-align:center; vertical-align:middle;">
             <span th:if="${p.sold}" class="badge-status badge-vendido">
               <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
-                   fill="none" stroke="currentColor" stroke-width="2.5"
-                   stroke-linecap="round" stroke-linejoin="round">
+                   fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
               Vendido
             </span>
             <span th:if="${!p.sold and p.preVendido}" class="badge-status badge-prevendido">
               <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
-                   fill="none" stroke="currentColor" stroke-width="2.5"
-                   stroke-linecap="round" stroke-linejoin="round">
+                   fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/>
                 <polyline points="12 6 12 12 16 14"/>
               </svg>
@@ -295,33 +283,22 @@
             </span>
           </td>
 
-          <!-- MACRO -->
           <td>
-            <a th:href="@{|/inmuebles/${p.id}|}"
-               th:text="${p.propertyCode}"
+            <a th:href="@{|/inmuebles/${p.id}|}" th:text="${p.propertyCode}"
                style="font-weight:800; text-decoration:none; color:var(--text);
                       font-size:13px; letter-spacing:0.3px;">COD</a>
           </td>
+          <td style="font-size:12px; color:#555;" th:text="${p.propertyType != null ? p.propertyType : '—'}">—</td>
+          <td style="font-size:12px;" th:text="${p.municipality != null ? p.municipality : '—'}">—</td>
+          <td style="font-size:12px; color:#777; max-width:180px;" th:text="${p.address != null ? p.address : '—'}">—</td>
+          <td style="font-size:11px; color:#aaa; max-width:140px;" th:text="${p.notes != null ? p.notes : '—'}">—</td>
 
-          <td style="font-size:12px; color:#555;"
-              th:text="${p.propertyType != null ? p.propertyType : '—'}">—</td>
-          <td style="font-size:12px;"
-              th:text="${p.municipality != null ? p.municipality : '—'}">—</td>
-          <td style="font-size:12px; color:#777; max-width:180px;"
-              th:text="${p.address != null ? p.address : '—'}">—</td>
-          <td style="font-size:11px; color:#aaa; max-width:140px;"
-              th:text="${p.notes != null ? p.notes : '—'}">—</td>
-
-          <!-- INTERESADOS -->
           <td style="text-align:center; vertical-align:middle;">
             <span th:with="cnt=${interestCountById.get(p.id) != null ? interestCountById.get(p.id) : 0}"
                   th:text="${cnt}"
-                  th:style="${cnt > 0
-                               ? 'font-weight:800; color:#0b1f5c; font-size:14px;'
-                               : 'color:#ccc; font-size:13px;'}">0</span>
+                  th:style="${cnt > 0 ? 'font-weight:800; color:#0b1f5c; font-size:14px;' : 'color:#ccc; font-size:13px;'}">0</span>
           </td>
 
-          <!-- ACCIONES -->
           <td style="white-space:nowrap; vertical-align:middle;">
             <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
               <a class="btn btn-secondary" th:href="@{|/inmuebles/${p.id}|}"
@@ -345,7 +322,6 @@
                                   : 'background:#b42318; border-color:#b42318; font-size:12px; padding:6px 12px;'}">
               </button>
 
-              <!-- Botón eliminar — abre el modal personalizado -->
               <button type="button" class="btn-delete"
                       th:attr="data-id=${p.id},
                                data-code=${p.propertyCode},
@@ -353,10 +329,8 @@
                       style="background:#555; border-color:#555; font-size:12px; padding:6px 12px;">
                 Eliminar
               </button>
-
             </div>
           </td>
-
         </tr>
       </tbody>
     </table>
@@ -369,7 +343,6 @@
   const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
 
-  // ── Vendido ──
   document.querySelectorAll('.btn-vendido').forEach(btn => {
     btn.addEventListener('click', async function () {
       const id   = btn.getAttribute('data-id');
@@ -386,7 +359,6 @@
     });
   });
 
-  // ── Pre vendido ──
   document.querySelectorAll('.btn-prevendido').forEach(btn => {
     btn.addEventListener('click', async function () {
       const id         = btn.getAttribute('data-id');
@@ -403,30 +375,22 @@
     });
   });
 
-  // ── Modal eliminar ──
-  const backdrop    = document.getElementById('deleteModalBackdrop');
-  const modalCode   = document.getElementById('deleteModalCode');
-  const modalCount  = document.getElementById('deleteModalCount');
-  const modalWarn   = document.getElementById('deleteModalWarning');
-  const modalForm   = document.getElementById('deleteModalForm');
-  const btnCancel   = document.getElementById('btnCancelDelete');
+  const backdrop   = document.getElementById('deleteModalBackdrop');
+  const modalCode  = document.getElementById('deleteModalCode');
+  const modalCount = document.getElementById('deleteModalCount');
+  const modalWarn  = document.getElementById('deleteModalWarning');
+  const modalForm  = document.getElementById('deleteModalForm');
+  const btnCancel  = document.getElementById('btnCancelDelete');
 
   document.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', function () {
       const id    = btn.getAttribute('data-id');
       const code  = btn.getAttribute('data-code');
       const count = parseInt(btn.getAttribute('data-count'), 10);
-
-      modalCode.textContent  = code;
-      modalForm.action       = `/inmuebles/${id}/eliminar`;
-
-      if (count > 0) {
-        modalCount.textContent = count;
-        modalWarn.classList.add('show');
-      } else {
-        modalWarn.classList.remove('show');
-      }
-
+      modalCode.textContent = code;
+      modalForm.action      = `/inmuebles/${id}/eliminar`;
+      if (count > 0) { modalCount.textContent = count; modalWarn.classList.add('show'); }
+      else { modalWarn.classList.remove('show'); }
       backdrop.classList.add('open');
     });
   });
