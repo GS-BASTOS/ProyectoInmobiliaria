@@ -27,7 +27,7 @@ public class CloudinaryService {
 
         String url        = (String) result.get("secure_url");
         String publicId   = (String) result.get("public_id");
-        // Para PDFs/docs Cloudinary genera una URL de descarga directa
+        // Para PDFs/docs Cloudinary genera un URL para cada documento guardado en la base de datos.
         String downloadUrl = url;
 
         return Map.of(
@@ -37,6 +37,7 @@ public class CloudinaryService {
         );
     }
 
+    
     public void delete(String publicId, String mediaType) throws IOException {
         String resourceType = "VIDEO".equals(mediaType) ? "video" : "image";
         cloudinary.uploader().destroy(
