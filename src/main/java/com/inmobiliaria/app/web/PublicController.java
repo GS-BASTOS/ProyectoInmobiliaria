@@ -78,9 +78,16 @@ public class PublicController {
                 .findFirst()
                 .orElse(null);
 
+        // ── NUEVO: primera imagen de vídeo para el caso sin imágenes ──
+        PropertyMedia firstVideo = media.stream()
+                .filter(m -> "VIDEO".equals(m.getMediaType()))
+                .findFirst()
+                .orElse(null);
+
         model.addAttribute("property",   property);
         model.addAttribute("mediaList",  media);
         model.addAttribute("firstImage", firstImage);
+        model.addAttribute("firstVideo", firstVideo);  // ← añadido
         return "public/catalogo_detalle";
     }
 

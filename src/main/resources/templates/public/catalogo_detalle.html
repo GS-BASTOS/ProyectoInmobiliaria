@@ -6,33 +6,18 @@
   <title th:text="${property.propertyCode} + ' · Solvia Store Bilbao'">Ficha</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg:        #ffffff;
-      --bg2:       #f7f5f0;
-      --bg3:       #ede9e1;
-      --dark:      #1a1f2e;
-      --dark2:     #252c40;
-      --dark3:     #2e3650;
-      --beige:     #f2ede4;
-      --beige2:    #e8e1d4;
-      --blue:      #6aabdc;
-      --blue2:     #4d95cc;
-      --blue3:     #3580b8;
-      --blue-lt:   #ddeef9;
-      --text:      #1a1f2e;
-      --text2:     #4a5068;
-      --text3:     #8a90a8;
-      --text-inv:  #f2ede4;
-      --text-inv2: #a8b0c8;
-      --border:    #ddd8ce;
-      --border2:   #cec8bc;
+      --bg:#ffffff; --bg2:#f7f5f0; --bg3:#ede9e1;
+      --dark:#1a1f2e; --dark2:#252c40; --dark3:#2e3650;
+      --beige:#f2ede4; --beige2:#e8e1d4;
+      --blue:#6aabdc; --blue2:#4d95cc; --blue3:#3580b8; --blue-lt:#ddeef9;
+      --text:#1a1f2e; --text2:#4a5068; --text3:#8a90a8;
+      --text-inv:#f2ede4; --text-inv2:#a8b0c8;
+      --border:#ddd8ce; --border2:#cec8bc;
     }
-
     html { scroll-behavior: smooth; }
     body { font-family: 'Inter', sans-serif; background: var(--bg2); color: var(--text); }
     a    { text-decoration: none; color: inherit; }
@@ -45,223 +30,126 @@
       padding: 0 5%; display: flex; align-items: center;
       justify-content: space-between; height: 64px;
     }
-    .pub-nav-brand {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 17px; font-weight: 800; color: var(--text-inv);
-    }
+    .pub-nav-brand { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 800; color: var(--text-inv); }
     .pub-nav-links { display: flex; align-items: center; gap: 28px; }
-    .pub-nav-links a {
-      font-size: 13px; font-weight: 500; color: var(--text-inv2); transition: color .15s;
-    }
-    .pub-nav-links a:hover,
-    .pub-nav-links a.active { color: var(--text-inv); }
-    .pub-nav-cta {
-      background: var(--blue) !important; color: #fff !important;
-      font-weight: 700 !important; font-size: 13px !important;
-      padding: 8px 18px; border-radius: 8px; transition: background .15s !important;
-    }
+    .pub-nav-links a { font-size: 13px; font-weight: 500; color: var(--text-inv2); transition: color .15s; }
+    .pub-nav-links a:hover, .pub-nav-links a.active { color: var(--text-inv); }
+    .pub-nav-cta { background: var(--blue) !important; color: #fff !important; font-weight: 700 !important; font-size: 13px !important; padding: 8px 18px; border-radius: 8px; transition: background .15s !important; }
     .pub-nav-cta:hover { background: var(--blue2) !important; }
 
     /* ══ LAYOUT ══ */
     .detalle-wrap { max-width: 1100px; margin: 0 auto; padding: 48px 5% 80px; }
-    .breadcrumb {
-      font-size: 13px; color: var(--text3);
-      margin-bottom: 28px; display: flex; align-items: center; gap: 8px;
-    }
+    .breadcrumb { font-size: 13px; color: var(--text3); margin-bottom: 28px; display: flex; align-items: center; gap: 8px; }
     .breadcrumb a { color: var(--text3); transition: color .15s; }
     .breadcrumb a:hover { color: var(--blue2); }
-    .detalle-grid {
-      display: grid; grid-template-columns: 1fr 360px;
-      gap: 32px; align-items: start;
-    }
+    .detalle-grid { display: grid; grid-template-columns: 1fr 360px; gap: 32px; align-items: start; }
 
     /* ══ GALERÍA ══ */
     .gallery-main {
       width: 100%; aspect-ratio: 16/9;
       border-radius: 16px; overflow: hidden;
       background: var(--dark3); border: 1px solid rgba(106,171,220,.2);
-      margin-bottom: 12px; cursor: pointer; position: relative;
+      margin-bottom: 12px; position: relative;
     }
-    .gallery-main img {
+    .gallery-main img#mainImg {
       width: 100%; height: 100%;
-      object-fit: cover; display: block; transition: opacity .2s;
+      object-fit: cover; display: block;
+      cursor: pointer; transition: opacity .2s;
     }
-    .gallery-main img:hover { opacity: .9; }
+    .gallery-main img#mainImg:hover { opacity: .9; }
+    .gallery-main video#mainVideo {
+      width: 100%; height: 100%;
+      object-fit: contain; display: none;
+      background: #000;
+    }
     .gallery-main-placeholder {
       width: 100%; height: 100%;
       display: flex; align-items: center; justify-content: center;
       flex-direction: column; gap: 12px;
     }
-    .gallery-thumbs { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ══ THUMBS ══ */
+    .gallery-thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0; }
     .gallery-thumb {
       width: 72px; height: 54px; border-radius: 8px; overflow: hidden;
       cursor: pointer; border: 2px solid transparent;
       transition: border-color .15s; flex-shrink: 0;
+      background: var(--dark3); position: relative;
     }
     .gallery-thumb.active { border-color: var(--blue); }
     .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .gallery-video-item {
-      width: 100%; border-radius: 16px; overflow: hidden;
-      margin-top: 16px; border: 1px solid rgba(106,171,220,.2);
+    .gallery-thumb-video .play-icon {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.45);
     }
-    .gallery-video-item video { width: 100%; display: block; max-height: 400px; }
 
     /* ══ DESCRIPCIÓN ══ */
     .detalle-desc {
       background: var(--dark2); border: 1px solid rgba(106,171,220,.15);
       border-radius: 16px; padding: 28px; margin-top: 20px;
     }
-    .detalle-desc h2 {
-      font-size: 18px; font-weight: 800; margin-bottom: 14px; color: var(--text-inv);
-    }
-    .detalle-desc p {
-      font-size: 14px; color: var(--text-inv2); line-height: 1.8; white-space: pre-wrap;
-    }
+    .detalle-desc h2 { font-size: 18px; font-weight: 800; margin-bottom: 14px; color: var(--text-inv); }
+    .detalle-desc p  { font-size: 14px; color: var(--text-inv2); line-height: 1.8; white-space: pre-wrap; }
 
     /* ══ SIDEBAR ══ */
     .detalle-sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; }
-
-    .sidebar-card {
-      background: var(--dark2); border: 1px solid rgba(106,171,220,.18);
-      border-radius: 16px; padding: 24px;
-    }
-    .sidebar-price {
-      font-size: 36px; font-weight: 900; letter-spacing: -1px;
-      color: var(--blue); margin-bottom: 6px;
-    }
+    .sidebar-card { background: var(--dark2); border: 1px solid rgba(106,171,220,.18); border-radius: 16px; padding: 24px; }
+    .sidebar-price { font-size: 36px; font-weight: 900; letter-spacing: -1px; color: var(--blue); margin-bottom: 6px; }
     .sidebar-price.no-price { font-size: 18px; color: var(--text-inv2); font-weight: 500; }
-    .sidebar-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(106,171,220,.12); border: 1px solid rgba(106,171,220,.3);
-      border-radius: 999px; padding: 4px 12px;
-      font-size: 12px; font-weight: 700; color: var(--blue); margin-bottom: 20px;
-    }
+    .sidebar-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(106,171,220,.12); border: 1px solid rgba(106,171,220,.3); border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 700; color: var(--blue); margin-bottom: 20px; }
     .sidebar-divider { height: 1px; background: rgba(106,171,220,.15); margin: 18px 0; }
-    .sidebar-info-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 0; border-bottom: 1px solid rgba(106,171,220,.1); font-size: 13px;
-    }
+    .sidebar-info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(106,171,220,.1); font-size: 13px; }
     .sidebar-info-row:last-child { border-bottom: none; }
     .sidebar-info-label { color: var(--text-inv2); font-weight: 600; }
     .sidebar-info-val   { color: var(--text-inv);  font-weight: 600; text-align: right; }
 
     /* ══ FORMULARIO CONTACTO ══ */
-    .contact-card {
-      background: var(--dark2); border: 1px solid rgba(106,171,220,.18);
-      border-radius: 16px; padding: 24px;
-    }
+    .contact-card { background: var(--dark2); border: 1px solid rgba(106,171,220,.18); border-radius: 16px; padding: 24px; }
     .contact-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; color: var(--text-inv); }
     .contact-card p  { font-size: 13px; color: var(--text-inv2); margin-bottom: 18px; line-height: 1.5; }
-    .contact-card label {
-      display: block; font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      color: var(--text-inv2); margin-bottom: 5px; margin-top: 12px;
-    }
+    .contact-card label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-inv2); margin-bottom: 5px; margin-top: 12px; }
     .contact-card label:first-of-type { margin-top: 0; }
     .contact-card input,
-    .contact-card textarea {
-      width: 100%; background: var(--dark3);
-      border: 1px solid rgba(106,171,220,.2); border-radius: 8px;
-      color: var(--text-inv); font-size: 13px; padding: 10px 12px;
-      font-family: inherit; outline: none; transition: border-color .2s;
-    }
-    .contact-card input::placeholder,
-    .contact-card textarea::placeholder { color: var(--text-inv2); opacity: .6; }
-    .contact-card input:focus,
-    .contact-card textarea:focus { border-color: var(--blue); }
+    .contact-card textarea { width: 100%; background: var(--dark3); border: 1px solid rgba(106,171,220,.2); border-radius: 8px; color: var(--text-inv); font-size: 13px; padding: 10px 12px; font-family: inherit; outline: none; transition: border-color .2s; }
+    .contact-card input::placeholder, .contact-card textarea::placeholder { color: var(--text-inv2); opacity: .6; }
+    .contact-card input:focus, .contact-card textarea:focus { border-color: var(--blue); }
     .contact-card textarea { resize: vertical; min-height: 90px; }
-    .contact-submit {
-      width: 100%; margin-top: 16px;
-      background: var(--blue); color: #fff;
-      font-size: 14px; font-weight: 700;
-      padding: 13px; border: none; border-radius: 8px;
-      cursor: pointer; font-family: inherit;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: background .15s, transform .1s;
-    }
+    .contact-submit { width: 100%; margin-top: 16px; background: var(--blue); color: #fff; font-size: 14px; font-weight: 700; padding: 13px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .15s, transform .1s; }
     .contact-submit:hover { background: var(--blue2); transform: translateY(-1px); }
-    .contact-divider {
-      display: flex; align-items: center; gap: 10px;
-      margin: 16px 0; color: var(--text-inv2); font-size: 12px;
-    }
-    .contact-divider::before,
-    .contact-divider::after { content: ''; flex: 1; height: 1px; background: rgba(106,171,220,.15); }
+    .contact-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: var(--text-inv2); font-size: 12px; }
+    .contact-divider::before, .contact-divider::after { content: ''; flex: 1; height: 1px; background: rgba(106,171,220,.15); }
     .contact-direct { display: flex; flex-direction: column; gap: 8px; }
-    .contact-direct-link {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 8px;
-      border: 1px solid rgba(106,171,220,.2); background: var(--dark3);
-      font-size: 13px; font-weight: 600; color: var(--text-inv2);
-      transition: border-color .15s, color .15s;
-    }
+    .contact-direct-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(106,171,220,.2); background: var(--dark3); font-size: 13px; font-weight: 600; color: var(--text-inv2); transition: border-color .15s, color .15s; }
     .contact-direct-link:hover { border-color: var(--blue); color: var(--blue); }
 
     /* ══ ALERTAS ══ */
-    .alert-ok {
-      padding: 12px 16px; border-radius: 8px;
-      background: rgba(106,171,220,.12); border: 1px solid rgba(106,171,220,.3);
-      color: var(--blue); font-size: 13px;
-      display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
-    }
-    .alert-err {
-      padding: 12px 16px; border-radius: 8px;
-      background: rgba(180,35,24,.12); border: 1px solid rgba(180,35,24,.3);
-      color: #f87171; font-size: 13px;
-      display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
-    }
+    .alert-ok { padding: 12px 16px; border-radius: 8px; background: rgba(106,171,220,.12); border: 1px solid rgba(106,171,220,.3); color: var(--blue); font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .alert-err { padding: 12px 16px; border-radius: 8px; background: rgba(180,35,24,.12); border: 1px solid rgba(180,35,24,.3); color: #f87171; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 
     /* ══ LIGHTBOX ══ */
-    #lightbox {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.92); z-index: 9999;
-      align-items: center; justify-content: center;
-    }
+    #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 9999; align-items: center; justify-content: center; }
     #lightbox.open { display: flex; }
     #lightboxImg { max-width: 92vw; max-height: 90vh; border-radius: 10px; animation: lbIn .15s ease; }
-    @keyframes lbIn {
-      from { opacity:0; transform:scale(.97); }
-      to   { opacity:1; transform:scale(1); }
-    }
-    #lightboxClose {
-      position: absolute; top: 20px; right: 24px;
-      cursor: pointer; opacity: .7; transition: opacity .15s;
-    }
+    @keyframes lbIn { from { opacity:0; transform:scale(.97); } to { opacity:1; transform:scale(1); } }
+    #lightboxClose { position: absolute; top: 20px; right: 24px; cursor: pointer; opacity: .7; transition: opacity .15s; }
     #lightboxClose:hover { opacity: 1; }
 
-    /* ══ TOAST COPY EMAIL ══ */
-    .copy-toast {
-      position: fixed; bottom: 28px; left: 50%;
-      transform: translateX(-50%) translateY(12px);
-      background: var(--dark2); border: 1px solid rgba(106,171,220,.35);
-      color: var(--text-inv); font-size: 13px; font-weight: 600;
-      padding: 10px 20px; border-radius: 999px;
-      display: flex; align-items: center; gap: 8px;
-      opacity: 0; pointer-events: none;
-      transition: opacity .2s, transform .2s;
-      z-index: 99999;
-    }
-    .copy-toast.show {
-      opacity: 1; transform: translateX(-50%) translateY(0);
-    }
+    /* ══ TOAST ══ */
+    .copy-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--dark2); border: 1px solid rgba(106,171,220,.35); color: var(--text-inv); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 999px; display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 99999; }
+    .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     /* ══ FOOTER ══ */
-    .pub-footer {
-      background: var(--dark); border-top: 1px solid rgba(106,171,220,.12);
-      padding: 32px 5%; display: flex; align-items: center;
-      justify-content: space-between; flex-wrap: wrap; gap: 16px;
-    }
+    .pub-footer { background: var(--dark); border-top: 1px solid rgba(106,171,220,.12); padding: 32px 5%; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
     .pub-footer-brand { font-size: 15px; font-weight: 800; color: var(--text-inv); }
     .pub-footer p     { font-size: 12px; color: var(--text-inv2); }
-    .pub-footer-login {
-      font-size: 12px; color: var(--text-inv2);
-      display: flex; align-items: center; gap: 6px; transition: color .15s;
-    }
+    .pub-footer-login { font-size: 12px; color: var(--text-inv2); display: flex; align-items: center; gap: 6px; transition: color .15s; }
     .pub-footer-login:hover { color: var(--blue); }
 
     @media (max-width: 900px) {
-      .detalle-grid    { grid-template-columns: 1fr; }
+      .detalle-grid { grid-template-columns: 1fr; }
       .detalle-sidebar { position: static; }
-      .pub-nav-links   { display: none; }
+      .pub-nav-links { display: none; }
     }
   </style>
 </head>
@@ -271,8 +159,7 @@
 <div id="lightbox">
   <div id="lightboxClose">
     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
-         fill="none" stroke="#fff" stroke-width="2"
-         stroke-linecap="round" stroke-linejoin="round">
+         fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="18" y1="6" x2="6" y2="18"/>
       <line x1="6" y1="6" x2="18" y2="18"/>
     </svg>
@@ -284,8 +171,7 @@
 <nav class="pub-nav">
   <a class="pub-nav-brand" href="/">
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
-         fill="none" stroke="var(--blue)" stroke-width="2"
-         stroke-linecap="round" stroke-linejoin="round">
+         fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
       <polyline points="9 21 9 12 15 12 15 21"/>
     </svg>
@@ -301,8 +187,6 @@
 </nav>
 
 <div class="detalle-wrap">
-
-  <!-- Breadcrumb -->
   <div class="breadcrumb">
     <a href="/">Inicio</a>
     <span>›</span>
@@ -316,12 +200,13 @@
     <!-- ══ COLUMNA IZQUIERDA ══ -->
     <div>
 
+      <!-- ÁREA PRINCIPAL -->
       <div class="gallery-main" id="galleryMain">
         <img th:if="${firstImage != null}"
              th:src="${firstImage.cloudinaryUrl}"
              th:alt="${property.propertyCode}"
              id="mainImg"/>
-        <div th:if="${firstImage == null}" class="gallery-main-placeholder">
+        <div th:if="${firstImage == null and firstVideo == null}" class="gallery-main-placeholder">
           <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24"
                fill="none" stroke="rgba(106,171,220,.25)" stroke-width="1.5"
                stroke-linecap="round" stroke-linejoin="round">
@@ -331,24 +216,41 @@
           </svg>
           <span style="font-size:13px; color:var(--text-inv2);">Sin fotos disponibles</span>
         </div>
+        <!-- Vídeo principal (oculto hasta que se seleccione su thumb) -->
+        <video id="mainVideo" controls preload="metadata"
+               style="display:none; width:100%; height:100%; object-fit:contain; background:#000;">
+          <source id="mainVideoSrc" src="" type="video/mp4"/>
+        </video>
+        <!-- Auto-init si solo hay vídeo -->
+        <div th:if="${firstImage == null and firstVideo != null}"
+             th:attr="data-autovideo=${firstVideo.cloudinaryUrl}"
+             id="autoVideoInit"></div>
       </div>
 
+      <!-- THUMBS: imágenes + vídeos juntos -->
       <div class="gallery-thumbs" id="galleryThumbs">
+
         <div th:each="m, idx : ${mediaList}"
              th:if="${m.mediaType == 'IMAGE'}"
              class="gallery-thumb"
-             th:classappend="${idx.index == 0} ? 'active' : ''"
-             th:attr="data-src=${m.cloudinaryUrl}">
+             th:classappend="${firstImage != null and idx.index == 0} ? ' active' : ''"
+             th:attr="data-type='image', data-src=${m.cloudinaryUrl}">
           <img th:src="${m.cloudinaryUrl}" th:alt="${m.originalName}"/>
         </div>
-      </div>
 
-      <div th:each="m : ${mediaList}"
-           th:if="${m.mediaType == 'VIDEO'}"
-           class="gallery-video-item">
-        <video controls preload="metadata">
-          <source th:src="${m.cloudinaryUrl}" type="video/mp4"/>
-        </video>
+        <div th:each="m : ${mediaList}"
+             th:if="${m.mediaType == 'VIDEO'}"
+             class="gallery-thumb gallery-thumb-video"
+             th:classappend="${firstImage == null} ? ' active' : ''"
+             th:attr="data-type='video', data-src=${m.cloudinaryUrl}">
+          <div class="play-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+                 fill="rgba(255,255,255,.9)" stroke="none">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+          </div>
+        </div>
+
       </div>
 
       <div class="detalle-desc"
@@ -361,27 +263,17 @@
 
     <!-- ══ COLUMNA DERECHA ══ -->
     <div class="detalle-sidebar">
-
       <div class="sidebar-card">
         <div class="sidebar-badge">
-          <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"
-               viewBox="0 0 24 24" fill="var(--blue)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="var(--blue)">
             <circle cx="12" cy="12" r="12"/>
           </svg>
           Disponible
         </div>
-
-        <div th:if="${property.precio != null}"
-             class="sidebar-price"
-             th:text="${#numbers.formatInteger(property.precio, 3, 'POINT') + ' €'}">
-          150.000 €
-        </div>
-        <div th:if="${property.precio == null}" class="sidebar-price no-price">
-          Consultar precio
-        </div>
-
+        <div th:if="${property.precio != null}" class="sidebar-price"
+             th:text="${#numbers.formatInteger(property.precio, 3, 'POINT') + ' €'}">150.000 €</div>
+        <div th:if="${property.precio == null}" class="sidebar-price no-price">Consultar precio</div>
         <div class="sidebar-divider"></div>
-
         <div class="sidebar-info-row">
           <span class="sidebar-info-label">Referencia</span>
           <span class="sidebar-info-val" th:text="${property.propertyCode}">—</span>
@@ -411,30 +303,18 @@
       <div class="contact-card">
         <h3>¿Te interesa este inmueble?</h3>
         <p>Rellena el formulario y te contactamos en breve.</p>
-
-        <div class="alert-ok" th:if="${param.enviado != null}">
-          ✅ Mensaje enviado. Te contactaremos pronto.
-        </div>
-        <div class="alert-err" th:if="${param.error != null}">
-          ❌ Error al enviar. Por favor, inténtalo de nuevo.
-        </div>
-
+        <div class="alert-ok" th:if="${param.enviado != null}">✅ Mensaje enviado. Te contactaremos pronto.</div>
+        <div class="alert-err" th:if="${param.error != null}">❌ Error al enviar. Por favor, inténtalo de nuevo.</div>
         <form th:action="@{'/catalogo/' + ${property.id} + '/contacto'}" method="post">
           <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-
           <label>Nombre *</label>
           <input type="text" name="nombre" required placeholder="Tu nombre completo"/>
-
           <label>Teléfono *</label>
           <input type="tel" name="telefono" required placeholder="600 000 000"/>
-
           <label>Email</label>
           <input type="email" name="email" placeholder="tu@email.com"/>
-
           <label>Mensaje</label>
-          <textarea name="mensaje"
-                    placeholder="Me interesa este inmueble, quisiera más información..."></textarea>
-
+          <textarea name="mensaje" placeholder="Me interesa este inmueble, quisiera más información..."></textarea>
           <button type="submit" class="contact-submit">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                  fill="none" stroke="currentColor" stroke-width="2.5"
@@ -445,9 +325,7 @@
             Enviar consulta
           </button>
         </form>
-
         <div class="contact-divider">o contáctanos directamente</div>
-
         <div class="contact-direct">
           <a href="tel:+34618097990" class="contact-direct-link">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -462,25 +340,20 @@
             </svg>
             +34 618 097 990
           </a>
-
-          <!-- Email con copia al portapapeles -->
-          <a href="mailto:g.correa.bastos@gmail.com"
-             class="contact-direct-link copy-email"
-             data-email="g.correa.bastos@gmail.com"
-             style="cursor:pointer;">
+          <a href="mailto:g.correa.bastos@gmail.com" class="contact-direct-link copy-email"
+             data-email="g.correa.bastos@gmail.com" style="cursor:pointer;">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                  fill="none" stroke="var(--blue)" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2
-                       H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
               <polyline points="22,6 12,13 2,6"/>
             </svg>
             g.correa.bastos@gmail.com
           </a>
         </div>
       </div>
-
     </div>
+
   </div>
 </div>
 
@@ -502,41 +375,65 @@
 <script>
 (function () {
 
-  /* ══ GALERÍA de ══ */
-  const mainImg = document.getElementById('mainImg');
-  const thumbs  = document.querySelectorAll('.gallery-thumb');
+  const mainImg      = document.getElementById('mainImg');
+  const mainVideo    = document.getElementById('mainVideo');
+  const mainVideoSrc = document.getElementById('mainVideoSrc');
+  const thumbs       = document.querySelectorAll('.gallery-thumb');
+  const galleryMain  = document.getElementById('galleryMain');
+
+  // Si solo hay vídeo, mostrarlo automáticamente
+  const autoInit = document.getElementById('autoVideoInit');
+  if (autoInit) {
+    const url = autoInit.getAttribute('data-autovideo');
+    if (url) showVideo(url);
+  }
+
+  function showImage(src) {
+    if (mainVideo) { mainVideo.pause(); mainVideo.style.display = 'none'; }
+    if (mainImg)   { mainImg.src = src; mainImg.style.display = 'block'; }
+  }
+
+  function showVideo(src) {
+    if (mainImg)   { mainImg.style.display = 'none'; }
+    if (mainVideo) {
+      mainVideoSrc.src = src;
+      mainVideo.load();
+      mainVideo.style.display = 'block';
+    }
+  }
 
   thumbs.forEach(thumb => {
     thumb.addEventListener('click', () => {
-      if (mainImg) mainImg.src = thumb.getAttribute('data-src');
       thumbs.forEach(t => t.classList.remove('active'));
       thumb.classList.add('active');
+      const type = thumb.getAttribute('data-type');
+      const src  = thumb.getAttribute('data-src');
+      if (type === 'video') showVideo(src);
+      else                  showImage(src);
     });
   });
 
-  /* ══ LIGHTBOX ══ */
+  // Lightbox solo para imágenes
   const lightbox      = document.getElementById('lightbox');
   const lightboxImg   = document.getElementById('lightboxImg');
   const lightboxClose = document.getElementById('lightboxClose');
-  const galleryMain   = document.getElementById('galleryMain');
 
-  if (galleryMain && mainImg) {
-    galleryMain.addEventListener('click', () => {
-      lightboxImg.src = mainImg.src;
-      lightbox.classList.add('open');
+  if (galleryMain) {
+    galleryMain.addEventListener('click', (e) => {
+      if (mainVideo && mainVideo.style.display !== 'none') return;
+      if (mainImg && mainImg.style.display !== 'none' && mainImg.src) {
+        lightboxImg.src = mainImg.src;
+        lightbox.classList.add('open');
+      }
     });
   }
 
-  function closeLb() {
-    lightbox.classList.remove('open');
-    lightboxImg.src = '';
-  }
-
+  function closeLb() { lightbox.classList.remove('open'); lightboxImg.src = ''; }
   if (lightboxClose) lightboxClose.addEventListener('click', closeLb);
   lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLb(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
 
-  /* ══ COPY EMAIL ══ */
+  // Copy email
   const toast = document.createElement('div');
   toast.className = 'copy-toast';
   toast.innerHTML = `
@@ -555,29 +452,21 @@
     toast.classList.add('show');
     toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
   }
-
   function copyEmail(email) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(email).then(showToast).catch(fallback);
-    } else {
-      fallback();
-    }
-    function fallback() {
+      navigator.clipboard.writeText(email).then(showToast).catch(fb);
+    } else { fb(); }
+    function fb() {
       const tmp = document.createElement('input');
-      tmp.value = email;
-      document.body.appendChild(tmp);
-      tmp.select();
-      document.execCommand('copy');
-      document.body.removeChild(tmp);
-      showToast();
+      tmp.value = email; document.body.appendChild(tmp);
+      tmp.select(); document.execCommand('copy');
+      document.body.removeChild(tmp); showToast();
     }
   }
-
   document.querySelectorAll('.copy-email').forEach(el => {
     el.addEventListener('click', function (e) {
       e.preventDefault();
-      const email = this.dataset.email || this.href.replace('mailto:', '');
-      copyEmail(email);
+      copyEmail(this.dataset.email || this.href.replace('mailto:', ''));
     });
   });
 
