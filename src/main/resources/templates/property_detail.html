@@ -211,8 +211,52 @@
     min-height: 20px;
   }
 
-  /* Secciones del contenido principal — MÁS ESPACIO entre paneles */
-  .pd-section { display: flex; flex-direction: column; gap: 28px; }
+  /* Contenido principal — layout de tabs */
+  .pd-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Tab navigation */
+  .tab-nav {
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    background: #b0d0e8;
+    border-radius: 10px;
+    margin-bottom: 24px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 9px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0a4f82;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.14s, color 0.14s, box-shadow 0.14s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+  .tab-btn.active {
+    background: #fff;
+    color: #0a2a50;
+    box-shadow: 0 1px 6px rgba(10, 80, 150, 0.16);
+  }
+
+  /* Tab panes: oculto por defecto, visible con flex+gap */
+  .tab-pane { display: none; }
+  .tab-pane.active {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
 
   /* Section block dentro de cards */
   .field-group {
@@ -475,40 +519,6 @@
     transition: opacity .14s;
   }
   #lightboxClose:hover { opacity: 1; }
-
-  /* Tab navigation en contenido */
-  .tab-nav {
-    display: flex;
-    gap: 2px;
-    padding: 4px;
-    background: #b0d0e8;
-    border-radius: 10px;
-    margin-bottom: 20px;
-  }
-  .tab-btn {
-    flex: 1;
-    padding: 9px 14px;
-    border-radius: 7px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #0a4f82;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: background 0.14s, color 0.14s, box-shadow 0.14s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    white-space: nowrap;
-  }
-  .tab-btn.active {
-    background: #fff;
-    color: #0a2a50;
-    box-shadow: 0 1px 6px rgba(10, 80, 150, 0.16);
-  }
-  .tab-pane { display: none; }
-  .tab-pane.active { display: block; }
 </style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
