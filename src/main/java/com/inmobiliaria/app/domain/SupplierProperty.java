@@ -1,7 +1,6 @@
 package com.inmobiliaria.app.domain;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -20,9 +19,6 @@ public class SupplierProperty {
     @JoinColumn(name = "property_id")
     private Property property;
 
-    @Column(precision = 12, scale = 2)
-    private BigDecimal askingPrice;
-
     @Column(length = 500)
     private String notes;
 
@@ -34,8 +30,6 @@ public class SupplierProperty {
     public void setSupplier(Supplier supplier)       { this.supplier = supplier; }
     public Property getProperty()                    { return property; }
     public void setProperty(Property property)       { this.property = property; }
-    public BigDecimal getAskingPrice()               { return askingPrice; }
-    public void setAskingPrice(BigDecimal askingPrice){ this.askingPrice = askingPrice; }
     public String getNotes()                         { return notes; }
     public void setNotes(String notes)               { this.notes = notes; }
     public LocalDate getLinkedDate()                 { return linkedDate; }

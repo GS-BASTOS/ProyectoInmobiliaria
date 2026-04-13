@@ -2,72 +2,397 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments :: head('Clientes')}"></head>
 <style>
+
+  /* ── TABLA ───────────────────────────────── */
   .tabla-clientes {
-    width:100%; border-collapse:collapse; font-size:13px; margin-top:14px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 16px;
   }
-  .tabla-clientes thead tr { border-bottom:2px solid var(--line); }
+  .tabla-clientes thead tr {
+    border-bottom: 2px solid var(--line);
+  }
   .tabla-clientes th {
-    padding:10px 12px; font-size:11px; font-weight:700; letter-spacing:0.7px;
-    text-transform:uppercase; color:var(--muted); white-space:nowrap; text-align:left;
+    padding: 10px 14px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+    text-align: left;
+    background: #faf8f4;
   }
+  .tabla-clientes th:first-child { border-radius: 8px 0 0 8px; }
+  .tabla-clientes th:last-child  { border-radius: 0 8px 8px 0; }
   .tabla-clientes td {
-    padding:10px 12px; vertical-align:top; border-bottom:1px solid var(--line);
+    padding: 11px 14px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--line);
   }
-  .tabla-clientes tbody tr:last-child td { border-bottom:none; }
-  .tabla-clientes tbody tr:hover { background:#fafafa; }
+  .tabla-clientes tbody tr:last-child td { border-bottom: none; }
+  .tabla-clientes tbody tr {
+    transition: background 0.12s ease;
+  }
+  .tabla-clientes tbody tr:hover { background: #f7f5f0; }
 
-  .row-okupa       { background:#fff5f5 !important; border-left:3px solid #b42318; }
-  .row-comprador   { background:#f0faf4 !important; border-left:3px solid #168a53; }
-  .row-no-molestar { background:#faf5ff !important; border-left:3px solid #7b1fa2; }
+  /* ── FILAS ESPECIALES ────────────────────── */
+  .row-okupa {
+    background: #fff5f5 !important;
+    box-shadow: inset 3px 0 0 #b42318;
+  }
+  .row-comprador {
+    background: #f0faf4 !important;
+    box-shadow: inset 3px 0 0 #168a53;
+  }
+  .row-no-molestar {
+    background: #faf5ff !important;
+    box-shadow: inset 3px 0 0 #7b1fa2;
+  }
 
-  .tag-potencial {
-    display:inline-flex; align-items:center; gap:4px;
-    background:#fff8e1; border:1px solid #ffc107;
-    border-radius:999px; padding:3px 10px;
-    font-size:11px; font-weight:700; color:#795500;
+  /* ── TAGS DE ESTADO ──────────────────────── */
+  .tag-potencial,
+  .tag-interesado {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px;
+    padding: 4px 11px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .tag-potencial  {
+    background: #fff8e1;
+    border: 1px solid #e6b800;
+    color: #7a5600;
   }
   .tag-interesado {
-    display:inline-flex; align-items:center; gap:4px;
-    background:#e3f2fd; border:1px solid #1565c0;
-    border-radius:999px; padding:3px 10px;
-    font-size:11px; font-weight:700; color:#0d47a1;
+    background: #e8f0fe;
+    border: 1px solid #3b6bda;
+    color: #1a3a8f;
   }
 
+  /* ── BADGES DE ALERTA (OKUPA / COMPRADOR / NO MOLESTAR) */
+  .alert-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    border: 1px solid currentColor;
+  }
+  .alert-badge.okupa        { background: #ffebee; color: #b42318; }
+  .alert-badge.comprador    { background: #e8f5e9; color: #168a53; }
+  .alert-badge.no-molestar  { background: #f3e5f5; color: #7b1fa2; }
+
+  /* ── CHECKBOXES DE EMAIL ─────────────────── */
   .check-label {
-    display:inline-flex; align-items:center; gap:6px;
-    cursor:pointer; font-size:12px; padding:2px 0; color:inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 0;
+    color: inherit;
+    transition: opacity 0.15s;
   }
-  .check-label input[type=checkbox] { accent-color:#0b1f5c; cursor:pointer; }
+  .check-label input[type=checkbox] {
+    accent-color: #0b1f5c;
+    cursor: pointer;
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
 
-  tr[data-excluido] .email-item  { opacity:0.35; cursor:not-allowed; pointer-events:none; }
-  tr[data-excluido] .check-label { opacity:0.4;  cursor:not-allowed; }
+  /* ── ESTADOS DESHABILITADOS ──────────────── */
+  tr[data-excluido] .email-item,
+  tr[data-excluido] .check-label { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 
-  tr.row-no-molestar .wa-link  { opacity:0.4; text-decoration:line-through; pointer-events:none; }
-  tr.row-no-molestar .email-item { opacity:0.2; cursor:not-allowed; pointer-events:none; }
-  tr.row-no-molestar .check-label { opacity:0.3; cursor:not-allowed; }
-  tr.row-no-molestar .check-label span { text-decoration:line-through; }
+  tr.row-no-molestar .wa-link        { opacity: 0.4; text-decoration: line-through; pointer-events: none; }
+  tr.row-no-molestar .email-item     { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
+  tr.row-no-molestar .check-label    { opacity: 0.3; cursor: not-allowed; }
+  tr.row-no-molestar .check-label span { text-decoration: line-through; }
 
+  /* ── WHATSAPP LINK ───────────────────────── */
   .wa-link {
-    display:inline-flex; align-items:center; gap:4px;
-    color:#168a53; text-decoration:none; font-size:13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #168a53;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: opacity 0.15s;
   }
   .wa-link::before {
-    content:''; display:inline-block; width:14px; height:14px; flex-shrink:0;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23168a53'%3E%3Cpath d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-size:contain;
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23168a53'%3E%3Cpath d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
   }
-  .wa-link:hover { text-decoration:underline; }
+  .wa-link:hover { opacity: 0.75; }
 
+  /* ── COPYABLE ────────────────────────────── */
+  .copyable { cursor: pointer; }
+  .copyable:hover { text-decoration: underline dotted; color: var(--azul-claro); }
+
+  /* ── TOAST ───────────────────────────────── */
   #copyToast {
-    position:fixed; bottom:28px; left:50%;
-    transform:translateX(-50%) translateY(20px);
-    background:#111; color:#fff; font-size:13px; padding:8px 18px;
-    border-radius:999px; opacity:0; pointer-events:none;
-    transition:opacity .2s, transform .2s; z-index:9999;
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(14px);
+    background: #111;
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 9999;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+    letter-spacing: 0.2px;
   }
-  #copyToast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-  .copyable { cursor:pointer; }
-  .copyable:hover { text-decoration:underline dotted; }
+  #copyToast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── CABECERA PÁGINA ─────────────────────── */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .page-header h2 {
+    margin: 0 0 3px;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .page-header .subtitle {
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* ── SEPARADOR ───────────────────────────── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 0 0 18px;
+  }
+
+  /* ── PANEL FILTROS ───────────────────────── */
+  .filter-panel {
+    padding: 16px 18px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: #faf8f4;
+    margin-bottom: 18px;
+  }
+  .filter-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 14px;
+  }
+  .filter-panel-header span {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    align-items: end;
+  }
+  .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .filter-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* ── BARRA DE EMAILS ─────────────────────── */
+  .email-toolbar {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: #eff3ff;
+    border: 1px solid #c5d0ff;
+    border-radius: 10px;
+    flex-wrap: wrap;
+  }
+  .email-toolbar-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 500;
+    margin: 0;
+  }
+  .email-toolbar-label input[type=checkbox] {
+    accent-color: #0b1f5c;
+    width: 13px;
+    height: 13px;
+  }
+  .email-count-badge {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0b1f5c;
+    background: #dde5ff;
+    border-radius: 999px;
+    padding: 2px 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn-copy-emails {
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 8px;
+    background: #0b1f5c;
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-copy-emails:hover  { background: #162e80; }
+  .btn-copy-emails:disabled { opacity: 0.45; cursor: not-allowed; background: #0b1f5c; }
+  .btn-clear-emails {
+    font-size: 12px;
+    padding: 5px 12px;
+    background: #fff;
+    color: #777;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-clear-emails:hover { background: #f2ede8; color: #333; }
+
+  /* ── EMPTY STATE ─────────────────────────── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 56px 24px;
+    color: var(--muted);
+  }
+  .empty-state svg {
+    margin-bottom: 14px;
+    opacity: 0.35;
+  }
+  .empty-state p {
+    margin: 0;
+    font-size: 13.5px;
+  }
+
+  /* ── NOMBRE EN TABLA ─────────────────────── */
+  .client-name {
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 13.5px;
+    transition: color 0.12s;
+  }
+  .client-name:hover { text-decoration: underline; }
+  .client-name.okupa        { color: #b42318; font-weight: 700; }
+  .client-name.comprador    { color: #168a53; font-weight: 700; }
+  .client-name.no-molestar  { color: #7b1fa2; font-weight: 700; }
+  .client-name.normal       { color: var(--text); }
+
+  .client-company {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+  }
+  .client-badges {
+    margin-top: 6px;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  /* ── TIPO CLIENTE ────────────────────────── */
+  .tipo-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    background: #f2ede8;
+    border-radius: 6px;
+    padding: 3px 8px;
+    letter-spacing: 0.2px;
+  }
+
+  /* ── QUÉ BUSCA ───────────────────────────── */
+  .motivo-text {
+    font-size: 12px;
+    color: #555;
+    line-height: 1.4;
+    max-width: 200px;
+  }
+
+  /* ── BTN VER FICHA ───────────────────────── */
+  .btn-ficha {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    padding: 6px 13px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background 0.12s, box-shadow 0.12s;
+  }
+  .btn-ficha:hover {
+    background: #f2ede8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────── */
+  @media (max-width: 900px) {
+    .filter-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 580px) {
+    .filter-grid { grid-template-columns: 1fr; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+  }
 </style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
@@ -78,11 +403,10 @@
   <div class="card">
 
     <!-- ══ CABECERA ══ -->
-    <div style="display:flex; align-items:flex-end; justify-content:space-between;
-                gap:12px; flex-wrap:wrap;">
+    <div class="page-header">
       <div>
-        <h2 style="margin-bottom:4px;">Clientes</h2>
-        <div class="small">Todos los clientes registrados, con o sin inmueble asignado.</div>
+        <h2>Clientes</h2>
+        <div class="subtitle">Todos los clientes registrados, con o sin inmueble asignado.</div>
       </div>
       <a class="btn btn-primary" th:href="@{/clientes/nuevo}"
          style="display:inline-flex; align-items:center; gap:7px; font-size:13px; padding:9px 18px;">
@@ -95,43 +419,36 @@
       </a>
     </div>
 
-    <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
+    <hr class="divider"/>
 
     <!-- ══ FILTROS ══ -->
-    <form th:action="@{/clientes}" method="get"
-          style="padding:18px 20px; border-radius:14px; border:1px solid var(--line);
-                 background:#faf8f4; margin-bottom:16px;">
+    <form th:action="@{/clientes}" method="get" class="filter-panel">
 
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+      <div class="filter-panel-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
              fill="none" stroke="var(--muted)" stroke-width="2.5"
              stroke-linecap="round" stroke-linejoin="round">
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
         </svg>
-        <span style="font-size:11px; font-weight:700; letter-spacing:1.2px;
-                     text-transform:uppercase; color:var(--muted);">Filtros</span>
+        <span>Filtros</span>
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px;
-                  align-items:end; flex-wrap:wrap;">
-        <div style="display:flex; flex-direction:column;">
-          <span class="filter-label">Nombre / Complemento del nombre</span>
-          <input type="text" name="q" th:value="${q}"
-                 placeholder="Nombre, complemento..." style="margin:0;"/>
+      <div class="filter-grid">
+        <div class="filter-field">
+          <span class="filter-label">Nombre / Complemento</span>
+          <input type="text" name="q" th:value="${q}" placeholder="Nombre, complemento..."/>
         </div>
-        <div style="display:flex; flex-direction:column;">
+        <div class="filter-field">
           <span class="filter-label">Teléfono</span>
-          <input type="text" name="telefono" th:value="${telefono}"
-                 placeholder="600 000 000" style="margin:0;"/>
+          <input type="text" name="telefono" th:value="${telefono}" placeholder="600 000 000"/>
         </div>
-        <div style="display:flex; flex-direction:column;">
+        <div class="filter-field">
           <span class="filter-label">Email</span>
-          <input type="text" name="email" th:value="${email}"
-                 placeholder="nombre@mail.com" style="margin:0;"/>
+          <input type="text" name="email" th:value="${email}" placeholder="nombre@mail.com"/>
         </div>
-        <div style="display:flex; flex-direction:column;">
+        <div class="filter-field">
           <span class="filter-label">Tipo</span>
-          <select name="tipo" style="margin:0;">
+          <select name="tipo">
             <option value=""           th:selected="${tipo == null or tipo == ''}">Todos</option>
             <option value="potencial"  th:selected="${tipo == 'potencial'}">⭐ Solo potenciales</option>
             <option value="interesado" th:selected="${tipo == 'interesado'}">📋 Con interacciones</option>
@@ -140,29 +457,21 @@
       </div>
 
       <!-- TOOLBAR EMAILS + ACCIONES -->
-      <div style="display:flex; align-items:center; justify-content:space-between;
-                  flex-wrap:wrap; gap:10px; margin-top:14px;">
+      <div class="filter-actions">
 
-        <div style="display:inline-flex; align-items:center; gap:8px;
-                    padding:8px 14px; background:#f0f4ff; border:1px solid #c7d4ff;
-                    border-radius:10px; flex-wrap:wrap;">
-          <label style="display:inline-flex; align-items:center; gap:6px;
-                        cursor:pointer; font-size:13px; margin:0;">
-            <input type="checkbox" id="selectAllEmails" style="accent-color:#0b1f5c;"/>
-            <span id="selectAllEmailText" style="font-size:12px; font-weight:500;">
-              Seleccionar todos los emails
-            </span>
+        <div class="email-toolbar">
+          <label class="email-toolbar-label">
+            <input type="checkbox" id="selectAllEmails"/>
+            <span id="selectAllEmailText">Seleccionar todos los emails</span>
           </label>
-          <span style="font-size:13px; font-weight:700; color:#0b1f5c;">
+          <span class="email-count-badge">
             📧 <span id="emailsCount">0</span> sel.
           </span>
-          <button type="button" id="copyEmailsBtn" disabled
-                  style="font-size:12px; padding:5px 14px;">
+          <button type="button" id="copyEmailsBtn" disabled class="btn-copy-emails">
             Copiar emails
           </button>
-          <button type="button" id="clearEmailsBtn"
-                  style="display:none; font-size:12px; padding:5px 12px;
-                         background:#fff; color:#888; border:1px solid #ddd;">
+          <button type="button" id="clearEmailsBtn" class="btn-clear-emails"
+                  style="display:none;">
             Limpiar
           </button>
         </div>
@@ -185,10 +494,17 @@
     </form>
 
     <!-- SIN RESULTADOS -->
-    <p th:if="${#lists.isEmpty(clients)}"
-       style="color:var(--muted); font-size:13px; margin:0; padding:32px 0; text-align:center;">
-      No hay clientes con esos filtros.
-    </p>
+    <div th:if="${#lists.isEmpty(clients)}" class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <p>No hay clientes con esos filtros.</p>
+    </div>
 
     <!-- ══ TABLA ══ -->
     <table class="tabla-clientes" th:if="${!#lists.isEmpty(clients)}">
@@ -215,34 +531,20 @@
           <td>
             <a th:href="@{|/clientes/${c.id}|}"
                th:text="${c.fullName}"
-               th:style="${c.posibleOcupa   ? 'font-weight:700; color:#b42318;' :
-                           c.compradorFinal ? 'font-weight:700; color:#168a53;' :
-                           c.noMolestar     ? 'font-weight:700; color:#7b1fa2;' :
-                                              'font-weight:600; color:inherit;'}">
+               th:classappend="${c.posibleOcupa   ? 'client-name okupa'       :
+                                  c.compradorFinal ? 'client-name comprador'    :
+                                  c.noMolestar     ? 'client-name no-molestar'  :
+                                                     'client-name normal'}"
+               class="client-name">
               Cliente
             </a>
             <div th:if="${c.companyName != null and !#strings.isEmpty(c.companyName)}"
-                 style="font-size:11px; color:#888; margin-top:2px;"
+                 class="client-company"
                  th:text="${c.companyName}"></div>
-            <div style="margin-top:5px; display:flex; gap:4px; flex-wrap:wrap;">
-              <span th:if="${c.posibleOcupa}"
-                    style="display:inline-flex; align-items:center; gap:4px;
-                           background:#ffebee; border:1px solid #b42318; border-radius:999px;
-                           padding:2px 8px; font-size:11px; color:#b42318; font-weight:800;">
-                ⚠ OKUPA
-              </span>
-              <span th:if="${c.compradorFinal}"
-                    style="display:inline-flex; align-items:center; gap:4px;
-                           background:#e8f5e9; border:1px solid #168a53; border-radius:999px;
-                           padding:2px 8px; font-size:11px; color:#168a53; font-weight:800;">
-                💰 COMPRADOR
-              </span>
-              <span th:if="${c.noMolestar}"
-                    style="display:inline-flex; align-items:center; gap:4px;
-                           background:#f3e5f5; border:1px solid #7b1fa2; border-radius:999px;
-                           padding:2px 8px; font-size:11px; color:#7b1fa2; font-weight:800;">
-                🚫 NO MOLESTAR
-              </span>
+            <div class="client-badges">
+              <span th:if="${c.posibleOcupa}"    class="alert-badge okupa">⚠ OKUPA</span>
+              <span th:if="${c.compradorFinal}"  class="alert-badge comprador">💰 COMPRADOR</span>
+              <span th:if="${c.noMolestar}"      class="alert-badge no-molestar">🚫 NO MOLESTAR</span>
             </div>
           </td>
 
@@ -251,7 +553,7 @@
             <span th:if="${phonesByClientId.get(c.id) == null or
                            #lists.isEmpty(phonesByClientId.get(c.id))}"
                   style="color:#ccc;">—</span>
-            <div th:each="p : ${phonesByClientId.get(c.id)}" style="margin-bottom:3px;">
+            <div th:each="p : ${phonesByClientId.get(c.id)}" style="margin-bottom:4px;">
               <a class="wa-link"
                  th:href="${'https://wa.me/' + #strings.replace(#strings.replace(p.phoneNumber, '+', ''), ' ', '')}"
                  target="_blank"
@@ -267,7 +569,7 @@
                            #lists.isEmpty(emailsByClientId.get(c.id))}"
                   style="color:#ccc;">—</span>
             <label th:each="e : ${emailsByClientId.get(c.id)}"
-                   class="check-label" style="display:flex;">
+                   class="check-label" style="display:flex; margin-bottom:2px;">
               <input type="checkbox" class="email-item"
                      th:attr="data-email=${e.email}"
                      th:value="${e.email}"/>
@@ -279,13 +581,13 @@
 
           <!-- TIPO -->
           <td>
-            <span style="font-size:12px; color:var(--muted);"
-                  th:text="${c.clientType}">PARTICULAR</span>
+            <span class="tipo-badge" th:text="${c.clientType}">PARTICULAR</span>
           </td>
 
           <!-- QUÉ BUSCA -->
-          <td style="max-width:200px; font-size:12px; color:#555;">
+          <td>
             <span th:if="${c.motivoContacto != null and !#strings.isEmpty(c.motivoContacto)}"
+                  class="motivo-text"
                   th:text="${c.motivoContacto}"></span>
             <span th:if="${c.motivoContacto == null or #strings.isEmpty(c.motivoContacto)}"
                   style="color:#ccc;">—</span>
@@ -304,8 +606,15 @@
 
           <!-- ACCIÓN -->
           <td style="white-space:nowrap;">
-            <a class="btn btn-secondary" th:href="@{|/clientes/${c.id}|}"
-               style="font-size:12px; padding:6px 12px;">Ver ficha →</a>
+            <a class="btn-ficha" th:href="@{|/clientes/${c.id}|}">
+              Ver ficha
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </a>
           </td>
 
         </tr>

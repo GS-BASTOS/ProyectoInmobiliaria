@@ -90,7 +90,6 @@ public class SupplierController {
         if (!p3.isBlank()) existingSupplier = checkPhone(result, "phone3", p3, existingSupplier);
 
         if (result.hasErrors()) {
-            // Pasar el proveedor existente al formulario para mostrar el aviso con enlace
             if (existingSupplier != null) {
                 model.addAttribute("existingSupplier", existingSupplier);
             }
@@ -142,7 +141,7 @@ public class SupplierController {
             }
         }
 
-        // ── Inmueble (si se informó código) ──────────────────────────
+        // ── Inmueble (si se informó código) ───────────────────────────
         String code = t(form.getPropertyCode());
         if (!code.isBlank()) {
             Property property = propertyRepo.findByPropertyCode(code)
@@ -153,14 +152,20 @@ public class SupplierController {
                         np.setAddress(t(form.getAddress()));
                         np.setMunicipality(t(form.getMunicipality()));
                         np.setProvince(t(form.getProvince()));
+                        np.setDescription(t(form.getPropertyDescription()));
                         np.setNotes(t(form.getPropertyNotes()));
-                        return propertyRepo.save(np);
+                        return np;
                     });
+
+            // ✅ El precio se guarda en Property, no en el link
+            if (form.getAskingPrice() != null) {
+                property.setPrecio(form.getAskingPrice().intValue());
+            }
+            propertyRepo.save(property);
 
             SupplierProperty link = new SupplierProperty();
             link.setSupplier(supplier);
             link.setProperty(property);
-            link.setAskingPrice(form.getAskingPrice());
             link.setLinkedDate(LocalDate.now());
             link.setNotes(t(form.getPropertyNotes()));
             supplierPropertyRepo.save(link);
@@ -214,13 +219,18 @@ public class SupplierController {
                     np.setMunicipality(t(municipality));
                     np.setProvince(t(province));
                     np.setNotes(t(propertyNotes));
-                    return propertyRepo.save(np);
+                    return np;
                 });
+
+        // ✅ El precio se guarda en Property, no en el link
+        if (askingPrice != null) {
+            property.setPrecio(askingPrice.intValue());
+        }
+        propertyRepo.save(property);
 
         SupplierProperty link = new SupplierProperty();
         link.setSupplier(supplier);
         link.setProperty(property);
-        link.setAskingPrice(askingPrice);
         link.setLinkedDate(LocalDate.now());
         link.setNotes(t(propertyNotes));
         supplierPropertyRepo.save(link);
@@ -238,13 +248,26 @@ public class SupplierController {
         return "redirect:/proveedores/" + id;
     }
 
-    /* ── Helpers ─────────────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════
+       EDITAR PRECIO DE UN VÍNCULO
+    ══════════════════════════════════════════ */
+    @PostMapping("/{id}/inmuebles/{linkId}/precio")
+    public String updatePrice(@PathVariable Long id,
+                               @PathVariable Long linkId,
+                               @RequestParam(required = false) BigDecimal askingPrice) {
 
-    /**
-     * Verifica si el teléfono ya existe en BD.
-     * Si existe: añade error al campo y devuelve el Supplier dueño.
-     * Si no:     devuelve el existingSupplier anterior sin cambios.
-     */
+        // ✅ Buscamos con eager del property para poder acceder a él
+        supplierPropertyRepo.findById(linkId).ifPresent(link -> {
+            Property property = propertyRepo.findById(link.getProperty().getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            property.setPrecio(askingPrice != null ? askingPrice.intValue() : null);
+            propertyRepo.save(property);
+        });
+
+        return "redirect:/proveedores/" + id;
+    }
+
+    /* ── Helpers ──────────────────────────────────────────────────────── */
     private Supplier checkPhone(BindingResult result, String field,
                                  String phone, Supplier existingSupplier) {
         return phoneRepo.findFirstByPhoneNumber(phone)
@@ -267,19 +290,4 @@ public class SupplierController {
     }
 
     private static String t(String s) { return s == null ? "" : s.trim(); }
-
-    /* ══════════════════════════════════════════
-    EDITAR PRECIO DE UN VÍNCULO
- ══════════════════════════════════════════ */
- @PostMapping("/{id}/inmuebles/{linkId}/precio")
- public String updatePrice(@PathVariable Long id,
-                            @PathVariable Long linkId,
-                            @RequestParam(required = false) BigDecimal askingPrice) {
-     supplierPropertyRepo.findById(linkId).ifPresent(link -> {
-         link.setAskingPrice(askingPrice);
-         supplierPropertyRepo.save(link);
-     });
-     return "redirect:/proveedores/" + id;
- }
-
 }

@@ -149,7 +149,7 @@
           </div>
           <div>
             <label>Precio de venta deseado (€)</label>
-            <input type="number" step="0.01" th:field="*{askingPrice}" placeholder="150000"/>
+            <input type="number" step="1" th:field="*{askingPrice}" placeholder="150000"/>
           </div>
         </div>
 
@@ -168,11 +168,32 @@
           </div>
         </div>
 
-        <div>
-          <label>Notas del inmueble</label>
-          <textarea th:field="*{propertyNotes}" rows="2"
-                    placeholder="Estado, características, accesos..."></textarea>
+        <!-- ══ DESCRIPCIÓN PÚBLICA (Property.description) ══ -->
+        <div style="margin-bottom:10px;">
+          <label style="display:flex; align-items:center; gap:6px;">
+            Descripción pública
+            <span style="font-size:11px; font-weight:400; color:#aaa;
+                         background:#f0f0f0; padding:2px 7px; border-radius:20px;">
+              🌐 Visible para el cliente
+            </span>
+          </label>
+          <textarea th:field="*{propertyDescription}" rows="3"
+                    placeholder="Piso de 90m², 3 habitaciones, 2 baños, zona céntrica, luminoso..."></textarea>
         </div>
+
+        <!-- ══ NOTAS INTERNAS (Property.notes) ══ -->
+        <div>
+          <label style="display:flex; align-items:center; gap:6px;">
+            Notas internas
+            <span style="font-size:11px; font-weight:400; color:#b45309;
+                         background:#fef3c7; padding:2px 7px; border-radius:20px;">
+              🔒 Solo uso interno
+            </span>
+          </label>
+          <textarea th:field="*{propertyNotes}" rows="2"
+                    placeholder="Código alarma: 1234 · Gotera en baño · Llave en conserjería..."></textarea>
+        </div>
+
       </div>
 
       <!-- ACCIONES -->

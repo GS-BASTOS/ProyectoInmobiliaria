@@ -27,6 +27,7 @@ public class SupplierForm {
     private String address;
     private String municipality;
     private String province;
+    private String propertyDescription;
     private String propertyNotes;
     private BigDecimal askingPrice;
 
@@ -65,4 +66,6 @@ public class SupplierForm {
     public void setPropertyNotes(String propertyNotes){ this.propertyNotes = propertyNotes; }
     public BigDecimal getAskingPrice()               { return askingPrice; }
     public void setAskingPrice(BigDecimal askingPrice){ this.askingPrice = askingPrice; }
+    public String getPropertyDescription()                    { return propertyDescription; }
+    public void setPropertyDescription(String v)              { this.propertyDescription = v; }
 }

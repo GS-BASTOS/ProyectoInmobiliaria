@@ -4,50 +4,166 @@
 <meta name="_csrf"        th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 <style>
-  .tabla-inmuebles { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
-  .tabla-inmuebles thead tr { border-bottom:2px solid var(--line); }
+
+  /* ══ TABLA ══ */
+  .tabla-inmuebles {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px; margin-top: 4px;
+  }
+  .tabla-inmuebles thead tr {
+    border-bottom: 2px solid var(--line);
+  }
   .tabla-inmuebles th {
-    padding:10px 12px; font-size:11px; font-weight:700; letter-spacing:0.7px;
-    text-transform:uppercase; color:var(--muted); white-space:nowrap; text-align:left;
+    padding: 10px 14px;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--muted);
+    white-space: nowrap; text-align: left;
   }
-  .tabla-inmuebles td { padding:10px 12px; vertical-align:top; border-bottom:1px solid var(--line); }
-  .tabla-inmuebles tbody tr:last-child td { border-bottom:none; }
-  .tabla-inmuebles tbody tr:hover { background:#fafafa; }
+  .tabla-inmuebles td {
+    padding: 11px 14px; vertical-align: middle;
+    border-bottom: 1px solid var(--line);
+  }
+  .tabla-inmuebles tbody tr:last-child td { border-bottom: none; }
+  .tabla-inmuebles tbody tr { transition: background 0.12s; }
+  .tabla-inmuebles tbody tr:hover { background: #f9f8f6; }
 
+  /* ══ BADGES ESTADO ══ */
   .badge-status {
-    display:inline-flex; align-items:center; gap:4px;
-    border-radius:999px; padding:3px 9px;
-    font-size:11px; font-weight:700; white-space:nowrap;
+    display: inline-flex; align-items: center; gap: 4px;
+    border-radius: 999px; padding: 3px 10px;
+    font-size: 11px; font-weight: 700; white-space: nowrap;
+    letter-spacing: 0.3px;
   }
-  .badge-vendido    { background:#e8f5e9; border:1px solid #4caf50; color:#2e7d32; }
-  .badge-prevendido { background:#fff4e6; border:1px solid #e07a18; color:#a05800; }
-  .badge-disponible { background:#f1f8e9; border:1px solid #8bc34a; color:#558b2f; }
+  .badge-vendido    { background: #e8f5e9; border: 1px solid #4caf50; color: #2e7d32; }
+  .badge-prevendido { background: #fff4e6; border: 1px solid #e07a18; color: #a05800; }
+  .badge-disponible { background: #f1f8e9; border: 1px solid #8bc34a; color: #558b2f; }
 
-  #deleteModalBackdrop {
-    display:none; position:fixed; inset:0;
-    background:rgba(0,0,0,.45); z-index:3000;
-    align-items:center; justify-content:center;
+  /* ══ TOGGLE WEB PÚBLICA ══ */
+  .toggle-switch {
+    position: relative; display: inline-block;
+    width: 40px; height: 22px; flex-shrink: 0;
   }
-  #deleteModalBackdrop.open { display:flex; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: #ddd; border-radius: 999px;
+    transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute;
+    height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: #fff; border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.18);
+  }
+  .toggle-switch input:checked + .toggle-slider { background: #168a53; }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+  .toggle-switch input:disabled + .toggle-slider { opacity: 0.45; cursor: not-allowed; }
+
+  .publicado-cell {
+    display: flex; align-items: center; gap: 8px;
+    white-space: nowrap;
+  }
+  .publicado-label {
+    font-size: 11px; font-weight: 600;
+    color: var(--muted); min-width: 58px;
+    transition: color 0.2s;
+  }
+  .publicado-label.is-on { color: #168a53; }
+
+  /* ══ BOTONES ACCIÓN FILA ══ */
+  .row-actions {
+    display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
+  }
+  .btn-xs {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11.5px; padding: 5px 11px; border-radius: 8px;
+    border: 1px solid var(--line); background: #fff;
+    color: var(--text); cursor: pointer; font-weight: 600;
+    white-space: nowrap; text-decoration: none;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+    line-height: 1;
+  }
+  .btn-xs:hover { background: #f3f2f0; border-color: #c8c5c0; }
+  .btn-xs.btn-orange {
+    background: #fff4e6; color: #a05800; border-color: #e07a18;
+  }
+  .btn-xs.btn-orange:hover { background: #ffe8c8; }
+  .btn-xs.btn-orange.active {
+    background: #e07a18; color: #fff; border-color: #e07a18;
+  }
+  .btn-xs.btn-green {
+    background: #fff; color: #b42318; border-color: #ddd;
+  }
+  .btn-xs.btn-green.active {
+    background: #4caf50; color: #fff; border-color: #4caf50;
+  }
+  .btn-xs.btn-danger {
+    background: #fff; color: #b42318; border-color: #f5c0bb;
+  }
+  .btn-xs.btn-danger:hover { background: #fff0ee; }
+
+  /* ══ INTERESADOS ══ */
+  .count-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 28px; height: 22px; border-radius: 999px;
+    font-size: 12px; font-weight: 800; padding: 0 7px;
+  }
+  .count-badge.has-count {
+    background: #eef1fb; color: #1a2d8c; border: 1px solid #c5cef5;
+  }
+  .count-badge.no-count { color: #ccc; font-weight: 400; }
+
+  /* ══ MODAL ELIMINAR ══ */
+  #deleteModalBackdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45); z-index: 3000;
+    align-items: center; justify-content: center;
+  }
+  #deleteModalBackdrop.open { display: flex; }
   #deleteModalBox {
-    background:#fff; border-radius:16px; padding:28px 28px 24px;
-    width:100%; max-width:440px;
-    box-shadow:0 20px 56px rgba(0,0,0,.22);
+    background: #fff; border-radius: 16px; padding: 28px 28px 24px;
+    width: 100%; max-width: 440px;
+    box-shadow: 0 20px 56px rgba(0,0,0,.22);
     animation: fadeUp .18s ease;
   }
   @keyframes fadeUp {
-    from { opacity:0; transform:translateY(12px); }
-    to   { opacity:1; transform:translateY(0); }
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-  #deleteModalBox h3 { margin:0 0 8px; font-size:17px; display:flex; align-items:center; gap:8px; }
-  #deleteModalBox p  { font-size:13px; color:#555; margin:0 0 6px; line-height:1.5; }
+  #deleteModalBox h3 {
+    margin: 0 0 8px; font-size: 17px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #deleteModalBox p  { font-size: 13px; color: #555; margin: 0 0 6px; line-height: 1.5; }
   #deleteModalWarning {
-    display:none; margin:12px 0 0; padding:10px 13px;
-    background:#fff5f5; border:1px solid #f5c0bb; border-radius:10px;
-    font-size:12px; color:#b42318; line-height:1.5;
+    display: none; margin: 12px 0 0; padding: 10px 13px;
+    background: #fff5f5; border: 1px solid #f5c0bb;
+    border-radius: 10px; font-size: 12px; color: #b42318; line-height: 1.5;
   }
-  #deleteModalWarning.show { display:block; }
-  .modal-actions { display:flex; gap:10px; margin-top:20px; justify-content:flex-end; }
+  #deleteModalWarning.show { display: block; }
+  .modal-actions {
+    display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;
+  }
+
+  /* ══ SECTION BLOCK (filtros) ══ */
+  .section-block {
+    padding: 18px 20px; border-radius: 14px;
+    border: 1px solid var(--line); background: #faf8f4;
+    margin-bottom: 16px;
+  }
+  .section-block-title {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ══ EMPTY STATE ══ */
+  .empty-state {
+    padding: 52px 24px; text-align: center; color: var(--muted);
+  }
+  .empty-state svg { margin: 0 auto 12px; opacity: 0.3; }
+  .empty-state p { font-size: 13px; margin: 0; }
 </style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
@@ -57,7 +173,8 @@
   <div id="deleteModalBox">
     <h3>
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-           fill="none" stroke="#b42318" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+           fill="none" stroke="#b42318" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
         <polyline points="3 6 5 6 21 6"/>
         <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
         <path d="M10 11v6"/><path d="M14 11v6"/>
@@ -79,7 +196,8 @@
                 style="background:#b42318; border-color:#b42318;
                        display:inline-flex; align-items:center; gap:6px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"/>
             <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
           </svg>
@@ -97,15 +215,10 @@
     <div style="display:flex; align-items:flex-end; justify-content:space-between;
                 gap:12px; flex-wrap:wrap; margin-bottom:4px;">
       <div>
-        <h2 style="margin-bottom:4px;"
-            th:text="${editing != null and editing ? 'Editar inmueble' : 'Catálogo de inmuebles'}">
-          Inmuebles
-        </h2>
+        <h2 style="margin-bottom:4px;">Catálogo de inmuebles</h2>
         <div class="small">Gestiona el inventario de propiedades del equipo.</div>
       </div>
-      <!-- ══ BOTÓN NUEVO INMUEBLE ══ -->
       <a th:href="@{/inmuebles/nuevo}"
-         th:if="${editing == null or !editing}"
          style="display:inline-flex; align-items:center; gap:7px;
                 font-size:13px; padding:9px 20px;
                 background:#111; color:#fff;
@@ -123,90 +236,25 @@
 
     <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
 
-    <!-- ══ FORMULARIO EDITAR (solo visible en modo edición) ══ -->
-    <div class="section-block" th:if="${editing != null and editing}">
-      <div class="section-block-title"
-           style="font-size:11px; font-weight:700; letter-spacing:1.2px;
-                  text-transform:uppercase; color:var(--muted); margin-bottom:14px;
-                  display:flex; align-items:center; gap:6px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-             fill="none" stroke="var(--muted)" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-        Editando inmueble
-      </div>
-
-      <form th:action="${'/inmuebles/' + form.id + '/editar'}"
-            th:object="${form}" method="post">
-
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px;">
-          <div>
-            <label>Macro *</label>
-            <input th:field="*{propertyCode}" placeholder="Ej: Macro del inmueble"/>
-            <div class="field-error" th:if="${#fields.hasErrors('propertyCode')}"
-                 th:errors="*{propertyCode}"></div>
-          </div>
-          <div>
-            <label>Tipo</label>
-            <input th:field="*{propertyType}" placeholder="Ej: Piso, Chalet..."/>
-          </div>
-          <div>
-            <label>Municipio</label>
-            <input th:field="*{municipality}" placeholder="Ej: Madrid"/>
-          </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:0;">
-          <div>
-            <label>Dirección</label>
-            <input th:field="*{address}" placeholder="Ej: Calle Gran Vía 1"/>
-          </div>
-          <div>
-            <label>Notas internas</label>
-            <input th:field="*{notes}" placeholder="Notas del equipo..."/>
-          </div>
-        </div>
-
-        <div style="display:flex; gap:8px; margin-top:14px;">
-          <button type="submit"
-                  style="display:inline-flex; align-items:center; gap:7px; font-size:13px; padding:9px 20px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-              <polyline points="17 21 17 13 7 13 7 21"/>
-              <polyline points="7 3 7 8 15 8"/>
-            </svg>
-            Actualizar
-          </button>
-          <a class="btn btn-secondary" th:href="@{/inmuebles}"
-             style="font-size:13px; padding:9px 16px;">Cancelar</a>
-        </div>
-      </form>
-    </div>
-
     <!-- ══ FILTROS ══ -->
-    <form th:action="@{/inmuebles}" method="get"
-          style="padding:18px 20px; border-radius:14px; border:1px solid var(--line);
-                 background:#faf8f4; margin-bottom:16px;">
+    <form th:action="@{/inmuebles}" method="get" class="section-block">
 
       <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
              fill="none" stroke="var(--muted)" stroke-width="2.5"
              stroke-linecap="round" stroke-linejoin="round">
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
         </svg>
-        <span style="font-size:11px; font-weight:700; letter-spacing:1.2px;
+        <span style="font-size:10.5px; font-weight:700; letter-spacing:1.2px;
                      text-transform:uppercase; color:var(--muted);">Filtros</span>
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:end; margin-bottom:12px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;
+                  align-items:end; margin-bottom:12px;">
         <div>
           <label>Buscar</label>
           <input type="text" name="q" th:value="${q}"
-                 placeholder="Macro, dirección, municipio, tipo..." style="margin:0;"/>
+                 placeholder="Macro, dirección, municipio..." style="margin:0;"/>
         </div>
         <div>
           <label>Estado</label>
@@ -217,14 +265,23 @@
             <option value="SOLD"        th:selected="${soldFilter == 'SOLD'}">💰 Vendidos</option>
           </select>
         </div>
+        <div>
+          <label>Web pública</label>
+          <select name="publicadoFilter" style="margin:0;">
+            <option value="ALL" th:selected="${publicadoFilter == null or publicadoFilter == 'ALL'}">Todos</option>
+            <option value="SI"  th:selected="${publicadoFilter == 'SI'}">🌐 Publicados</option>
+            <option value="NO"  th:selected="${publicadoFilter == 'NO'}">🔒 No publicados</option>
+          </select>
+        </div>
       </div>
 
       <div style="display:flex; gap:8px; justify-content:flex-end;">
         <a class="btn btn-secondary" th:href="@{/inmuebles}"
            style="font-size:13px; padding:9px 16px;">Limpiar</a>
         <button type="submit"
-                style="display:inline-flex; align-items:center; gap:7px; font-size:13px; padding:9px 20px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                style="display:inline-flex; align-items:center; gap:7px;
+                       font-size:13px; padding:9px 20px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
@@ -234,103 +291,134 @@
       </div>
     </form>
 
-    <!-- SIN RESULTADOS -->
-    <p th:if="${#lists.isEmpty(properties)}"
-       style="color:var(--muted); font-size:13px; padding:32px 0; text-align:center; margin:0;">
-      No hay inmuebles con esos filtros.
-    </p>
+    <!-- ══ EMPTY STATE ══ -->
+    <div th:if="${#lists.isEmpty(properties)}" class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+        <polyline points="9 21 9 12 15 12 15 21"/>
+      </svg>
+      <p>No hay inmuebles con esos filtros.</p>
+    </div>
 
     <!-- ══ TABLA ══ -->
     <table class="tabla-inmuebles" th:if="${!#lists.isEmpty(properties)}">
       <thead>
         <tr>
-          <th style="width:100px; text-align:center;">Estado</th>
+          <th style="width:110px; text-align:center;">Estado</th>
           <th>Macro</th>
           <th>Tipo</th>
           <th>Municipio</th>
           <th>Dirección</th>
           <th>Notas</th>
-          <th style="text-align:center;">👥 Interesados</th>
+          <th style="text-align:center; width:80px;">Interesados</th>
+          <th style="text-align:center; width:100px;">Web pública</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
         <tr th:each="p : ${properties}"
-            th:style="${p.sold ? 'opacity:0.55;' : p.preVendido ? 'opacity:0.82;' : ''}">
+            th:style="${p.sold ? 'opacity:0.52;' : p.preVendido ? 'opacity:0.78;' : ''}">
 
-          <td style="text-align:center; vertical-align:middle;">
+          <!-- ESTADO -->
+          <td style="text-align:center;">
             <span th:if="${p.sold}" class="badge-status badge-vendido">
-              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
-                   fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
               Vendido
             </span>
             <span th:if="${!p.sold and p.preVendido}" class="badge-status badge-prevendido">
-              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
-                   fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
               </svg>
               Pre vendido
             </span>
             <span th:if="${!p.sold and !p.preVendido}" class="badge-status badge-disponible">
-              <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24"
-                   fill="#558b2f" stroke="none">
-                <circle cx="12" cy="12" r="12"/>
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24"
+                   fill="#558b2f" stroke="none"><circle cx="12" cy="12" r="12"/></svg>
               Disponible
             </span>
           </td>
 
+          <!-- MACRO -->
           <td>
             <a th:href="@{|/inmuebles/${p.id}|}" th:text="${p.propertyCode}"
                style="font-weight:800; text-decoration:none; color:var(--text);
                       font-size:13px; letter-spacing:0.3px;">COD</a>
           </td>
-          <td style="font-size:12px; color:#555;" th:text="${p.propertyType != null ? p.propertyType : '—'}">—</td>
-          <td style="font-size:12px;" th:text="${p.municipality != null ? p.municipality : '—'}">—</td>
-          <td style="font-size:12px; color:#777; max-width:180px;" th:text="${p.address != null ? p.address : '—'}">—</td>
-          <td style="font-size:11px; color:#aaa; max-width:140px;" th:text="${p.notes != null ? p.notes : '—'}">—</td>
 
-          <td style="text-align:center; vertical-align:middle;">
+          <!-- TIPO -->
+          <td style="font-size:12px; color:#555;"
+              th:text="${p.propertyType != null ? p.propertyType : '—'}">—</td>
+
+          <!-- MUNICIPIO -->
+          <td style="font-size:12px;"
+              th:text="${p.municipality != null ? p.municipality : '—'}">—</td>
+
+          <!-- DIRECCIÓN -->
+          <td style="font-size:12px; color:#777; max-width:180px;"
+              th:text="${p.address != null ? p.address : '—'}">—</td>
+
+          <!-- NOTAS -->
+          <td style="font-size:11px; color:#aaa; max-width:140px;"
+              th:text="${p.notes != null ? p.notes : '—'}">—</td>
+
+          <!-- INTERESADOS -->
+          <td style="text-align:center;">
             <span th:with="cnt=${interestCountById.get(p.id) != null ? interestCountById.get(p.id) : 0}"
                   th:text="${cnt}"
-                  th:style="${cnt > 0 ? 'font-weight:800; color:#0b1f5c; font-size:14px;' : 'color:#ccc; font-size:13px;'}">0</span>
+                  th:class="${cnt > 0 ? 'count-badge has-count' : 'count-badge no-count'}">0</span>
           </td>
 
-          <td style="white-space:nowrap; vertical-align:middle;">
-            <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
-              <a class="btn btn-secondary" th:href="@{|/inmuebles/${p.id}|}"
-                 style="font-size:12px; padding:6px 12px;">Ver ficha →</a>
-              <a class="btn btn-secondary" th:href="@{|/inmuebles/${p.id}/editar|}"
-                 style="font-size:12px; padding:6px 12px;">Editar</a>
+          <!-- WEB PÚBLICA — TOGGLE -->
+          <td style="text-align:center;">
+            <div class="publicado-cell" style="justify-content:center;">
+              <label class="toggle-switch">
+                <input type="checkbox" class="toggle-publicado"
+                       th:attr="data-id=${p.id}"
+                       th:checked="${p.publicado}"
+                       th:disabled="${p.sold}"/>
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="publicado-label"
+                    th:classappend="${p.publicado} ? ' is-on' : ''"
+                    th:text="${p.publicado} ? 'Sí' : 'No'"
+                    th:attr="data-label-id=${p.id}">No</span>
+            </div>
+          </td>
 
-              <button type="button" class="btn-prevendido"
+          <!-- ACCIONES -->
+          <td>
+            <div class="row-actions">
+              <a class="btn-xs" th:href="@{|/inmuebles/${p.id}|}">Ver ficha →</a>
+
+              <button type="button" class="btn-xs btn-orange btn-prevendido"
+                      th:classappend="${p.preVendido} ? ' active' : ''"
                       th:attr="data-id=${p.id}, data-prevendido=${p.preVendido}"
-                      th:text="${p.preVendido ? '↩ Quitar Pre Vendido' : '⏳ Pre Vendido'}"
-                      th:style="${p.preVendido
-                                  ? 'background:#e07a18; color:#fff; border-color:#e07a18; font-size:12px; padding:6px 12px;'
-                                  : 'background:#fff4e6; color:#a05800; border:1px solid #e07a18; font-size:12px; padding:6px 12px;'}">
+                      th:text="${p.preVendido ? '↩ Pre vendido' : '⏳ Pre vender'}">
               </button>
 
-              <button type="button" class="btn-vendido"
+              <button type="button" class="btn-xs btn-green btn-vendido"
+                      th:classappend="${p.sold} ? ' active' : ''"
                       th:attr="data-id=${p.id}, data-sold=${p.sold}"
-                      th:text="${p.sold ? '↩ Disponible' : '💰 Vendido'}"
-                      th:style="${p.sold
-                                  ? 'background:#4caf50; border-color:#4caf50; font-size:12px; padding:6px 12px;'
-                                  : 'background:#b42318; border-color:#b42318; font-size:12px; padding:6px 12px;'}">
+                      th:text="${p.sold ? '↩ Disponible' : '💰 Vendido'}">
               </button>
 
-              <button type="button" class="btn-delete"
+              <button type="button" class="btn-xs btn-danger btn-delete"
                       th:attr="data-id=${p.id},
                                data-code=${p.propertyCode},
-                               data-count=${interestCountById.get(p.id) != null ? interestCountById.get(p.id) : 0}"
-                      style="background:#555; border-color:#555; font-size:12px; padding:6px 12px;">
+                               data-count=${interestCountById.get(p.id) != null ? interestCountById.get(p.id) : 0}">
                 Eliminar
               </button>
             </div>
           </td>
+
         </tr>
       </tbody>
     </table>
@@ -343,6 +431,33 @@
   const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
 
+  /* ── Toggle web pública ── */
+  document.querySelectorAll('.toggle-publicado').forEach(chk => {
+    chk.addEventListener('change', async function () {
+      const id    = chk.getAttribute('data-id');
+      const label = document.querySelector(`[data-label-id="${id}"]`);
+      chk.disabled = true;
+      try {
+        const res  = await fetch(`/inmuebles/${id}/publicar`, {
+          method: 'POST',
+          headers: { [csrfHeader]: csrfToken }
+        });
+        const data = await res.json();
+        if (label) {
+          label.textContent = data.publicado ? 'Sí' : 'No';
+          label.classList.toggle('is-on', data.publicado);
+        }
+        chk.checked = data.publicado;
+      } catch (e) {
+        chk.checked = !chk.checked;
+        alert('No se pudo actualizar la publicación.');
+      } finally {
+        chk.disabled = false;
+      }
+    });
+  });
+
+  /* ── Vendido ── */
   document.querySelectorAll('.btn-vendido').forEach(btn => {
     btn.addEventListener('click', async function () {
       const id   = btn.getAttribute('data-id');
@@ -353,12 +468,13 @@
           headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken },
           body: 'sold=' + encodeURIComponent(String(!sold))
         });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        if (!res.ok) throw new Error();
         window.location.reload();
-      } catch (e) { alert('No se pudo actualizar el estado.'); }
+      } catch { alert('No se pudo actualizar el estado.'); }
     });
   });
 
+  /* ── Pre vendido ── */
   document.querySelectorAll('.btn-prevendido').forEach(btn => {
     btn.addEventListener('click', async function () {
       const id         = btn.getAttribute('data-id');
@@ -369,12 +485,13 @@
           headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken },
           body: 'preVendido=' + encodeURIComponent(String(!preVendido))
         });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        if (!res.ok) throw new Error();
         window.location.reload();
-      } catch (e) { alert('No se pudo actualizar el estado.'); }
+      } catch { alert('No se pudo actualizar el estado.'); }
     });
   });
 
+  /* ── Modal eliminar ── */
   const backdrop   = document.getElementById('deleteModalBackdrop');
   const modalCode  = document.getElementById('deleteModalCode');
   const modalCount = document.getElementById('deleteModalCount');
@@ -390,7 +507,7 @@
       modalCode.textContent = code;
       modalForm.action      = `/inmuebles/${id}/eliminar`;
       if (count > 0) { modalCount.textContent = count; modalWarn.classList.add('show'); }
-      else { modalWarn.classList.remove('show'); }
+      else            { modalWarn.classList.remove('show'); }
       backdrop.classList.add('open');
     });
   });
