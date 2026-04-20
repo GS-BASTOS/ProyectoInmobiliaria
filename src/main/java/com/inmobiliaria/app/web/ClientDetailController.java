@@ -210,8 +210,18 @@ public class ClientDetailController {
                             p.setPreVendido(false);
                             p.setPreVendidoClient(null);
                             propertyRepository.save(p);
+
+                            // Cascada: descartar interacciones de TODOS los demás clientes
+                            // con este inmueble ahora vendido
+                            List<ClientPropertyInteraction> otrasInteracciones =
+                                    interactionRepository.findByPropertyIdExcludingClient(propId, client.getId());
+                            otrasInteracciones.forEach(it -> {
+                                it.setStatus(InterestStatus.ROSA_DESCARTA);
+                                interactionRepository.save(it);
+                            });
                         })
                 );
+                // Descartar las interacciones del propio cliente con inmuebles NO comprados
                 interactions.forEach(it -> {
                     if (!boughtIds.contains(it.getProperty().getId())) {
                         it.setStatus(InterestStatus.ROSA_DESCARTA);
@@ -268,6 +278,10 @@ public class ClientDetailController {
         String code = t(form.getPropertyCode());
         Property property = propertyRepository.findByPropertyCode(code)
                 .map(existing -> {
+                    // Bloquear si el inmueble ya está vendido
+                    if (existing.isSold()) {
+                        return existing; // se retorna pero la interacción no se guardará
+                    }
                     String pt   = t(form.getPropertyType());
                     String addr = t(form.getAddress());
                     String mun  = t(form.getMunicipality());
@@ -284,6 +298,11 @@ public class ClientDetailController {
                     p.setMunicipality(t(form.getMunicipality()));
                     return propertyRepository.save(p);
                 });
+
+        // No crear interacción si el inmueble está vendido
+        if (property.isSold()) {
+            return "redirect:/clientes/" + id + "#interacciones";
+        }
 
         ClientPropertyInteraction interaction = new ClientPropertyInteraction();
         interaction.setClient(client);

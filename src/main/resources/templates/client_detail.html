@@ -112,8 +112,8 @@
 
       <div th:if="${client.compradorFinal}"
            class="client-banner client-banner-success">
-        <strong>💰 Comprador confirmado.</strong> Las interacciones y el formulario de nueva
-        interacción están desactivados.
+        <strong>💰 Comprador confirmado.</strong> Este cliente ha comprado al menos un inmueble.
+        Puede seguir interactuando con otros inmuebles disponibles.
       </div>
     </section>
 
@@ -154,10 +154,10 @@
           </thead>
           <tbody>
           <tr th:each="it : ${interactions}"
-              th:style="${client.compradorFinal && it.property.sold
+              th:style="${it.property.sold && it.property.soldClient != null && it.property.soldClient.id == client.id
                           ? 'background:#e8f5e9; border-left:3px solid #168a53;'
-                          : client.compradorFinal
-                            ? 'opacity:0.35; pointer-events:none;'
+                          : it.property.sold
+                            ? 'opacity:0.45; pointer-events:none; background:#f9f9f9;'
                             : client.posibleOcupa
                               ? 'background:#fff8f8;'
                               : ''}">
@@ -269,23 +269,16 @@
         </table>
       </div>
 
-      <div th:if="${client.compradorFinal}"
-           class="client-banner client-banner-success" style="margin-top:14px;">
-        <strong>💰 COMPRADOR:</strong> Las interacciones anteriores están desactivadas.
-      </div>
     </section>
 
     <!-- ══ PANEL NUEVA INTERACCIÓN ══ -->
-    <section class="client-panel client-tab-panel" id="tab-nueva"
-             th:style="${client.compradorFinal ? 'opacity:0.4; pointer-events:none;' : ''}">
+    <section class="client-panel client-tab-panel" id="tab-nueva">
       <header class="client-panel-header">
         <div>
           <h2>Nueva interacción</h2>
-          <div class="small" th:if="${!client.compradorFinal}">
+          <div class="small">
             Añadir un nuevo contacto del cliente con un inmueble.
-          </div>
-          <div class="small" th:if="${client.compradorFinal}" style="color:#168a53;">
-            Este cliente ya ha comprado un inmueble.
+            Los inmuebles vendidos no aparecen en el catálogo.
           </div>
         </div>
       </header>

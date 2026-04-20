@@ -128,6 +128,19 @@ public interface ClientPropertyInteractionRepository
 
     List<ClientPropertyInteraction> findByProperty_IdOrderByContactDateDesc(Long propertyId);
 
+    // Interacciones de un inmueble de clientes distintos al comprador (para cascada al vender)
+    @Query("""
+        select i
+        from ClientPropertyInteraction i
+        join fetch i.client c
+        join fetch i.property p
+        where i.property.id = :propertyId
+          and i.client.id <> :excludeClientId
+    """)
+    List<ClientPropertyInteraction> findByPropertyIdExcludingClient(
+            @Param("propertyId") Long propertyId,
+            @Param("excludeClientId") Long excludeClientId);
+
     @Query("""
         select p.propertyCode, count(i) as cnt
         from ClientPropertyInteraction i
