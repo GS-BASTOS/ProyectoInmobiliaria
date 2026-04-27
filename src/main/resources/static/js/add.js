@@ -8,36 +8,37 @@
 
   let currentHighlight = -1;
   let visibleOptions   = [];
-
-  const allItems = (CATALOG || [])
-    .filter(p => !p.sold)
-    .map(p => ({
-      code         : p.propertyCode  || '',
-      type         : p.propertyType  || '',
-      address      : p.address       || '',
-      municipality : p.municipality  || '',
-      preVendido   : p.preVendido    || false,
-      label        : [p.propertyCode, p.propertyType, p.municipality].filter(Boolean).join(' · ')
-    }));
+  let debounceTimer    = null;
 
   function escHtml(str) {
-    return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function renderDropdown(q) {
+  function fetchAndRender(q) {
+    clearTimeout(debounceTimer);
+    const query = (q || '').trim();
+    if (query.length < 2) {
+      dropdown.innerHTML = '<div class="combo-empty">Escribe al menos 2 caracteres...</div>';
+      dropdown.classList.add('open');
+      return;
+    }
+    debounceTimer = setTimeout(() => {
+      fetch('/api/catalog/search?q=' + encodeURIComponent(query))
+        .then(r => r.json())
+        .then(items => renderItems(items))
+        .catch(() => {
+          dropdown.innerHTML = '<div class="combo-empty">Error al cargar resultados.</div>';
+        });
+    }, 250);
+  }
+
+  function renderItems(items) {
     dropdown.innerHTML = '';
     currentHighlight = -1;
-    const lq = (q || '').trim().toLowerCase();
-    visibleOptions = lq === ''
-      ? allItems
-      : allItems.filter(item =>
-          item.code.toLowerCase().includes(lq) ||
-          item.type.toLowerCase().includes(lq) ||
-          item.municipality.toLowerCase().includes(lq) ||
-          item.address.toLowerCase().includes(lq)
-        );
+    visibleOptions = items || [];
     if (visibleOptions.length === 0) {
       dropdown.innerHTML = '<div class="combo-empty">Sin resultados</div>';
+      dropdown.classList.add('open');
       return;
     }
     visibleOptions.forEach((item, idx) => {
@@ -50,22 +51,24 @@
              ⏳ Pre vendido
            </span>` : '';
       div.innerHTML = `
-        <div class="opt-code">${escHtml(item.code)}${preTag}</div>
-        <div class="opt-sub">${escHtml([item.type, item.municipality, item.address].filter(Boolean).join(' · '))}</div>
+        <div class="opt-code">${escHtml(item.propertyCode || '')}${preTag}</div>
+        <div class="opt-sub">${escHtml([item.propertyType, item.municipality, item.address].filter(Boolean).join(' · '))}</div>
       `;
       div.addEventListener('mousedown', e => { e.preventDefault(); selectItem(item); });
       dropdown.appendChild(div);
     });
+    dropdown.classList.add('open');
   }
 
   function selectItem(item) {
-    document.getElementById('propertyCode').value = item.code;
-    document.getElementById('propertyType').value = item.type;
-    document.getElementById('address').value      = item.address;
-    document.getElementById('municipality').value = item.municipality;
-    comboInput.value      = item.label;
+    document.getElementById('propertyCode').value  = item.propertyCode  || '';
+    document.getElementById('propertyType').value  = item.propertyType  || '';
+    document.getElementById('address').value       = item.address       || '';
+    document.getElementById('municipality').value  = item.municipality  || '';
+    const label = [item.propertyCode, item.propertyType, item.municipality].filter(Boolean).join(' · ');
+    comboInput.value      = label;
     comboInput.readOnly   = true;
-    chipLabel.textContent = item.label;
+    chipLabel.textContent = label;
     chip.style.display    = 'inline-flex';
     closeDropdown();
   }
@@ -79,25 +82,29 @@
     });
   }
 
-  function openDropdown(q) { renderDropdown(q); dropdown.classList.add('open'); }
-  function closeDropdown()  { dropdown.classList.remove('open'); currentHighlight = -1; }
+  function openDropdown()  { dropdown.classList.add('open'); }
+  function closeDropdown() { dropdown.classList.remove('open'); currentHighlight = -1; }
 
   function setHighlight(idx) {
     const opts = dropdown.querySelectorAll('.combo-option');
     opts.forEach(o => o.classList.remove('highlighted'));
     if (idx >= 0 && idx < opts.length) {
       opts[idx].classList.add('highlighted');
-      opts[idx].scrollIntoView({ block:'nearest' });
+      opts[idx].scrollIntoView({ block: 'nearest' });
       currentHighlight = idx;
     }
   }
 
-  comboInput.addEventListener('click',   () => { comboInput.readOnly = false; comboInput.value = ''; openDropdown(''); });
-  comboInput.addEventListener('input',   () => openDropdown(comboInput.value));
+  comboInput.addEventListener('click', () => {
+    comboInput.readOnly = false;
+    comboInput.value = '';
+    fetchAndRender('');
+  });
+  comboInput.addEventListener('input', () => fetchAndRender(comboInput.value));
   comboInput.addEventListener('keydown', e => {
     const opts = dropdown.querySelectorAll('.combo-option');
-    if      (e.key === 'ArrowDown') { e.preventDefault(); setHighlight(Math.min(currentHighlight+1, opts.length-1)); }
-    else if (e.key === 'ArrowUp')   { e.preventDefault(); setHighlight(Math.max(currentHighlight-1, 0)); }
+    if      (e.key === 'ArrowDown') { e.preventDefault(); setHighlight(Math.min(currentHighlight + 1, opts.length - 1)); }
+    else if (e.key === 'ArrowUp')   { e.preventDefault(); setHighlight(Math.max(currentHighlight - 1, 0)); }
     else if (e.key === 'Enter')     { e.preventDefault(); if (currentHighlight >= 0 && visibleOptions[currentHighlight]) selectItem(visibleOptions[currentHighlight]); }
     else if (e.key === 'Escape')    { closeDropdown(); }
   });
