@@ -2,19 +2,8 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
   <div th:replace="~{fragments :: head('Nuevo proveedor', null)}"></div>
+  <link rel="stylesheet" th:href="@{/css/proveedor-nuevo.css}"/>
 </head>
-<style>
-  .section-block {
-    padding:18px 20px; border-radius:14px;
-    border:1px solid var(--line); background:#faf8f4;
-    margin-bottom:16px;
-  }
-  .section-block-title {
-    font-size:11px; font-weight:700; letter-spacing:1.2px;
-    text-transform:uppercase; color:var(--muted); margin-bottom:14px;
-    display:flex; align-items:center; gap:6px;
-  }
-</style>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 
@@ -170,7 +159,7 @@
           </div>
         </div>
 
-        <!-- ══ DESCRIPCIÓN PÚBLICA (Property.description) ══ -->
+        <!-- DESCRIPCIÓN PÚBLICA -->
         <div style="margin-bottom:10px;">
           <label style="display:flex; align-items:center; gap:6px;">
             Descripción pública
@@ -183,7 +172,7 @@
                     placeholder="Piso de 90m², 3 habitaciones, 2 baños, zona céntrica, luminoso..."></textarea>
         </div>
 
-        <!-- ══ NOTAS INTERNAS (Property.notes) ══ -->
+        <!-- NOTAS INTERNAS -->
         <div>
           <label style="display:flex; align-items:center; gap:6px;">
             Notas internas
