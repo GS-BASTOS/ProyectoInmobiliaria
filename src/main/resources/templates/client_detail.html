@@ -1,13 +1,10 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <div th:replace="~{fragments :: head('Cliente')}"></div>
-  <link rel="stylesheet" th:href="@{/css/client_detail.css}"/>
-</head>
+<head th:replace="~{fragments :: head('Cliente', @{/css/client_detail.css})}"></head>
+
 <body class="layout-with-sidebar">
 
-<meta name="_csrf"        th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
 
 <nav th:replace="~{fragments :: nav}"></nav>
 

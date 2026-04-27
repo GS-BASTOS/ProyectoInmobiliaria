@@ -1,10 +1,7 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Inmuebles')}">
-  <link rel="stylesheet" th:href="@{/css/property_catalog.css}"/>
+<head th:replace="~{fragments :: head('Inmuebles', '/css/property_catalog.css')}">
 </head>
-<meta name="_csrf"        th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 

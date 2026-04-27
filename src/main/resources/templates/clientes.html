@@ -1,9 +1,7 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <div th:replace="~{fragments :: head('Clientes')}"></div>
-  <link rel="stylesheet" th:href="@{/css/clientes.css}"/>
-</head>
+<head th:replace="~{fragments :: head('Clientes', @{/css/clientes.css})}"></head>
+<body>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 

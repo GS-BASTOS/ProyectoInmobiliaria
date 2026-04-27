@@ -1,13 +1,9 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <div th:replace="~{fragments :: head('Panel')}"></div>
-  <link rel="stylesheet" th:href="@{/css/dashboard.css}"/>
+<head th:replace="~{fragments :: head('Panel', @{/css/dashboard.css})}">
 </head>
 <body>
 
-<meta name="_csrf"        th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
 <nav th:replace="~{fragments :: nav}"></nav>
 
