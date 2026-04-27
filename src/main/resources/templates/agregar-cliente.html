@@ -1,21 +1,8 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Nuevo cliente')}"></head>
-<style>
-  .section-block {
-    padding:18px 20px;
-    border-radius:14px;
-    border:1px solid var(--line);
-    background:#faf8f4;
-    margin-bottom:20px;
-  }
-  .section-block-title {
-    font-size:11px; font-weight:700; letter-spacing:1.2px;
-    text-transform:uppercase; color:var(--muted);
-    margin-bottom:14px;
-    display:flex; align-items:center; gap:6px;
-  }
-</style>
+<head th:replace="~{fragments :: head('Nuevo cliente')}">
+  <link rel="stylesheet" th:href="@{/css/agregar-cliente.css}"/>
+</head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 

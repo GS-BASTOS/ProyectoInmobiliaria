@@ -1,15 +1,17 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:fragment="head(title)">
+<head th:fragment="head(title, extraCss)">
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title th:text="${title} + ' · Solvia'">Solvia</title>
 
-  <!-- CSRF para fetch/AJAX PRUEBA GITPULL-->
+  <!-- CSRF para fetch/AJAX -->
   <meta name="_csrf"        th:content="${_csrf.token}"/>
   <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
   <link rel="stylesheet" th:href="@{/css/app.css}"/>
+  <link th:if="${extraCss != null and !#strings.isEmpty(extraCss)}"
+        rel="stylesheet" th:href="${extraCss}"/>
 </head>
 
 <body>

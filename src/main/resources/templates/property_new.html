@@ -1,17 +1,16 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Nuevo inmueble')}"></head>
+<head th:replace="~{fragments :: head('Nuevo inmueble', @{/css/property_new.css})}"></head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 
 <div class="container">
-  <div class="card" style="max-width:680px; margin:0 auto;">
+  <div class="card new-property-card">
 
-    <!-- ══ CABECERA ══ -->
-    <div style="display:flex; align-items:flex-end; justify-content:space-between;
-                gap:12px; flex-wrap:wrap; margin-bottom:4px;">
+    <!-- CABECERA -->
+    <div class="new-property-header">
       <div>
-        <h2 style="margin-bottom:4px;">Nuevo inmueble</h2>
+        <h2>Nuevo inmueble</h2>
         <div class="small">Rellena los datos del nuevo inmueble.</div>
       </div>
       <a class="btn btn-secondary" th:href="@{/inmuebles}"
@@ -20,12 +19,12 @@
       </a>
     </div>
 
-    <hr style="border:none; border-top:1px solid var(--line); margin:14px 0;"/>
+    <hr class="new-property-divider"/>
 
-    <!-- ══ FORMULARIO ══ -->
+    <!-- FORMULARIO -->
     <form th:action="@{/inmuebles/nuevo}" th:object="${form}" method="post">
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+      <div class="form-row-2">
         <div>
           <label>Macro *</label>
           <input th:field="*{propertyCode}" placeholder="Ej: MACRO-001" autofocus/>
@@ -38,7 +37,7 @@
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+      <div class="form-row-2">
         <div>
           <label>Municipio</label>
           <input th:field="*{municipality}" placeholder="Ej: Madrid"/>
@@ -49,14 +48,14 @@
         </div>
       </div>
 
-      <div style="margin-bottom:20px;">
+      <div>
         <label>Notas internas</label>
         <textarea th:field="*{notes}" rows="3"
                   placeholder="Observaciones internas del equipo..."
-                  style="width:100%; resize:vertical;"></textarea>
+                  class="textarea-notes"></textarea>
       </div>
 
-      <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <div class="form-actions">
         <a class="btn btn-secondary" th:href="@{/inmuebles}"
            style="font-size:13px; padding:10px 20px;">Cancelar</a>
         <button type="submit"
@@ -76,5 +75,7 @@
     </form>
   </div>
 </div>
+
+<script th:src="@{/js/property_new.js}"></script>
 </body>
 </html>
