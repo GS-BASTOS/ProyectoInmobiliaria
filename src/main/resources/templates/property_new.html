@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Nuevo inmueble', null)}"></head>
+<head>
+  <div th:replace="~{fragments :: head('Nuevo inmueble', null)}"></div>
+  <link rel="stylesheet" th:href="@{/css/property_new.css}"/>
+</head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 

@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Inmueble', null)}"></head>
+<head>
+  <div th:replace="~{fragments :: head('Inmueble', null)}"></div>
+  <link rel="stylesheet" th:href="@{/css/property_detail.css}"/>
+</head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 
