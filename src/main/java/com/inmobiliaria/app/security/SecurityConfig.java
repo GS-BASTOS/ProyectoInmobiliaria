@@ -32,23 +32,17 @@ public class SecurityConfig {
                 .csrfTokenRequestHandler(requestHandler)
             )
             .authorizeHttpRequests(auth -> auth
+                // Recursos estáticos
                 .requestMatchers(
-                    "/css/**",
-                    "/js/**",
-                    "/images/**",
-                    "/fonts/**",
-                    "/uploads/**",
-                    "/webjars/**",
-                    "/favicon.ico",
-                    "/error"
+                    "/css/**", "/js/**", "/images/**",
+                    "/fonts/**", "/uploads/**", "/webjars/**",
+                    "/favicon.ico", "/error"
                 ).permitAll()
+                // Páginas públicas
                 .requestMatchers(
-                    "/",
-                    "/login",
-                    "/catalogo",
-                    "/catalogo/**",
-                    "/contacto"
+                    "/", "/login", "/catalogo", "/catalogo/**", "/contacto"
                 ).permitAll()
+                // Todo lo demás requiere login
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -61,6 +55,12 @@ public class SecurityConfig {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
+            )
+            // ← ESTO evita el 403, siempre redirige al login
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) ->
+                    response.sendRedirect("/login")
+                )
             );
 
         return http.build();
