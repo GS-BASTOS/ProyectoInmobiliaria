@@ -22,24 +22,33 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        // Resuelve el token inmediatamente (sin defer), evita el
-        // "Cannot create a session after response has been committed"
         XorCsrfTokenRequestAttributeHandler requestHandler =
                 new XorCsrfTokenRequestAttributeHandler();
         requestHandler.setCsrfRequestAttributeName(null);
 
         http
             .csrf(csrf -> csrf
-                // Guarda el token en cookie en vez de en sesión HTTP
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .csrfTokenRequestHandler(requestHandler)
             )
             .authorizeHttpRequests(auth -> auth
-                // ── Recursos estáticos ──────────────────────
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
-                // ── Web pública ─────────────────────────────
-                .requestMatchers("/", "/catalogo", "/catalogo/**", "/contacto").permitAll()
-                // ── Todo lo demás requiere login ────────────
+                .requestMatchers(
+                    "/css/**",
+                    "/js/**",
+                    "/images/**",
+                    "/fonts/**",
+                    "/uploads/**",
+                    "/webjars/**",
+                    "/favicon.ico",
+                    "/error"
+                ).permitAll()
+                .requestMatchers(
+                    "/",
+                    "/login",
+                    "/catalogo",
+                    "/catalogo/**",
+                    "/contacto"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
