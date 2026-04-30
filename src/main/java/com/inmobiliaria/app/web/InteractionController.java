@@ -71,9 +71,34 @@ public class InteractionController {
         // Filtro por campo específico en memoria
         if (q != null && !q.isBlank() && !"ALL".equals(field)) {
             String lq = q.trim().toLowerCase();
+
+            // Pre-cargar teléfonos/emails si el campo lo requiere (evita N+1)
+            final Map<Long, List<ClientPhone>> filterPhones;
+            final Map<Long, List<ClientEmail>> filterEmails;
+            if ("PHONE".equals(field) || "EMAIL".equals(field)) {
+                List<Long> preIds = items.stream()
+                        .map(i -> i.getClient().getId()).distinct().toList();
+                filterPhones = "PHONE".equals(field)
+                        ? clientPhoneRepository.findByClient_IdInOrderByClient_IdAscPositionAsc(preIds)
+                            .stream().collect(Collectors.groupingBy(p -> p.getClient().getId()))
+                        : Collections.emptyMap();
+                filterEmails = "EMAIL".equals(field)
+                        ? clientEmailRepository.findByClient_IdInOrderByClient_IdAscPositionAsc(preIds)
+                            .stream().collect(Collectors.groupingBy(e -> e.getClient().getId()))
+                        : Collections.emptyMap();
+            } else {
+                filterPhones = Collections.emptyMap();
+                filterEmails = Collections.emptyMap();
+            }
+
             items = items.stream().filter(it -> switch (field) {
                 case "CLIENT"        -> matches(it.getClient().getFullName(), lq)
                                      || matches(it.getClient().getCompanyName(), lq);
+                case "PHONE"         -> filterPhones.getOrDefault(it.getClient().getId(), List.of())
+                                     .stream().anyMatch(p -> matches(p.getPhoneNumber(), lq));
+                case "EMAIL"         -> filterEmails.getOrDefault(it.getClient().getId(), List.of())
+                                     .stream().anyMatch(e -> matches(e.getEmail(), lq));
+                case "SOLVIA_CODE"   -> matches(it.getClient().getSolviaCode(), lq);
                 case "PROPERTY_CODE" -> matches(it.getProperty().getPropertyCode(), lq);
                 case "MUNICIPALITY"  -> matches(it.getProperty().getMunicipality(), lq);
                 case "CHANNEL"       -> it.getChannel() != null
