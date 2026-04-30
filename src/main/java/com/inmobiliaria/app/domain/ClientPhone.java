@@ -24,6 +24,8 @@ public class ClientPhone {
 
     @Column(nullable = false)
     private Integer position; // 1..3
+    
+    
 
     public Long getId() { return id; }
 
@@ -35,4 +37,10 @@ public class ClientPhone {
 
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
+    
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean invalid = false;
+
+    public boolean isInvalid() { return invalid; }
+    public void setInvalid(boolean invalid) { this.invalid = invalid; }
 }

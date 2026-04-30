@@ -699,3 +699,52 @@
   margin-bottom: 14px;
   display: flex; align-items: center; gap: 6px;
 }
+
+/* ── Contacto inválido ── */
+.contact-item-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.contact-invalid {
+  color: #b42318 !important;
+  text-decoration: line-through !important;
+  opacity: 0.75;
+}
+
+.btn-invalid-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid #e0ddd8;
+  background: #f7f5f2;
+  color: #888;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.btn-invalid-toggle:hover {
+  background: #ffebee;
+  border-color: #f5c0bb;
+  color: #b42318;
+}
+
+.btn-invalid-toggle.is-invalid {
+  background: #ffebee;
+  border-color: #b42318;
+  color: #b42318;
+}
+
+.btn-invalid-toggle.is-invalid:hover {
+  background: #fce8e6;
+  border-color: #a01c12;
+}

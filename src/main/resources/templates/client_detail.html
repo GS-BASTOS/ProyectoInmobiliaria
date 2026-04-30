@@ -58,25 +58,60 @@
       </div>
 
       <!-- Contacto -->
-      <div class="client-summary-block summary-contact">
-        <div class="sidebar-section-title">Contacto</div>
-        <div class="sidebar-subtitle">Teléfonos</div>
-        <div class="sidebar-contact-list">
-          <span th:if="${#lists.isEmpty(client.phones)}" class="sidebar-empty">Sin teléfonos</span>
-          <a th:each="p : ${client.phones}" class="wa-link"
-             th:style="${client.noMolestar} ? 'opacity:0.4; text-decoration:line-through; pointer-events:none;' : ''"
-             th:href="${'https://wa.me/' + #strings.replace(#strings.replace(p.phoneNumber, '+', ''), ' ', '')}"
-             target="_blank"
-             th:text="${p.phoneNumber}">600000000</a>
-        </div>
-        <div class="sidebar-subtitle">Emails</div>
-        <div class="sidebar-contact-list">
-          <span th:if="${#lists.isEmpty(client.emails)}" class="sidebar-empty">Sin emails</span>
-          <span th:each="e,st : ${client.emails}"
-                th:style="${client.noMolestar} ? 'opacity:0.4; text-decoration:line-through;' : ''"
-                th:text="${e.email} + ${!st.last ? ', ' : ''}">mail@mail.com</span>
-        </div>
-      </div>
+<div class="client-summary-block summary-contact">
+  <div class="sidebar-section-title">Contacto</div>
+  <div class="sidebar-subtitle">Teléfonos</div>
+  <div class="sidebar-contact-list">
+    <span th:if="${#lists.isEmpty(client.phones)}" class="sidebar-empty">Sin teléfonos</span>
+    <div th:each="p : ${client.phones}" class="contact-item-row">
+      <a class="wa-link"
+         th:classappend="${p.invalid} ? ' contact-invalid' : ''"
+         th:style="${client.noMolestar} ? 'opacity:0.4; text-decoration:line-through; pointer-events:none;' : ''"
+         th:href="${'https://wa.me/' + #strings.replace(#strings.replace(p.phoneNumber, '+', ''), ' ', '')}"
+         target="_blank"
+         th:text="${p.phoneNumber}">600000000</a>
+      <button type="button"
+              class="btn-invalid-toggle"
+              th:classappend="${p.invalid} ? ' is-invalid' : ''"
+              th:attr="data-type='phone',
+                       data-id=${p.id},
+                       data-client-id=${client.id},
+                       data-invalid=${p.invalid}"
+              th:title="${p.invalid} ? 'Marcar como válido' : 'Marcar como no válido'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        <span th:text="${p.invalid} ? 'Inválido' : 'No válido'"></span>
+      </button>
+    </div>
+  </div>
+  <div class="sidebar-subtitle">Emails</div>
+  <div class="sidebar-contact-list">
+    <span th:if="${#lists.isEmpty(client.emails)}" class="sidebar-empty">Sin emails</span>
+    <div th:each="e : ${client.emails}" class="contact-item-row">
+      <span th:classappend="${e.invalid} ? ' contact-invalid' : ''"
+            th:style="${client.noMolestar} ? 'opacity:0.4; text-decoration:line-through;' : ''"
+            th:text="${e.email}">mail@mail.com</span>
+      <button type="button"
+              class="btn-invalid-toggle"
+              th:classappend="${e.invalid} ? ' is-invalid' : ''"
+              th:attr="data-type='email',
+                       data-id=${e.id},
+                       data-client-id=${client.id},
+                       data-invalid=${e.invalid}"
+              th:title="${e.invalid} ? 'Marcar como válido' : 'Marcar como no válido'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        <span th:text="${e.invalid} ? 'Inválido' : 'No válido'"></span>
+      </button>
+    </div>
+  </div>
+</div>
 
       <!-- Notas generales -->
       <div class="client-summary-block summary-notes" th:if="${!client.posibleOcupa}">

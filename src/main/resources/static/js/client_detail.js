@@ -182,6 +182,65 @@
       } catch (e) { cb.checked = !checked; alert('No se pudo actualizar NDA.'); }
     });
   });
+  
+  /* ══ INVALID TOGGLE (phones & emails) ══ */
+  document.querySelectorAll('.btn-invalid-toggle').forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const type      = btn.getAttribute('data-type');   // 'phone' | 'email'
+      const id        = btn.getAttribute('data-id');
+      const clientId  = btn.getAttribute('data-client-id');
+      const isInvalid = btn.getAttribute('data-invalid') === 'true';
+      const newVal    = !isInvalid;
+
+      const endpoint = type === 'phone'
+        ? `/clientes/${clientId}/phones/${id}/invalid`
+        : `/clientes/${clientId}/emails/${id}/invalid`;
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            [csrfHeader]: csrfToken
+          },
+          body: 'invalid=' + encodeURIComponent(String(newVal))
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        // Actualizar data-invalid
+        btn.setAttribute('data-invalid', String(newVal));
+
+        // Actualizar clases y texto del botón
+        const span = btn.querySelector('span');
+        if (newVal) {
+          btn.classList.add('is-invalid');
+          btn.title = 'Marcar como válido';
+          if (span) span.textContent = 'Inválido';
+        } else {
+          btn.classList.remove('is-invalid');
+          btn.title = 'Marcar como no válido';
+          if (span) span.textContent = 'No válido';
+        }
+
+        // Actualizar color del contacto (el hermano anterior en .contact-item-row)
+        const row = btn.closest('.contact-item-row');
+        if (row) {
+          const contact = row.querySelector('a, span:not(.btn-invalid-toggle span)');
+          if (contact) {
+            if (newVal) {
+              contact.classList.add('contact-invalid');
+            } else {
+              contact.classList.remove('contact-invalid');
+            }
+          }
+        }
+      } catch (e) {
+        alert('No se pudo actualizar: ' + e.message);
+      }
+    });
+  });
+  
+  
 
   /* ══ TICKET SAVE ══ */
   document.querySelectorAll('.ticket-save').forEach(btn => {

@@ -428,30 +428,39 @@
           </td>
 
           <!-- TELÉFONOS -->
-          <td>
-            <span th:if="${phonesByClientId.get(it.client.id) == null}" style="color:#ccc;">—</span>
-            <div th:each="p : ${phonesByClientId.get(it.client.id)}" style="margin-bottom:3px;">
-              <a class="wa-link"
-                 th:href="${'https://wa.me/' + #strings.replace(#strings.replace(p.phoneNumber,'+',''),' ','')}"
-                 target="_blank"
-                 th:text="${p.phoneNumber}">
-                600000000
-              </a>
-            </div>
-          </td>
+			<td>
+			  <span th:if="${phonesByClientId.get(it.client.id) == null}" style="color:#ccc;">—</span>
+			  <div th:each="p : ${phonesByClientId.get(it.client.id)}" style="margin-bottom:3px;">
+			    <a th:if="${!p.invalid}"
+			       class="wa-link"
+			       th:href="${'https://wa.me/' + #strings.replace(#strings.replace(p.phoneNumber,'+',''),' ','')}"
+			       target="_blank"
+			       th:text="${p.phoneNumber}">
+			      600000000
+			    </a>
+			    <span th:if="${p.invalid}"
+			          style="color:#b42318; text-decoration:line-through; font-size:12px; opacity:0.7;"
+			          th:text="${p.phoneNumber}"></span>
+			  </div>
+			</td>
 
           <!-- EMAILS -->
-          <td style="vertical-align:top;">
-            <span th:if="${emailsByClientId.get(it.client.id) == null}" style="color:#ccc;">—</span>
-            <div th:each="e : ${emailsByClientId.get(it.client.id)}"
-                 style="display:flex; align-items:center; gap:4px; margin-bottom:3px;">
-              <input type="checkbox" class="email-item" th:attr="data-email=${e.email}"/>
-              <span class="copyable" th:attr="data-copy=${e.email}"
-                    th:text="${e.email}"
-                    style="font-size:11px; color:#333; word-break:break-all;">
-              </span>
-            </div>
-          </td>
+			<td style="vertical-align:top;">
+			  <span th:if="${emailsByClientId.get(it.client.id) == null}" style="color:#ccc;">—</span>
+			  <div th:each="e : ${emailsByClientId.get(it.client.id)}"
+			       style="display:flex; align-items:center; gap:4px; margin-bottom:3px;">
+			    <input th:if="${!e.invalid}"
+			           type="checkbox" class="email-item" th:attr="data-email=${e.email}"/>
+			    <span th:if="${!e.invalid}"
+			          class="copyable" th:attr="data-copy=${e.email}"
+			          th:text="${e.email}"
+			          style="font-size:11px; color:#333; word-break:break-all;">
+			    </span>
+			    <span th:if="${e.invalid}"
+			          style="font-size:11px; color:#b42318; text-decoration:line-through; opacity:0.7; word-break:break-all;"
+			          th:text="${e.email}"></span>
+			  </div>
+			</td>
 
           <!-- INMUEBLE -->
           <td th:style="${it.client.compradorFinal and it.property.sold

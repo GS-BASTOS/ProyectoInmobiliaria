@@ -18,7 +18,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
+import com.inmobiliaria.app.repo.ClientEmailRepository;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,14 +31,17 @@ public class ClientDetailController {
     private final ClientPropertyInteractionRepository interactionRepository;
     private final VisitRepository visitRepository;
     private final PropertyRepository propertyRepository;
+    private final ClientEmailRepository clientEmailRepository;
 
     public ClientDetailController(ClientRepository clientRepository,
                                    ClientPhoneRepository clientPhoneRepository,
+                                   ClientEmailRepository clientEmailRepository,
                                    ClientPropertyInteractionRepository interactionRepository,
                                    VisitRepository visitRepository,
                                    PropertyRepository propertyRepository) {
         this.clientRepository      = clientRepository;
         this.clientPhoneRepository = clientPhoneRepository;
+        this.clientEmailRepository = clientEmailRepository;
         this.interactionRepository = interactionRepository;
         this.visitRepository       = visitRepository;
         this.propertyRepository    = propertyRepository;
@@ -92,6 +95,37 @@ public class ClientDetailController {
         it.setNdaRequested(ndaRequested);
         interactionRepository.save(it);
     }
+    
+    
+    // ── email y telefono verificar ──────────────────────────────────────────
+ // ── POST PHONE INVALID ───────────────────────────────────
+    @PostMapping("/clientes/{clientId}/phones/{phoneId}/invalid")
+    @ResponseBody
+    public void togglePhoneInvalid(@PathVariable Long clientId,
+                                    @PathVariable Long phoneId,
+                                    @RequestParam("invalid") boolean invalid) {
+        ClientPhone phone = clientPhoneRepository.findById(phoneId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (phone.getClient() == null || !phone.getClient().getId().equals(clientId))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        phone.setInvalid(invalid);
+        clientPhoneRepository.save(phone);
+    }
+
+    // ── POST EMAIL INVALID ───────────────────────────────────
+    @PostMapping("/clientes/{clientId}/emails/{emailId}/invalid")
+    @ResponseBody
+    public void toggleEmailInvalid(@PathVariable Long clientId,
+                                    @PathVariable Long emailId,
+                                    @RequestParam("invalid") boolean invalid) {
+        ClientEmail emailEntity = clientEmailRepository.findById(emailId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (emailEntity.getClient() == null || !emailEntity.getClient().getId().equals(clientId))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        emailEntity.setInvalid(invalid);
+        clientEmailRepository.save(emailEntity);
+    }
+    
 
     // ── POST STATUS ──────────────────────────────────────────
     @PostMapping("/clientes/{clientId}/interacciones/{interactionId}/status")
