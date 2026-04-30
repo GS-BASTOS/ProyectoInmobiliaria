@@ -56,55 +56,69 @@ public class InteractionController {
         // Normalizar searchField
         String field = (searchField == null || searchField.isBlank()) ? "ALL" : searchField.trim().toUpperCase();
 
+        // Siempre pasar null a la DB para el texto — el filtro en memoria cubre todos los campos
         List<ClientPropertyInteraction> items;
         if (statusEnums.isEmpty()) {
-            items = interactionRepository.searchWithFilters(null, channel, "ALL".equals(field) ? q : null, from, to);
+            items = interactionRepository.searchWithFilters(null, channel, null, from, to);
         } else if (statusEnums.size() == 1) {
-            items = interactionRepository.searchWithFilters(statusEnums.get(0), channel, "ALL".equals(field) ? q : null, from, to);
+            items = interactionRepository.searchWithFilters(statusEnums.get(0), channel, null, from, to);
         } else {
-            items = interactionRepository.searchWithFilters(null, channel, "ALL".equals(field) ? q : null, from, to)
+            items = interactionRepository.searchWithFilters(null, channel, null, from, to)
                     .stream()
                     .filter(i -> statusEnums.contains(i.getStatus()))
                     .collect(Collectors.toList());
         }
 
-        // Filtro por campo específico en memoria
-        if (q != null && !q.isBlank() && !"ALL".equals(field)) {
+        // Filtro en memoria (todos los campos, incluyendo teléfono y correo)
+        if (q != null && !q.isBlank()) {
             String lq = q.trim().toLowerCase();
 
-            // Pre-cargar teléfonos/emails si el campo lo requiere (evita N+1)
+            // Pre-cargar teléfonos/emails para ALL, PHONE o EMAIL
             final Map<Long, List<ClientPhone>> filterPhones;
             final Map<Long, List<ClientEmail>> filterEmails;
-            if ("PHONE".equals(field) || "EMAIL".equals(field)) {
+            if ("ALL".equals(field) || "PHONE".equals(field) || "EMAIL".equals(field)) {
                 List<Long> preIds = items.stream()
                         .map(i -> i.getClient().getId()).distinct().toList();
-                filterPhones = "PHONE".equals(field)
-                        ? clientPhoneRepository.findByClient_IdInOrderByClient_IdAscPositionAsc(preIds)
-                            .stream().collect(Collectors.groupingBy(p -> p.getClient().getId()))
-                        : Collections.emptyMap();
-                filterEmails = "EMAIL".equals(field)
-                        ? clientEmailRepository.findByClient_IdInOrderByClient_IdAscPositionAsc(preIds)
-                            .stream().collect(Collectors.groupingBy(e -> e.getClient().getId()))
-                        : Collections.emptyMap();
+                filterPhones = clientPhoneRepository
+                        .findByClient_IdInOrderByClient_IdAscPositionAsc(preIds)
+                        .stream().collect(Collectors.groupingBy(p -> p.getClient().getId()));
+                filterEmails = clientEmailRepository
+                        .findByClient_IdInOrderByClient_IdAscPositionAsc(preIds)
+                        .stream().collect(Collectors.groupingBy(e -> e.getClient().getId()));
             } else {
                 filterPhones = Collections.emptyMap();
                 filterEmails = Collections.emptyMap();
             }
 
-            items = items.stream().filter(it -> switch (field) {
-                case "CLIENT"        -> matches(it.getClient().getFullName(), lq)
-                                     || matches(it.getClient().getCompanyName(), lq);
-                case "PHONE"         -> filterPhones.getOrDefault(it.getClient().getId(), List.of())
-                                     .stream().anyMatch(p -> matches(p.getPhoneNumber(), lq));
-                case "EMAIL"         -> filterEmails.getOrDefault(it.getClient().getId(), List.of())
-                                     .stream().anyMatch(e -> matches(e.getEmail(), lq));
-                case "SOLVIA_CODE"   -> matches(it.getClient().getSolviaCode(), lq);
-                case "PROPERTY_CODE" -> matches(it.getProperty().getPropertyCode(), lq);
-                case "MUNICIPALITY"  -> matches(it.getProperty().getMunicipality(), lq);
-                case "CHANNEL"       -> it.getChannel() != null
-                                     && it.getChannel().name().toLowerCase().contains(lq);
-                case "COMMENTS"      -> matches(it.getComments(), lq);
-                default              -> true;
+            items = items.stream().filter(it -> {
+                if ("ALL".equals(field)) {
+                    return matches(it.getClient().getFullName(), lq)
+                        || matches(it.getClient().getCompanyName(), lq)
+                        || matches(it.getClient().getSolviaCode(), lq)
+                        || filterPhones.getOrDefault(it.getClient().getId(), List.of())
+                                       .stream().anyMatch(p -> matches(p.getPhoneNumber(), lq))
+                        || filterEmails.getOrDefault(it.getClient().getId(), List.of())
+                                       .stream().anyMatch(e -> matches(e.getEmail(), lq))
+                        || matches(it.getProperty().getPropertyCode(), lq)
+                        || matches(it.getProperty().getMunicipality(), lq)
+                        || (it.getChannel() != null && it.getChannel().name().toLowerCase().contains(lq))
+                        || matches(it.getComments(), lq);
+                }
+                return switch (field) {
+                    case "CLIENT"        -> matches(it.getClient().getFullName(), lq)
+                                         || matches(it.getClient().getCompanyName(), lq);
+                    case "PHONE"         -> filterPhones.getOrDefault(it.getClient().getId(), List.of())
+                                         .stream().anyMatch(p -> matches(p.getPhoneNumber(), lq));
+                    case "EMAIL"         -> filterEmails.getOrDefault(it.getClient().getId(), List.of())
+                                         .stream().anyMatch(e -> matches(e.getEmail(), lq));
+                    case "SOLVIA_CODE"   -> matches(it.getClient().getSolviaCode(), lq);
+                    case "PROPERTY_CODE" -> matches(it.getProperty().getPropertyCode(), lq);
+                    case "MUNICIPALITY"  -> matches(it.getProperty().getMunicipality(), lq);
+                    case "CHANNEL"       -> it.getChannel() != null
+                                         && it.getChannel().name().toLowerCase().contains(lq);
+                    case "COMMENTS"      -> matches(it.getComments(), lq);
+                    default              -> true;
+                };
             }).collect(Collectors.toList());
         }
 
